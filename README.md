@@ -2,7 +2,7 @@
 
 This new version of the PowerShellToolkit leverages a number of different cmdlets ranging from core Windows Server, WMI, WSMAN, VMware PowerCLI, SQL Server, .NET and a host of others. The intention of the toolkit is to provide a library for customers and the Pure Storage field. 
 
-All releases of the PowerShellToolkit will have a digitally signed MSI and PSM1 files.
+All releases of the PowerShellToolkit will have a digitally signed MSI.
 
 Thanks,<br>
 Rob Barker (aka Barkz)<br>
