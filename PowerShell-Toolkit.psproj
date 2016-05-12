@@ -1,0 +1,22 @@
+﻿<Project>
+  <Version>1.1</Version>
+  <FileID>e1715b6e-24e5-4fdf-aff7-cdd8742ee866</FileID>
+  <ProjectType>1</ProjectType>
+  <Folders>
+    <Folder>Junk</Folder>
+  </Folders>
+  <Files>
+    <File ReferenceName="" Build="2">PowerShell-Toolkit.psd1</File>
+    <File ReferenceName="" Build="0">PowerShell-Toolkit.psm1</File>
+    <File ReferenceName="Call-GUI_txt" Build="1">Junk\GUI.txt</File>
+    <File ReferenceName="Call-LocalServer_txt" Build="1">Junk\LocalServer.txt</File>
+    <File ReferenceName="Call-Nano-Server_txt" Build="1">Junk\Nano-Server.txt</File>
+    <File ReferenceName="Call-PWSA_txt" Build="1">Junk\PWSA.txt</File>
+    <File ReferenceName="Call-WindowsVersion_txt" Build="1">Junk\WindowsVersion.txt</File>
+    <File ReferenceName="Call-Backup-PfaSQLServer_ps1" Build="0" CommandExtension="False">Junk\Backup-PfaSQLServer.ps1</File>
+    <File ReferenceName="Call-Sample-SetupDirectoryServices_ps1" Build="0" CommandExtension="False">Junk\Sample-SetupDirectoryServices.ps1</File>
+    <File ReferenceName="Call-Sample-WorkingWithFlashRecoverSnapshots_ps1" Build="0" CommandExtension="False">Junk\Sample-WorkingWithFlashRecoverSnapshots.ps1</File>
+  </Files>
+  <StartupScript>
+  </StartupScript>
+</Project>
