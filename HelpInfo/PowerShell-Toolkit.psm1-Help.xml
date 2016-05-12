@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<helpItems xmlns="http://msh" schema="maml">
+	<!--Edited with: SAPIEN PowerShell HelpWriter 2015 v1.0.11-->
+	<!--All Commands-->
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Get-HostBusAdapter</command:name>
+			<maml:description>
+				<maml:para>Retrieves the HBAs installed on the specific computer.</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para/>
+			</maml:copyright>
+			<command:verb>Get</command:verb>
+			<command:noun>HostBusAdapter</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>Retrieves the HBAs installed on the specific computer.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+			<command:syntaxItem>
+				<maml:name>Get-HostBusAdapter</maml:name>
+				<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="0">
+					<maml:name>ComputerName</maml:name>
+					<maml:description>
+						<maml:para/>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<!--All Parameters-->
+			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="0">
+				<maml:name>ComputerName</maml:name>
+				<maml:description>
+					<maml:para/>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri/>
+				</dev:type>
+				<dev:defaultValue/>
+			</command:parameter>
+		</command:parameters>
+		<command:examples>
+			<!--Examples-->
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<maml:introduction>
+					<maml:para>PS C:\&gt;</maml:para>
+				</maml:introduction>
+				<dev:code>Get-HBAObject -ComputerName MyServer</dev:code>
+				<dev:remarks>
+					<maml:para>
+					</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Get-WindowsPowerScheme</command:name>
+			<maml:description>
+				<maml:para>Retrieve the currently active Windows Server power scheme.</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para/>
+			</maml:copyright>
+			<command:verb>Get</command:verb>
+			<command:noun>WindowsPowerScheme</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>Determine what the current Windows Server power scheme that is being used to ensure the host
+is optimally configured for performance.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+			<command:syntaxItem>
+				<maml:name>Get-WindowsPowerScheme</maml:name>
+				<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="0">
+					<maml:name>ComputerName</maml:name>
+					<maml:description>
+						<maml:para/>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<!--All Parameters-->
+			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="0">
+				<maml:name>ComputerName</maml:name>
+				<maml:description>
+					<maml:para/>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri/>
+				</dev:type>
+				<dev:defaultValue/>
+			</command:parameter>
+		</command:parameters>
+		<command:examples>
+			<!--Examples-->
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<maml:introduction>
+					<maml:para>PS C:\&gt;</maml:para>
+				</maml:introduction>
+				<dev:code>Get-WindowsPowerScheme</dev:code>
+				<dev:remarks>
+					<maml:para>
+					</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Open-PureStorageGitHub</command:name>
+			<maml:description>
+				<maml:para>Open-PureStorageGitHub</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para/>
+			</maml:copyright>
+			<command:verb>Open</command:verb>
+			<command:noun>PureStorageGitHub</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para/>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+			<command:syntaxItem>
+				<maml:name>Open-PureStorageGitHub</maml:name>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<!--All Parameters-->
+		</command:parameters>
+	</command:command>
+	<!--Edited with: SAPIEN PowerShell HelpWriter 2015 v1.0.11-->
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>New-PfaShadowCopy</command:name>
+			<maml:description>
+				<maml:para>
+				</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para>
+				</maml:para>
+			</maml:copyright>
+			<command:verb>New</command:verb>
+			<command:noun>PfaShadowCopy</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>
+			</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+		</command:syntax>
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Get-PfaShadowCopy</command:name>
+			<maml:description>
+				<maml:para>
+				</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para>
+				</maml:para>
+			</maml:copyright>
+			<command:verb>Get</command:verb>
+			<command:noun>PfaShadowCopy</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>
+			</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+		</command:syntax>
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Register-PfaHostVolume</command:name>
+			<maml:description>
+				<maml:para>
+				</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para>
+				</maml:para>
+			</maml:copyright>
+			<command:verb>Register</command:verb>
+			<command:noun>PfaHostVolume</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>
+			</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+		</command:syntax>
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Unregister-PfaHostVolume</command:name>
+			<maml:description>
+				<maml:para>
+				</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para>
+				</maml:para>
+			</maml:copyright>
+			<command:verb>Unregister</command:verb>
+			<command:noun>PfaHostVolume</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>
+			</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+		</command:syntax>
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+		<!--Command-->
+		<command:details>
+			<command:name>Get-QuickFixEngineering</command:name>
+			<maml:description>
+				<maml:para>
+				</maml:para>
+			</maml:description>
+			<maml:copyright>
+				<maml:para>
+				</maml:para>
+			</maml:copyright>
+			<command:verb>Get</command:verb>
+			<command:noun>QuickFixEngineering</command:noun>
+			<dev:version/>
+		</command:details>
+		<maml:description>
+			<maml:para>
+			</maml:para>
+		</maml:description>
+		<command:syntax>
+			<!--Parameter Sets-->
+		</command:syntax>
+	</command:command>
+	<!--Edited with: SAPIEN PowerShell HelpWriter 2015 v1.0.11-->
+</helpItems>
