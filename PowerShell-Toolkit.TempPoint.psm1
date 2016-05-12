@@ -40,7 +40,7 @@
 # 
 # Under Development 
 #
-<#function New-FlashArrayReport() {
+function New-FlashArrayReport() {
     [CmdletBinding()]
     Param (
 		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $Array, 
@@ -56,8 +56,8 @@
 	$Script:Report = @()
 	$Script:CurrentTime = Get-Date
 }
-#>
-<##region Helper-functions
+
+#region Helper-functions
 #
 # 
 #
@@ -188,8 +188,8 @@ function Get-Snapshots {
 $Script:provisioned =  Convert-Size -From GB -To TB $provisioned -Precision 2
 }
 #endregion
-#>
-<#function Connect-PfaFlashArray () {
+
+function Connect-PfaFlashArray () {
 try
 {	
 
@@ -250,7 +250,7 @@ catch [system.exception]
 	write-host $Error[0]
 } # End Catch
 }
-#><#
+
 $ListOfAttachments = ((Get-Location).Path + "\" + $listofattachments)
 
 Connect-PfaFlashArray
@@ -415,11 +415,11 @@ $emailMessage.Attachments.Add( $attachment )
 
 $SMTPClient.Send($emailMessage) 
 $attachment.Dispose();
-$emailMessage.Dispose();#>
+$emailMessage.Dispose();
 
 # NEEDS WORK
 # Make Report for Support to Review
-<#function Test-WindowsBestPractices(){
+function Test-WindowsBestPractices(){
 	$Windows2008R2 = @(
 	'KB979711', 'KB2520235', 'KB2528357',
 	'KB2684681', 'KB2718576', 'KB2522766',
@@ -439,7 +439,7 @@ $emailMessage.Dispose();#>
 	#MPIO
 	#iSCSI
     # Create Analysis report using New-Report cmdlet
-}#>
+}
 
 # NEEDS WORK
 function Optimize-Unmap()
