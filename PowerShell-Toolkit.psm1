@@ -32,14 +32,14 @@
 #Requires -Version 3
 #Requires -Module PureStoragePowerShellSDK
 
+
 #
 #  TODO -- Add welcome message with getting started information. 
 #
 
 
 # 
-# Under Development 
-#
+# UNDER DEVELOPMENT -- New-FlashArrayReport
 <#function New-FlashArrayReport() {
     [CmdletBinding()]
     Param (
@@ -56,11 +56,8 @@
 	$Script:Report = @()
 	$Script:CurrentTime = Get-Date
 }
-#>
-<##region Helper-functions
-#
-# 
-#
+
+#region Helper-functions
 function New-PieChart() {
 	param([string]$FileName)
 		
@@ -110,9 +107,6 @@ function New-PieChart() {
 	$Chart.SaveImage($FileName + ".png","png")
 }
 
-#
-#
-#
 function Convert-Size { 
 {
     [CmdletBinding()]
@@ -144,9 +138,6 @@ function Convert-Size {
 	return [Math]::Round($value,$Precision,[MidPointRounding]::AwayFromZero)            
 }         
 
-#
-#
-#
 function Get-Volumes {
 	$Script:numVols = $MyVol.length
 	$Script:startVol = 0
@@ -188,8 +179,8 @@ function Get-Snapshots {
 $Script:provisioned =  Convert-Size -From GB -To TB $provisioned -Precision 2
 }
 #endregion
-#>
-<#function Connect-PfaFlashArray () {
+
+function Connect-PfaFlashArray () {
 try
 {	
 
@@ -250,7 +241,7 @@ catch [system.exception]
 	write-host $Error[0]
 } # End Catch
 }
-#><#
+
 $ListOfAttachments = ((Get-Location).Path + "\" + $listofattachments)
 
 Connect-PfaFlashArray
@@ -416,10 +407,10 @@ $emailMessage.Attachments.Add( $attachment )
 $SMTPClient.Send($emailMessage) 
 $attachment.Dispose();
 $emailMessage.Dispose();#>
+#>
 
-# NEEDS WORK
-# Make Report for Support to Review
-<#function Test-WindowsBestPractices(){
+
+function Test-WindowsBestPractices(){
 	$Windows2008R2 = @(
 	'KB979711', 'KB2520235', 'KB2528357',
 	'KB2684681', 'KB2718576', 'KB2522766',
@@ -441,7 +432,8 @@ $emailMessage.Dispose();#>
     # Create Analysis report using New-Report cmdlet
 }#>
 
-# NEEDS WORK
+# 
+# UNDER DEVELOPMENT -- Optimize-Unmap
 function Optimize-Unmap()
 {
     [CmdletBinding()]
@@ -587,7 +579,7 @@ function Open-PureStorageGitHub
 {
     try
     {
-        $link = 'https://github.com/barkz/PureStoragePowerShellToolkit'
+        $link = 'https://github.com/purestorage-openconnect/powershell-toolkit'
         $browserProcess = [System.Diagnostics.Process]::Start($link)
     }
     catch
@@ -604,13 +596,10 @@ function Get-WindowsPowerScheme()
         [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $ComputerName
     )
 	
-    try
-    {
+    try {
         $PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
         Write-Host $ComputerName 'is set to' $PowerScheme.ElementName
-    }
-    catch
-    {
+    } catch {
         
     }
 }
@@ -660,13 +649,10 @@ function Get-QuickFixEngineering
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-QueueDepth()
 {
-    try
-    {
+    try {
         $DriverParam = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\ql2300\Parameters\Device\'
         'Queue Depth is ' + $DriverParam.DriverParameter
-    }
-    catch
-    {
+    } catch {
 
     }
 }
@@ -674,29 +660,29 @@ function Get-QueueDepth()
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-HostBusAdapter()
 {
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory = $true)][string] $ComputerName
-    )
+	[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $true)]
+		[string] $ComputerName
+	)
 	
-    $Namespace = 'root\WMI'
-    try
-    {
-        $port = Get-WmiObject -ComputerName $ComputerName -Class MSFC_FibrePortHBAAttributes -Namespace $Namespace @PSBoundParameters
-        $hbas = Get-WmiObject -ComputerName $ComputerName -Class MSFC_FCAdapterHBAAttributes -Namespace $Namespace @PSBoundParameters
-        $hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
-        $hbas = $hbas | Select-Object $hbaProp
-        $hbas | %{ $_.NodeWWN = ((($_.NodeWWN) | % { '{0:x2}' -f $_ }) -join ':').ToUpper() }
+	try
+	{
+		$port = Get-WmiObject -Class MSFC_FibrePortHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
+		$hbas = Get-WmiObject -Class MSFC_FCAdapterHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
+		$hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
+		$hbas = $hbas | Select-Object $hbaProp
+		$hbas | %{ $_.NodeWWN = ((($_.NodeWWN) | % { '{0:x2}' -f $_ }) -join ':').ToUpper() }
 		
-        ForEach ($hba in $hbas)
-        {
-            Add-Member -MemberType NoteProperty -InputObject $hba -Name FabricName -Value (($port | Where-Object { $_.instancename -eq $hba.instancename }).attributes | Select-Object @{ Name = 'Fabric Name'; Expression = { (($_.fabricname | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }, @{ Name = 'Port WWN'; Expression = { (($_.PortWWN | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }) -passThru
-        }
-    }
-    catch
-    {
-
-    }
+		ForEach ($hba in $hbas)
+		{
+			Add-Member -MemberType NoteProperty -InputObject $hba -Name FabricName -Value (($port | Where-Object { $_.instancename -eq $hba.instancename }).attributes | Select-Object @{ Name = 'Fabric Name'; Expression = { (($_.fabricname | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }, @{ Name = 'Port WWN'; Expression = { (($_.PortWWN | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }) -passThru
+		}
+	}
+	catch
+	{
+		
+	}
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
