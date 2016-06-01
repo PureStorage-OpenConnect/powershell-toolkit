@@ -407,16 +407,16 @@ $emailMessage.Attachments.Add( $attachment )
 $SMTPClient.Send($emailMessage) 
 $attachment.Dispose();
 $emailMessage.Dispose();#>
-#>
 
-
+# 
+# UNDER DEVELOPMENT -- Test-WindowsBestPractices
 function Test-WindowsBestPractices(){
 	$Windows2008R2 = @(
 	'KB979711', 'KB2520235', 'KB2528357',
 	'KB2684681', 'KB2718576', 'KB2522766',
 	'KB2528357', 'KB2684681', 'KB2754704', 'KB2990170') 
 	$Windows2012 = @('KB2796995', 'KB2990170')  
-	$Windows2012R2 = @('KB2990170',)
+	$Windows2012R2 = @('KB2990170')
 	$Windows2016 = @('KB2967917','KB2961072','KB2998527')
 
 	$HotfixIds = Get-HotFix
@@ -822,9 +822,7 @@ Export-ModuleMember -function Optimize-Unmap
 Export-ModuleMember -function Get-WindowsPowerScheme
 Export-ModuleMember -function Get-HostBusAdapter
 Export-ModuleMember -function Register-HostVolumes
-Set-Alias -Name purescanadd -Value Register-HostVolumes -Scope Global
 Export-ModuleMember -function Unregister-HostVolumes
-Set-Alias -Name purescanremove -Value Register-HostVolumes -Scope Global
 Export-ModuleMember -function Get-QuickFixEngineering
 Export-ModuleMember -function Test-WindowsBestPractices
 Export-ModuleMember -function Get-BlockSize

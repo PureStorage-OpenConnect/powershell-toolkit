@@ -28,7 +28,7 @@
 	RootModule = 'PowerShell-Toolkit.psm1'
 	
 	# Version number of this module; major.minor[.build[.revision]]
-	ModuleVersion = '3.1.0.0'
+	ModuleVersion = '3.1.0.531'
 	
 	# ID used to uniquely identify this module
 	GUID = '80ed4b74-cd66-4428-b4dd-db839991c2d6'
@@ -37,7 +37,7 @@
 	Author = 'barkz@purestorage.com'
 	
 	# Company or vendor of this module
-	CompanyName = 'Pure Storage Inc.'
+	CompanyName = 'Pure Storage, Inc.'
 	
 	# Copyright statement for this module
 	Copyright = '(c) 2016 Pure Storage, Inc. All rights reserved.'

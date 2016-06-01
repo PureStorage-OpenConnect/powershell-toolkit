@@ -8,7 +8,7 @@
   <?else?>-->
     <?define BUILD_NUMBER = "3.1.0.531"?>
   <!--<?endif?>-->
-  <?define ProductName = "Pure Storage PowerShell Toolkit [BUILD_NUMBER]"?>
+  <?define ProductName = "Pure Storage PowerShell Toolkit"?>
   <?define UpgradeCode = "A67E7ADE-B611-4BE6-BB96-B34A42265B4F"?>
   <?define ToolkitTopRight = "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\logo_top_right.bmp"?>
   <?define ToolkitBackground = "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\logo_black_bg.bmp"?>
