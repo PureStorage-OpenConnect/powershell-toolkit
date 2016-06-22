@@ -6,9 +6,9 @@
   <!--<?ifdef env.BUILD_NUMBER?>
     <?define BUILD_NUMBER = $(env.BUILD_NUMBER)?>
   <?else?>-->
-    <?define BUILD_NUMBER = "3.1.0.531"?>
+    <?define BUILD_NUMBER = "3.1.0.622"?>
   <!--<?endif?>-->
-  <?define ProductName = "Pure Storage PowerShell Toolkit"?>
+  <?define ProductName = "Pure Storage PowerShell Toolkit 3.1.0.622"?>
   <?define UpgradeCode = "A67E7ADE-B611-4BE6-BB96-B34A42265B4F"?>
   <?define ToolkitTopRight = "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\logo_top_right.bmp"?>
   <?define ToolkitBackground = "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\logo_black_bg.bmp"?>
@@ -17,7 +17,7 @@
   <?define PSM1 = "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\PowerShell-Toolkit.psm1"?>
   <?define RELNOTES = "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\Release Notes.txt"?>
   <?define ModuleDirectory = "Toolkit"?>
-  <?define ProductVersion="3.1.0.531"?>
+  <?define ProductVersion="3.1.0.622"?>
   <Product Id="*" Name="$(var.ProductName)" Language="1033" Version="$(var.ProductVersion)" Manufacturer="Pure Storage, Inc" UpgradeCode="$(var.UpgradeCode)">
 		<Package Id="*" InstallerVersion="200" Compressed="yes" InstallScope="perMachine" Platform="x64" />
     <!--afterInstallValidate"-->
