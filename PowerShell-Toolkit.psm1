@@ -32,15 +32,14 @@
 #Requires -Version 3
 #Requires -Module PureStoragePowerShellSDK
 
+
 #
 #  TODO -- Add welcome message with getting started information. 
 #
 
-
 # 
-# Under Development 
-#
-function New-FlashArrayReport() {
+#region UNDER_DEVELOPMENT -- New-FlashArrayReport Functions
+<#function New-FlashArrayReport() {
     [CmdletBinding()]
     Param (
 		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $Array, 
@@ -58,9 +57,6 @@ function New-FlashArrayReport() {
 }
 
 #region Helper-functions
-#
-# 
-#
 function New-PieChart() {
 	param([string]$FileName)
 		
@@ -110,9 +106,6 @@ function New-PieChart() {
 	$Chart.SaveImage($FileName + ".png","png")
 }
 
-#
-#
-#
 function Convert-Size { 
 {
     [CmdletBinding()]
@@ -144,9 +137,6 @@ function Convert-Size {
 	return [Math]::Round($value,$Precision,[MidPointRounding]::AwayFromZero)            
 }         
 
-#
-#
-#
 function Get-Volumes {
 	$Script:numVols = $MyVol.length
 	$Script:startVol = 0
@@ -415,34 +405,177 @@ $emailMessage.Attachments.Add( $attachment )
 
 $SMTPClient.Send($emailMessage) 
 $attachment.Dispose();
-$emailMessage.Dispose();
+$emailMessage.Dispose();#>
+#endregion
 
-# NEEDS WORK
-# Make Report for Support to Review
-function Test-WindowsBestPractices(){
-	$Windows2008R2 = @(
-	'KB979711', 'KB2520235', 'KB2528357',
-	'KB2684681', 'KB2718576', 'KB2522766',
-	'KB2528357', 'KB2684681', 'KB2754704', 'KB2990170') 
-	$Windows2012 = @('KB2796995', 'KB2990170')  
-	$Windows2012R2 = @('KB2990170',)
-	$Windows2016 = @('KB2967917','KB2961072','KB2998527')
-
-	$HotfixIds = Get-HotFix
-
-	ForEach($Hotfix in $Windows2016)
-	{
-	Write-Host $Hotfix '---' $HotfixId  
-
+# 
+# UNDER DEVELOPMENT -- Test-WindowsBestPractices
+function Test-WindowsBestPractices()
+{
+	<#[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $True)][string]$ComputerName
+	)#>
+	
+		Clear
+		
+		Write-Output '============================================================'
+		Write-Output 'Pure Storage Windows Server Best Practice Analyzer'
+		Write-Output '============================================================'
+	
+		<#TODO -- Add to output
+			VERSION #
+			VERSION # output to screeen
+			LINK at bottom
+			HBA
+			CHECK WINDOWS VERSION
+		$Windows2008R2 = @(
+		'KB979711', 'KB2520235', 'KB2528357',
+		'KB2684681', 'KB2718576', 'KB2522766',
+		'KB2528357', 'KB2684681', 'KB2754704', 'KB2990170')
+		$Windows2012 = @('KB2796995', 'KB2990170')
+		$Windows2012R2 = @('KB2990170')
+		$Windows2016 = @('KB2967917', 'KB2961072', 'KB2998527')
+		
+		$HotfixIds = Get-HotFix
+		
+		ForEach ($Hotfix in $Windows2016)
+		{
+			#Write-Host $Hotfix '---' $HotfixId  
+		}
+		#>
+		
+		Write-Output ''
+		Write-Output '=============================='
+		Write-Output 'Host Information'
+		Write-Output '=============================='
+		Get-SilComputer
+		#Get-SilWindowsUpdate | Format-Table -AutoSize
+		
+		Write-Output ''
+		Write-Output '=============================='
+		Write-Output 'Multipath-IO Verificaton'
+		Write-Output '=============================='
+		if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed')
+		{
+			Write-Output 'PASS: Multipath I/O is installed.'
+		}
+		else
+		{
+			Write-Warning 'FAIL: Please install Multipath-IO.'
+			break
+		}
+		
+		Write-Output ''
+		Write-Output '=============================='
+		Write-Output 'MPIO Setting Verification'
+		Write-Output '=============================='
+		
+		ForEach ($DSM in Get-MSDSMSupportedHW)
+		{
+			if (!(($DSM).VendorId -eq 'PURE' -and ($DSM).ProductId -eq 'FlashArray'))
+			{
+				Write-Output 'PASS: Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.'
+				
+				$MPIO = Get-MPIOSetting | Out-String -Stream
+				
+				if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:60')
+				{
+					#30
+					Write-Output 'PASS: MPIO PDORemovePeriod passes Windows Server Best Practice check.'
+				}
+				else
+				{
+					Write-Warning 'FAIL: MPIO PDORemovePeriod does NOT pass Windows Server Best Practice check.'
+				}
+				if (($MPIO[7] -replace " ", "") -ceq 'UseCustomPathRecoveryTime:Enabled')
+				{
+					#Enabled
+					Write-Output 'PASS: MPIO UseCustomPathRecoveryTime passes Windows Server Best Practice check.'
+				}
+				else
+				{
+					Write-Warning 'FAIL: MPIO UseCustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
+				}
+				if (($MPIO[8] -replace " ", "") -ceq 'CustomPathRecoveryTime:20')
+				{
+					#20
+					Write-Output 'PASS: MPIO CustomPathRecoveryTime passes Windows Server Best Practice check.'
+				}
+				else
+				{
+					Write-Warning 'FAIL: MPIO CustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
+				}
+				if (($MPIO[9] -replace " ", "") -ceq 'DiskTimeoutValue:60')
+				{
+					#60
+					Write-Output 'PASS: MPIO DiskTimeoutValue passes Windows Server Best Practice check.'
+				}
+				else
+				{
+					Write-Warning 'FAIL: MPIO PDiskTimeoutValue does NOT pass Windows Server Best Practice check.'
+				}
+				
+        <#RESEARCH -- Support for Windows Server 2008 R2. 
+	        $Paths = (Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings").Name
+	        ForEach ($Path in $Paths) {
+	            $PureVolumePath = $Path.Substring(93)
+	            (Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings\$PureVolumePath").Name.Substring(93) | Select Name
+	        }
+	        $DsmContext = Get-WmiObject -Namespace 'root/WMI' -Class MPIO_REGISTERED_DSM
+	        $DsmCounters = Get-Wmiobject -ComputerName $ComputerName -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS             
+	        Invoke-WmiMethod -Class MPIO_WMI_METHODS -Name SetDSMCounters -ArgumentList $DsmContext#, $DsmCounters
+	        Invoke-WmiMethod -Class MPIO_TIMERS_COUNTERS -Name PDORemovePeriod -ArgumentList @{PDORemovePeriod=60}
+	        Set-WmiInstance -Class MPIO_TIMERS_COUNTERS -Arguments @{PDORemovePeriod=60}
+	        Get-WmiObject -Query 'SELECT InstanceName from MPIO_WMI_METHODS'
+	        Get-WmiObject -Namespace 'root/WMI' -Class MPIO_ADAPTER_INFORMATION -ComputerName $env:COMPUTERNAME
+	        Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT PathList FROM MPIO_PATH_INFORMATION'
+	        Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT NumberPaths FROM MPIO_PATH_INFORMATION' -ComputerName $env:COMPUTERNAME
+	        Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT DsmParameters FROM MPIO_REGISTERED_DSM' -ComputerName $env:COMPUTERNAME
+	        Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_HEALTH_INFO
+	        Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_INFO 
+	        Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_HEALTH_INFO
+	        Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_INFORMATION
+	        Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_REGISTERED_DSM
+	        Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS ######             
+	        Get-WmiObject -Namespace 'root/cimv2' -Class DSM_Load_Balance_Policy
+        #>
+				
+			}
+			else
+			{
+				if ($DSM.VendorId -eq 'Vendor 8')
+				{
+					Write-Warning "RECOMMENDATION: Remove the sample DSM entry (VendorId=$DSM.VendorId and ProductId=$DSM.ProductId)"
+				}
+				else
+				{
+					Write-Warning 'Microsoft Device Specific Module (MSDSM) is NOT configured for Pure Storage FlashArray.'
+				}
+			}
+		}
+		
+		Write-Output ''
+		Write-Output '=============================='
+		Write-Output 'TRIM/UNMAP Verification'
+		Write-Output '=============================='
+		if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0)
+		{
+			Write-Output 'PASS: Delete Notification Enabled'
+		}
+		else
+		{
+			Write-Warning 'Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications.'
+		}
+		
+		#TODO: iSCSI
+		#TODO: Create Analysis report using New-Report cmdlets
 	}
-	#Get-SilWindowsUpdate
-	#MPIO
-	#iSCSI
-    # Create Analysis report using New-Report cmdlet
-}
+} #>
 
-# NEEDS WORK
-function Optimize-Unmap()
+# 
+# UNDER DEVELOPMENT -- Optimize-Unmap
+<#function Optimize-Unmap()
 {
     [CmdletBinding()]
     Param (
@@ -578,16 +711,38 @@ function Optimize-Unmap()
 		$facount = $facount + 1
 	}
 }
+#>
 #endregion
 
 #region Miscellenaous-Cmdlets
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
+function Get-WindowsPowerScheme()
+{
+	[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $True)]
+		[ValidateNotNullOrEmpty()]
+		[string]$ComputerName
+	)
+	
+	try
+	{
+		$PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
+		Write-Warning $ComputerName 'is set to' $PowerScheme.ElementName
+	}
+	catch
+	{
+		
+	}
+}
+
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Open-PureStorageGitHub
 {
     try
     {
-        $link = 'https://github.com/barkz/PureStoragePowerShellToolkit'
+        $link = 'https://github.com/purestorage-openconnect/powershell-toolkit'
         $browserProcess = [System.Diagnostics.Process]::Start($link)
     }
     catch
@@ -596,26 +751,7 @@ function Open-PureStorageGitHub
     }
 }
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-WindowsPowerScheme()
-{
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $ComputerName
-    )
-	
-    try
-    {
-        $PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
-        Write-Host $ComputerName 'is set to' $PowerScheme.ElementName
-    }
-    catch
-    {
-        
-    }
-}
-
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Set-QueueDepth()
 {
     [CmdletBinding()]
@@ -651,55 +787,52 @@ function Set-QueueDepth()
     }
 }
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Get-QuickFixEngineering
 {
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Get-QueueDepth()
 {
-    try
-    {
+    try {
         $DriverParam = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\ql2300\Parameters\Device\'
         'Queue Depth is ' + $DriverParam.DriverParameter
-    }
-    catch
-    {
+    } catch {
 
     }
 }
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Get-HostBusAdapter()
 {
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory = $true)][string] $ComputerName
-    )
+	[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $true)]
+		[string] $ComputerName
+	)
 	
-    $Namespace = 'root\WMI'
-    try
-    {
-        $port = Get-WmiObject -ComputerName $ComputerName -Class MSFC_FibrePortHBAAttributes -Namespace $Namespace @PSBoundParameters
-        $hbas = Get-WmiObject -ComputerName $ComputerName -Class MSFC_FCAdapterHBAAttributes -Namespace $Namespace @PSBoundParameters
-        $hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
-        $hbas = $hbas | Select-Object $hbaProp
-        $hbas | %{ $_.NodeWWN = ((($_.NodeWWN) | % { '{0:x2}' -f $_ }) -join ':').ToUpper() }
+	try
+	{
+		$port = Get-WmiObject -Class MSFC_FibrePortHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
+		$hbas = Get-WmiObject -Class MSFC_FCAdapterHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
+		$hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
+		$hbas = $hbas | Select-Object $hbaProp
+		$hbas | %{ $_.NodeWWN = ((($_.NodeWWN) | % { '{0:x2}' -f $_ }) -join ':').ToUpper() }
 		
-        ForEach ($hba in $hbas)
-        {
-            Add-Member -MemberType NoteProperty -InputObject $hba -Name FabricName -Value (($port | Where-Object { $_.instancename -eq $hba.instancename }).attributes | Select-Object @{ Name = 'Fabric Name'; Expression = { (($_.fabricname | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }, @{ Name = 'Port WWN'; Expression = { (($_.PortWWN | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }) -passThru
-        }
-    }
-    catch
-    {
-
-    }
+		ForEach ($hba in $hbas)
+		{
+			Add-Member -MemberType NoteProperty -InputObject $hba -Name FabricName -Value (($port | Where-Object { $_.instancename -eq $hba.instancename }).attributes | Select-Object @{ Name = 'Fabric Name'; Expression = { (($_.fabricname | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }, @{ Name = 'Port WWN'; Expression = { (($_.PortWWN | % { '{0:x2}' -f $_ }) -join ':').ToUpper() } }) -passThru
+		}
+	}
+	catch
+	{
+		
+	}
 }
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Register-HostVolumes ()
 {
     [CmdletBinding()]
@@ -733,6 +866,7 @@ function Register-HostVolumes ()
     }
 }
 
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Unregister-HostVolumes ()
 {
     [CmdletBinding()]
@@ -756,8 +890,7 @@ function Unregister-HostVolumes ()
             {
                 $disknumber = $disk.Number
                 $cmds = "`"SELECT DISK $disknumber`"",
-                "`"ATTRIBUTES DISK CLEAR READONLY`"",
-                "`"ONLINE DISK`""
+                "`"OFFLINE DISK`""
                 $scriptblock = [string]::Join(',', $cmds)
                 $diskpart = $ExecutionContext.InvokeCommand.NewScriptBlock("$scriptblock | DISKPART")
                 $result = Invoke-Command -ComputerName $Computername -ScriptBlock $diskpart -ErrorAction Stop
@@ -769,7 +902,7 @@ function Unregister-HostVolumes ()
 
 #region PureStorage-VSS-Cmdlets
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Get-ShadowCopy()
 {
     [CmdletBinding()]
@@ -790,7 +923,7 @@ function Get-ShadowCopy()
     Remove-Item $dsh
 }
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function New-ShadowCopy()
 {
     [CmdletBinding()]
@@ -825,23 +958,21 @@ function New-ShadowCopy()
 
 #region PureStoragePowerShellSDK-Cmdlets
 
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#.ExternalHelp PowerShell-Toolkit.psm1-help.xml
 function Get-BlockSize ()
 {
 
 }
 #endregion
 
-Export-ModuleMember -function Optimize-Unmap 
+#Export-ModuleMember -function Optimize-Unmap 
 Export-ModuleMember -function Get-WindowsPowerScheme
 Export-ModuleMember -function Get-HostBusAdapter
 Export-ModuleMember -function Register-HostVolumes
-Set-Alias -Name purescanadd -Value Register-HostVolumes -Scope Global
 Export-ModuleMember -function Unregister-HostVolumes
-Set-Alias -Name purescanremove -Value Register-HostVolumes -Scope Global
 Export-ModuleMember -function Get-QuickFixEngineering
 Export-ModuleMember -function Test-WindowsBestPractices
-Export-ModuleMember -function Get-BlockSize
+#Export-ModuleMember -function Get-BlockSize
 Export-ModuleMember -function Get-HostBusAdapter
 Export-ModuleMember -function Set-QueueDepth
 Export-ModuleMember -function New-VolumeShadowCopy

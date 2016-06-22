@@ -1,0 +1,3 @@
+move "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\bin\x64\Debug\PureStoragePowerShellToolkit.msi" "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\PureStoragePowerShellToolkit.msi"
+rd /s /q "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\Installer\bin\x64"
+"C:\Program Files (x86)\Microsoft Visual Studio 14.0\signtool" sign /t http://timestamp.globalsign.com/scripts/timstamp.dll /n "Robert Barker" "C:\Users\Barkz\Box Sync\github\PowerShell-Toolkit\PureStoragePowerShellToolkit.msi"
