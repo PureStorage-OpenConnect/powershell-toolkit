@@ -2,10 +2,10 @@
 	===========================================================================
 	 Created by:   	barkz@purestorage.com
 	 Organization: 	Pure Storage, Inc.
-	 Filename:     	PowerShell-Toolkit.psd1
-	 Copyright:		(c) 2016 Pure Storage, Inc.
+	 Filename:     	PureStoragePowerShellToolkit.psd1
+	 Copyright:		(c) 2017 Pure Storage, Inc.
 	-------------------------------------------------------------------------
-	Module Name: PowerShell-Toolkit
+	Module Name: PureStoragePowerShellToolkit
 
 	Disclaimer
  	The sample script and documentation are provided AS IS and are not supported by 
@@ -25,10 +25,10 @@
 @{
 	
 	# Script module or binary module file associated with this manifest.
-	RootModule = 'PowerShell-Toolkit.psm1'
+	RootModule = 'PureStoragePowerShellToolkit.psm1'
 	
 	# Version number of this module; major.minor[.build[.revision]]
-	ModuleVersion = '3.1.0.531'
+	ModuleVersion = '3.2.0.0'
 	
 	# ID used to uniquely identify this module
 	GUID = '80ed4b74-cd66-4428-b4dd-db839991c2d6'
@@ -40,10 +40,10 @@
 	CompanyName = 'Pure Storage, Inc.'
 	
 	# Copyright statement for this module
-	Copyright = '(c) 2016 Pure Storage, Inc. All rights reserved.'
+	Copyright = '(c) 2017 Pure Storage, Inc. All rights reserved.'
 	
 	# Description of the functionality provided by this module
-	Description = 'Pure Storage PowerShell Toolkit 3.x built on the PureStorge PowerShell SDK 1.5.4.0.'
+	Description = 'Pure Storage PowerShell Toolkit 3.2.'
 		
 	# Minimum version of the Windows PowerShell engine required by this module
 	PowerShellVersion = '3.0'
@@ -64,7 +64,7 @@
 	ProcessorArchitecture = 'None'
 	
 	# Modules that must be imported into the global environment prior to importing this module
-	RequiredModules = 'PureStoragePowerShellSDK'
+	RequiredModules = ''
 	
 	# Assemblies that must be loaded prior to importing this module
 	RequiredAssemblies = @()
@@ -106,19 +106,22 @@
 		PSData = @{
 			
 			# Tags applied to this module. These help with module discovery in online galleries.
-			# Tags = @()
+			Tags = @('PureStorage')
 			
 			# A URL to the license for this module.
-			# LicenseUri = ''
+			LicenseUri = 'https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/LICENSE'
 			
 			# A URL to the main website for this project.
-			# ProjectUri = ''
+			ProjectUri = 'https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit'
 			
 			# A URL to an icon representing this module.
-			# IconUri = ''
+			IconUri = 'https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/Installer/icon.ico'
 			
 			# ReleaseNotes of this module
 			# ReleaseNotes = ''
+      
+			# External Module Dependencies
+			ExternalModuleDependencies = @()
 		}		
 	}
 	
