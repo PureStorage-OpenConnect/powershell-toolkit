@@ -29,7 +29,7 @@
 	RootModule = 'PureStoragePowerShellToolkit.psm1'
 	
 	# Version number of this module; major.minor[.build[.revision]]
-	ModuleVersion = '3.2.0.0'
+	ModuleVersion = '3.3.222.0'
 	
 	# ID used to uniquely identify this module
 	GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
