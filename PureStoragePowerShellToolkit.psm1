@@ -134,7 +134,6 @@ function New-FlashArrayCapacityReport() {
 	)
 
     $progress = 0
-    Write-Progress -Activity "Creating Pure Storage FlashArray report..." -PercentComplete $progress
 
 	#$ErrorActionPreference = "SilentlyContinue"
     $ReportDateTime = Get-Date -Format d
@@ -199,8 +198,6 @@ function New-FlashArrayCapacityReport() {
 		$snapshotSize = ($snapshot.size)/1GB
         $provisioned =  (Convert-Size -ConvertFrom GB -ConvertTo TB $provisioned -Precision 2) + $snapshotSize
 		$snapshotInfo += "<tr><td>$("{0:N0}" -f $printSnapshot)</td> <td>$("{0:N0}" -f $snapshotSize)</td></tr>"
-    
-        Write-Progress -Activity "Creating Pure Storage FlashArray report..." -PercentComplete $snapshots.Count
     }
 
 # Create HTML/CSS report format
