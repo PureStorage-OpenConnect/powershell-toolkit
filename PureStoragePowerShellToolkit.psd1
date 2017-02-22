@@ -1,11 +1,12 @@
 ﻿<#	
 	===========================================================================
-	 Created by:   	barkz@purestorage.com
-	 Organization: 	Pure Storage, Inc.
-	 Filename:     	PureStoragePowerShellToolkit.psd1
-	 Copyright:		(c) 2017 Pure Storage, Inc.
+	Created by:   	barkz@purestorage.com
+	Organization: 	Pure Storage, Inc.
+	Filename:     	PureStoragePowerShellToolkit.psd1
+	Copyright:		(c) 2017 Pure Storage, Inc.
+	Module Name: 	PureStoragePowerShellToolkit
+	Description: 	PowerShell Script Module Manifest (.psd1)
 	-------------------------------------------------------------------------
-	Module Name: PureStoragePowerShellToolkit
 
 	Disclaimer
  	The sample script and documentation are provided AS IS and are not supported by 
@@ -31,7 +32,8 @@
 	ModuleVersion = '3.2.0.0'
 	
 	# ID used to uniquely identify this module
-	GUID = '80ed4b74-cd66-4428-b4dd-db839991c2d6'
+	GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
+	#GUID = '80ed4b74-cd66-4428-b4dd-db839991c2d6'
 	
 	# Author of this module
 	Author = 'barkz@purestorage.com'
@@ -118,7 +120,7 @@
 			IconUri = 'https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/Installer/icon.ico'
 			
 			# ReleaseNotes of this module
-			# ReleaseNotes = ''
+			ReleaseNotes = ''
       
 			# External Module Dependencies
 			ExternalModuleDependencies = @()
