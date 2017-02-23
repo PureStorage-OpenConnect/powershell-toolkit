@@ -162,34 +162,37 @@ function New-FlashArrayCapacityReport() {
     $volumeInfo = $null
     $provisioned = 0
     $volumes = Get-PfaVolumes -Array $FlashArray
-    $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Protected</th><th>DR</th><th>SS</th><th>TP</th>"				
-
-    ForEach ($volume in $volumes) {
-        $printVol = $volume.name            
-        $volSize = ($volume.size)/1GB
-        $provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $provisioned -Precision 2) + $VolSize
-        $dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
-        $datardx = "{0:N2}" -f $dr.data_reduction
-        $dataTP = "{0:N3}" -f $dr.thin_provisioning
-        if ($dr.shared_space){
-            $dataSS = "{0:N2}" -f $dr.shared_space 
-        }
-        else {
-            $dataSS = "None"
-        }
-
-        if(!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name)) {
-            $protected = ""
-        }
-        else {
-            $protected = "X"
-        }
-        $volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td></tr>"				
-        
-        Write-Progress -Activity "Creating Pure Storage FlashArray report..." -PercentComplete $volumes.Count
-    }
-    
-    $snapshotInfo = $null
+    $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Protected</th><th>DR</th><th>SS</th><th>TP</th>"
+	
+	ForEach ($volume in $volumes)
+	{
+		$printVol = $volume.name
+		$volSize = ($volume.size)/1GB
+		$provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $provisioned -Precision 2) + $VolSize
+		$dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
+		$datardx = "{0:N2}" -f $dr.data_reduction
+		$dataTP = "{0:N3}" -f $dr.thin_provisioning
+		if ($dr.shared_space)
+		{
+			$dataSS = "{0:N2}" -f $dr.shared_space
+		}
+		else
+		{
+			$dataSS = "None"
+		}
+		
+		if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name))
+		{
+			$protected = ""
+		}
+		else
+		{
+			$protected = "X"
+		}
+		$volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td></tr>"
+	}
+	
+	$snapshotInfo = $null
     $provisioned = 0
     $snapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
     $snapshotInfo += "<th>Snapshot Name</th><th>Snapshot Size (GB)</th>"				
@@ -1598,6 +1601,10 @@ function Update-DriveInformation ()
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Sync-FlashArrayHosts ()
 {
+	#
+	# Attribution: Ryan Stewart
+	# 
+	#
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)]
@@ -1608,8 +1615,6 @@ function Sync-FlashArrayHosts ()
 		[ValidateSet('iSCSI', 'Fibre Channel')]
 		[string]$Protocol
 	)
-	
-	if !(Import-Module -Name PureStoragePowerShellSDK) { Write-Error}
 	
 	$FlashArray1 = New-PfaArray -EndPoint $EndPointA -Credentials (Get-Credential) -IgnoreCertificateError
 	$FlashArray2 = New-PfaArray -EndPoint $EndPointB -Credentials (Get-Credential) -IgnoreCertificateError
@@ -1650,4 +1655,5 @@ Export-ModuleMember -function New-VolumeShadowCopy
 Export-ModuleMember -function Get-VolumeShadowCopy
 Export-ModuleMember -function New-FlashArrayCapacityReport
 Export-ModuleMember -function Update-DriveInformation
-Export-ModuleMember -Function Open-CodePureStorage
+Export-ModuleMember -function Open-CodePureStorage
+Export-ModuleMember -Function Sync-FlashArrayHosts

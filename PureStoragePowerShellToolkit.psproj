@@ -9,6 +9,7 @@
     <File Build="2">PureStoragePowerShellToolkit.psd1</File>
     <File Build="0">PureStoragePowerShellToolkit.psm1</File>
     <File Build="1" Shared="False" ReferenceFunction="Invoke-Test-Module_ps1">Test-Module.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Deploy_ps1">Deploy.ps1</File>
   </Files>
   <StartupScript>C:\rob.barker@outlook.com\OneDrive\github\PowerShell-Toolkit\Test-Module.ps1</StartupScript>
 </Project>
