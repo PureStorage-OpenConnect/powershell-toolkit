@@ -10,6 +10,72 @@
     <File Build="0">PureStoragePowerShellToolkit.psm1</File>
     <File Build="1" Shared="False" ReferenceFunction="Invoke-Test-Module_ps1">Test-Module.ps1</File>
     <File Build="2" Shared="False" ReferenceFunction="Invoke-Deploy_ps1">Deploy.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-AD_ps1">Library\AD.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Backup-PfaSQLServer_ps1">Library\Backup-PfaSQLServer.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Backup-SqlDatabase_ps1">Library\Backup-SqlDatabase.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Clear-PfaSnapshots_ps1">Library\Clear-PfaSnapshots.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Cluster_ps1">Library\Cluster.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Demo-SnapshotRetentionManagement_ps1">Library\Demo-SnapshotRetentionManagement.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Demo-SQLClone_ps1">Library\Demo-SQLClone.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Detach-SQLDatabases_ps1">Library\Detach-SQLDatabases.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-ESRP_ps1">Library\ESRP.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Get-PureVolShadowCopy_ps1">Library\Get-PureVolShadowCopy.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Get-PureVolumeShadowCopy_ps1">Library\Get-PureVolumeShadowCopy.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Get-QFEInfo_ps1">Library\Get-QFEInfo.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Get-Systems_ps1">Library\Get-Systems.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-HASHTABLES_ps1">Library\HASHTABLES.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Infoblox_ps1">Library\Infoblox.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Invoke-PureBasicCLI_ps1">Library\Invoke-PureBasicCLI.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Invoke-PureSchedule_ps1">Library\Invoke-PureSchedule.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Invoke-PureSetupAD_ps1">Library\Invoke-PureSetupAD.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Invoke-PureVolSnap_ps1">Library\Invoke-PureVolSnap.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Invoke-SQLCounter_ps1">Library\Invoke-SQLCounter.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-MountPoints_ps1">Library\MountPoints.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-MPIO_CLuster_ps1">Library\MPIO_CLuster.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-AzureVM_ps1">Library\New-AzureVM.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-AzureVM_1_ps1">Library\New-AzureVM_1.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-BenchcraftLogs_ps1">Library\New-BenchcraftLogs.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-DiskSignature_ps1">Library\New-DiskSignature.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-ESRPv4-Configuration_ps1">Library\New-ESRPv4-Configuration.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-HyperVCluster_ps1">Library\New-HyperVCluster.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-NanoCluster_ps1">Library\New-NanoCluster.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-NFSShare_ps1">Library\New-NFSShare.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-new-puredatastore_ps1">Library\new-puredatastore.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-RandomFiles_ps1">Library\New-RandomFiles.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-New-SoFSEnvironment_ps1">Library\New-SoFSEnvironment.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-NoNewLine_ps1">Library\NoNewLine.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Notes_ps1">Library\Notes.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-PowerCLI-Test_ps1">Library\PowerCLI-Test.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-PPTK_ps1">Library\PPTK.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-pshuk_ps1">Library\pshuk.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Register-HostVolumes_ps1">Library\Register-HostVolumes.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-SCOM-Setup_ps1">Library\SCOM-Setup.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-SCVMM_RapidProvisioning_ps1">Library\SCVMM_RapidProvisioning.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-SDK_1_ps1">Library\SDK_1.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-SDK_2_ps1">Library\SDK_2.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-SDK_3_ps1">Library\SDK_3.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Set-DQ_ps1">Library\Set-DQ.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Set-IOLimit_ps1">Library\Set-IOLimit.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Set-NewMachineBasicConfig_ps1">Library\Set-NewMachineBasicConfig.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Set-NMP_ps1">Library\Set-NMP.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Set-PureStorageVMwareBestPractices_ps1">Library\Set-PureStorageVMwareBestPractices.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Setup-CSGLABDOMAIN_ps1">Library\Setup-CSGLABDOMAIN.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Setup-FlashStackAD_ps1">Library\Setup-FlashStackAD.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Set-XCopyTransferSize_ps1">Library\Set-XCopyTransferSize.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Simple-FlashManager_ps1">Library\Simple-FlashManager.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-snap_rest_ps1">Library\snap_rest.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-sqlcounters_ps1">Library\sqlcounters.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-sqlcounters_v2_ps1">Library\sqlcounters_v2.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-sqlioresults_ps1">Library\sqlioresults.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-sqlioresults_v2_ps1">Library\sqlioresults_v2.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-System-Net-WebREquest_ps1">Library\System-Net-WebREquest.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Test-ArrowStreetCapital_ps1">Library\Test-ArrowStreetCapital.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Test-SurveyMonkeyExample_ps1">Library\Test-SurveyMonkeyExample.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Untitled1_ps1">Library\Untitled1.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Untitled2_ps1">Library\Untitled2.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Untitled3_ps1">Library\Untitled3.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Untitled4_ps1">Library\Untitled4.ps1</File>
+    <File Build="2" Shared="False" ReferenceFunction="Invoke-Visio-Scratch_ps1">Library\Visio-Scratch.ps1</File>
   </Files>
   <StartupScript>C:\rob.barker@outlook.com\OneDrive\github\PowerShell-Toolkit\Test-Module.ps1</StartupScript>
 </Project>

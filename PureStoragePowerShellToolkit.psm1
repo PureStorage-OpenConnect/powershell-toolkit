@@ -1044,7 +1044,7 @@ function Test-WindowsBestPractices()
 	Write-Output '============================================================'
 	Write-Output 'Pure Storage Windows Server Best Practice Analyzer'
 	Write-Output '============================================================'
-
+	
 	<#TODO -- Add to output
 		VERSION #
 		VERSION # output to screeen
@@ -1080,22 +1080,34 @@ function Test-WindowsBestPractices()
 	Write-Output '=============================='
 	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed')
 	{
-		Write-Output 'PASS: Multipath I/O is installed.'
+		Write-Output 'PASS: Multipath-IO is installed.'
 	}
 	else
 	{
-		Write-Warning 'FAIL: Please install Multipath-IO.'
-		break
+		$resp = Write-Warning 'FAIL: Multipath-IO Windows feature not installed. Would you like to install this feature?'
+		if ($resp.ToUpper() -eq 'Y')
+		{
+			Add-WindowsFeature -Name Multipath-IO
+		}
+		else
+		{
+			Write-Warning 'Multipath-IO Windows feature has not been installed. Please add this feature manually.'
+			break
+		}
 	}
 	
 	Write-Output ''
 	Write-Output '=============================='
 	Write-Output 'MPIO Setting Verification'
 	Write-Output '=============================='
+	Write-Host   'Current MPIO Configuration' -BackgroundColor Gray -ForegroundColor White
+	Get-MPIOSetting
 	
-	ForEach ($DSM in Get-MSDSMSupportedHW)
+	$BPFail = 0
+	$DSMs = Get-MSDSMSupportedHW
+	ForEach ($DSM in $DSMs)
 	{
-		if (!(($DSM).VendorId -eq 'PURE' -and ($DSM).ProductId -eq 'FlashArray'))
+		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray')
 		{
 			Write-Output 'PASS: Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.'
 			
@@ -1109,6 +1121,7 @@ function Test-WindowsBestPractices()
 			else
 			{
 				Write-Warning 'FAIL: MPIO PDORemovePeriod does NOT pass Windows Server Best Practice check.'
+				$BPFail = $BPFail + 1
 			}
 			if (($MPIO[7] -replace " ", "") -ceq 'UseCustomPathRecoveryTime:Enabled')
 			{
@@ -1118,6 +1131,7 @@ function Test-WindowsBestPractices()
 			else
 			{
 				Write-Warning 'FAIL: MPIO UseCustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
+				$BPFail = $BPFail + 1
 			}
 			if (($MPIO[8] -replace " ", "") -ceq 'CustomPathRecoveryTime:20')
 			{
@@ -1127,6 +1141,7 @@ function Test-WindowsBestPractices()
 			else
 			{
 				Write-Warning 'FAIL: MPIO CustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
+				$BPFail = $BPFail + 1
 			}
 			if (($MPIO[9] -replace " ", "") -ceq 'DiskTimeoutValue:60')
 			{
@@ -1136,34 +1151,8 @@ function Test-WindowsBestPractices()
 			else
 			{
 				Write-Warning 'FAIL: MPIO PDiskTimeoutValue does NOT pass Windows Server Best Practice check.'
+				$BPFail = $BPFail + 1
 			}
-			
-	<#
-		Support for Windows Server 2008 R2. 
-		$Paths = (Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings").Name
-		ForEach ($Path in $Paths) {
-			$PureVolumePath = $Path.Substring(93)
-			(Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings\$PureVolumePath").Name.Substring(93) | Select Name
-		}
-		$DsmContext = Get-WmiObject -Namespace 'root/WMI' -Class MPIO_REGISTERED_DSM
-		$DsmCounters = Get-Wmiobject -ComputerName $ComputerName -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS             
-		Invoke-WmiMethod -Class MPIO_WMI_METHODS -Name SetDSMCounters -ArgumentList $DsmContext#, $DsmCounters
-		Invoke-WmiMethod -Class MPIO_TIMERS_COUNTERS -Name PDORemovePeriod -ArgumentList @{PDORemovePeriod=60}
-		Set-WmiInstance -Class MPIO_TIMERS_COUNTERS -Arguments @{PDORemovePeriod=60}
-		Get-WmiObject -Query 'SELECT InstanceName from MPIO_WMI_METHODS'
-		Get-WmiObject -Namespace 'root/WMI' -Class MPIO_ADAPTER_INFORMATION -ComputerName $env:COMPUTERNAME
-		Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT PathList FROM MPIO_PATH_INFORMATION'
-		Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT NumberPaths FROM MPIO_PATH_INFORMATION' -ComputerName $env:COMPUTERNAME
-		Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT DsmParameters FROM MPIO_REGISTERED_DSM' -ComputerName $env:COMPUTERNAME
-		Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_HEALTH_INFO
-		Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_INFO 
-		Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_HEALTH_INFO
-		Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_INFORMATION
-		Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_REGISTERED_DSM
-		Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS ######             
-		Get-WmiObject -Namespace 'root/cimv2' -Class DSM_Load_Balance_Policy
-	#>
-			
 		}
 		else
 		{
@@ -1171,10 +1160,25 @@ function Test-WindowsBestPractices()
 			{
 				Write-Warning "RECOMMENDATION: Remove the sample DSM entry (VendorId=$DSM.VendorId and ProductId=$DSM.ProductId)"
 			}
-			else
-			{
-				Write-Warning 'Microsoft Device Specific Module (MSDSM) is NOT configured for Pure Storage FlashArray.'
-			}
+		}
+	}
+	
+	if ($BPFail -gt 0)
+	{
+		$resp = Read-Host "Would you like to correct the failed MPIO settings?"
+		if ($resp.ToUpper() -eq 'Y')
+		{
+			Set-MPIOSetting -NewPDORemovePeriod 30 -NewDiskTimeout 60 -CustomPathRecovery Enabled -NewPathRecoveryInterval 20
+			#Set-MPIOSetting -NewPDORemovePeriod 20 -NewDiskTimeout 90 -CustomPathRecovery Disabled -NewPathRecoveryInterval 10
+			
+			Write-Output '=============================='
+			Write-Host   'Updated MPIO Configuration' -BackgroundColor Gray -ForegroundColor White
+			Write-Output '=============================='
+			Get-MPIOSetting
+		}
+		else
+		{
+			Write-Warning 'No changes have been to MPIO settings. Please manually modify the settings to conform with Pure Storage Windows Server Best Practices.'
 		}
 	}
 	
@@ -1185,12 +1189,37 @@ function Test-WindowsBestPractices()
 	if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0)
 	{
 		Write-Output 'PASS: Delete Notification Enabled'
-	} 
+	}
 	else
 	{
 		Write-Warning 'Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications.'
 	}
 }
+<#
+Support for Windows Server 2008 R2. 
+$Paths = (Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings").Name
+ForEach ($Path in $Paths) {
+	$PureVolumePath = $Path.Substring(93)
+	(Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings\$PureVolumePath").Name.Substring(93) | Select Name
+}
+$DsmContext = Get-WmiObject -Namespace 'root/WMI' -Class MPIO_REGISTERED_DSM
+$DsmCounters = Get-Wmiobject -ComputerName $ComputerName -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS             
+Invoke-WmiMethod -Class MPIO_WMI_METHODS -Name SetDSMCounters -ArgumentList $DsmContext#, $DsmCounters
+Invoke-WmiMethod -Class MPIO_TIMERS_COUNTERS -Name PDORemovePeriod -ArgumentList @{PDORemovePeriod=60}
+Set-WmiInstance -Class MPIO_TIMERS_COUNTERS -Arguments @{PDORemovePeriod=60}
+Get-WmiObject -Query 'SELECT InstanceName from MPIO_WMI_METHODS'
+Get-WmiObject -Namespace 'root/WMI' -Class MPIO_ADAPTER_INFORMATION -ComputerName $env:COMPUTERNAME
+Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT PathList FROM MPIO_PATH_INFORMATION'
+Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT NumberPaths FROM MPIO_PATH_INFORMATION' -ComputerName $env:COMPUTERNAME
+Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT DsmParameters FROM MPIO_REGISTERED_DSM' -ComputerName $env:COMPUTERNAME
+Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_HEALTH_INFO
+Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_INFO 
+Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_HEALTH_INFO
+Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_INFORMATION
+Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_REGISTERED_DSM
+Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS ######             
+Get-WmiObject -Namespace 'root/cimv2' -Class DSM_Load_Balance_Policy
+#>
 
 # UNDER DEVELOPMENT -- Optimize-Unmap
 <#
@@ -1568,13 +1597,6 @@ function New-VolumeShadowCopy()
     Remove-Item $dsh
 }
 
-#region PureStoragePowerShellSDK-Cmdlets
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-BlockSize ()
-{
-}
-
-#region PureStoragePowerShellSDK-Cmdlets
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Update-DriveInformation ()
 {
@@ -1597,7 +1619,80 @@ function Update-DriveInformation ()
 	}
 }
 
+#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+function Create-HyperVReport()
+{
+	
+	try
+	{
+		
+		Write-Host "Creating the Virtual Machine worksheet..." -ForegroundColor Green
+		
+		# Adding worksheet 
+		#$workbook.Worksheets.Add() 
+		
+		# Creating the "Virtual Machine" worksheet and naming it 
+		$VirtualMachineWorksheet = $workbook.Worksheets.Item(1)
+		$VirtualMachineWorksheet.Name = 'VirtualMachine'
+		
+		# Headers for the worksheet 
+		$VirtualMachineWorksheet.Cells.Item(1, 1) = 'Resource Group Name'
+		$VirtualMachineWorksheet.Cells.Item(1, 2) = 'VM Name'
+		$VirtualMachineWorksheet.Cells.Item(1, 3) = 'Location'
+		$VirtualMachineWorksheet.Cells.Item(1, 4) = 'VM Size'
+		$VirtualMachineWorksheet.Cells.Item(1, 5) = 'OS Type'
+		$VirtualMachineWorksheet.Cells.Item(1, 6) = 'Image Type'
+		$VirtualMachineWorksheet.Cells.Item(1, 7) = 'OS Version'
+		$VirtualMachineWorksheet.Cells.Item(1, 8) = 'OS Disk'
+		$VirtualMachineWorksheet.Cells.Item(1, 9) = 'Data Disk'
+		$VirtualMachineWorksheet.Cells.Item(1, 10) = 'Public IP Name'
+		
+		# Cell Counter 
+		$row_counter = 3
+		$column_counter = 1
+		
+		# Iterating over the Virtual Machines under the subscription 
+		for ($vm_iterator = 0; $vm_iterator -lt $azureVMDetails.Count; $vm_iterator++)
+		{
+			
+			# Populating the cells 
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].ResourceGroupName.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].Name.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].Location.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].HardwareProfile.VmSize.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.OsDisk.OsType.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.ImageReference.Offer.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.ImageReference.Sku.ToString()
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.OsDisk.Vhd.Uri
+			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.DataDisks.vhd.uri -join "**"
+			for ($i = 0; $i -lt $PublicIPList.Count; $i++)
+			{
+				if ($azureVMDetails[$vm_iterator].NetworkInterfaceIDs -eq $azureNICDetails[$i].Id)
+				{
+					$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter) = $azureNICDetails[$i].Name
+				}
+				
+			}
+			# Setting the pointer to the next row and first column 
+			$row_counter = $row_counter + 1
+			$column_counter = 1
+		}
+		
+	}
+	catch
+	{
+		Write-Host "We ran into problem while creating Cirtual Machchine Worksheet. `n" -ForegroundColor Red
+		break
+	}
+	
+}
+
 #region PureStoragePowerShellSDK-Cmdlets
+#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+function Get-BlockSize ()
+{
+}
+
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Sync-FlashArrayHosts ()
 {
@@ -1640,9 +1735,12 @@ function Sync-FlashArrayHosts ()
 		}
 	}
 }
+#endregion
+
 
 #Export-ModuleMember -function Optimize-Unmap
 #Export-ModuleMember -function Get-BlockSize
+#Export-ModuleMember -Function New-HyperVReport 
 Export-ModuleMember -function Get-WindowsPowerScheme
 Export-ModuleMember -function Get-HostBusAdapter 
 Export-ModuleMember -function Register-HostVolumes
