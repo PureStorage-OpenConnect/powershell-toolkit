@@ -129,17 +129,19 @@ function New-FlashArrayCapacityReport() {
 	[CmdletBinding()]
     Param (
 		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $EndPoint,
+		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][System.Management.Automation.CredentialAttribute()] $Credential,	
         [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
         [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $HTMLFileName
 	)
 
-    $progress = 0
-
-	#$ErrorActionPreference = "SilentlyContinue"
     $ReportDateTime = Get-Date -Format d
 
     # Connect to FlashArray
-	$FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+	$FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Credential -IgnoreCertificateError
+	if (!$FlashArray) { 
+		Write-Error "Cannot connect to Pure Storage FlashArray at $EndPoint. Please check connectivity."
+		break
+	}
 	$FlashArraySpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
 	$FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray
 
@@ -1113,7 +1115,7 @@ function Test-WindowsBestPractices()
 			
 			$MPIO = Get-MPIOSetting | Out-String -Stream
 			
-			if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:60')
+			if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:30')
 			{
 				#30
 				Write-Output 'PASS: MPIO PDORemovePeriod passes Windows Server Best Practice check.'
@@ -1396,6 +1398,26 @@ function Open-CodePureStorage
     }
 }
 
+#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+function Get-PfaSerialNumbers ()
+{
+	$AllDevices = gwmi -Class Win32_DiskDrive -Namespace 'root\CIMV2'
+	ForEach ($Device in $AllDevices) {
+		if($Device.Model -like 'PURE FlashArray*') {
+			@{
+				Name=$Device.Name;
+				Caption=$Device.Caption;
+				Index=$Device.Index;
+				SerialNo=$Device.SerialNumber;
+			}
+		}
+		else {
+			Write-Error "No Pure Storage FlashArray volumes are connected to system $env:COMPUTERNAME."
+		
+		}
+	}
+}
+
 #.ExternalHelp PureStoragePowerShellToolkitt.psm1-help.xml
 function Set-QueueDepth()
 {
@@ -1463,7 +1485,7 @@ function Get-HostBusAdapter()
 		$port = Get-WmiObject -Class MSFC_FibrePortHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
 		$hbas = Get-WmiObject -Class MSFC_FCAdapterHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
 		$hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
-		$hbas = $hbas | Select-Object $hbaProp
+		$hbas = $hbas | Select-Object -ExpandProperty $hbaProp
 		$hbas | ForEach-Object{ $_.NodeWWN = ((($_.NodeWWN) | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() }
 		
 		ForEach ($hba in $hbas)
@@ -1600,29 +1622,30 @@ function New-VolumeShadowCopy()
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Update-DriveInformation ()
 {
-	[CmdletBinding()]
+  [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)]
         [string]$NewDriveLetter,
-		[Parameter(Mandatory = $False)]
-        [string]$NewDriveLabel
+		    [Parameter(Mandatory = $True)]
+        [string]$CurrentDriveLetter,
+        [Parameter][string]$NewDriveLabel
     )
 	
-	$Drive = Get-WmiObject -Class Win32_Volume | ?{ $_.DriveLetter -eq "$($CurrentDriveLetter):" }
-	if (!($NewDriveLabel))
-	{
-		Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):" } | Out-Null
-	}
-	else
-	{
-		Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):"; Label = "$($NewDriveLabel)" } | Out-Null
-	}
+  $Drive = Get-WmiObject -Class Win32_Volume | Where-Object { $_.DriveLetter -eq "$($CurrentDriveLetter):" }
+  if (!($NewDriveLabel))
+  {
+    Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):" } | Out-Null
+  }
+  else
+  {
+    Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):"; Label = "$($NewDriveLabel)" } | Out-Null
+  }
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+<#
 function Create-HyperVReport()
 {
-	
 	try
 	{
 		
@@ -1684,8 +1707,8 @@ function Create-HyperVReport()
 		Write-Host "We ran into problem while creating Cirtual Machchine Worksheet. `n" -ForegroundColor Red
 		break
 	}
-	
 }
+#>
 
 #region PureStoragePowerShellSDK-Cmdlets
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
@@ -1754,4 +1777,5 @@ Export-ModuleMember -function Get-VolumeShadowCopy
 Export-ModuleMember -function New-FlashArrayCapacityReport
 Export-ModuleMember -function Update-DriveInformation
 Export-ModuleMember -function Open-CodePureStorage
-Export-ModuleMember -Function Sync-FlashArrayHosts
+Export-ModuleMember -function Sync-FlashArrayHosts
+Export-ModuleMember -function Get-PfaSerialNumbers

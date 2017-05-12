@@ -28,7 +28,7 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.3.225.0'
+ModuleVersion = '3.4.512.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -46,7 +46,7 @@ CompanyName = 'Pure Storage, Inc.'
 Copyright = '(c) 2017 Pure Storage, Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Pure Storage PowerShell Toolkit 3.3.225.0'
+Description = 'Pure Storage PowerShell Toolkit.'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '3.0'
@@ -85,23 +85,16 @@ DotNetFrameworkVersion = '4.5'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @()
+# FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = 'Get-HostBusAdapter', 'Get-QueueDepth}', 
-               'Get-QuickFixEngineering', 'Get-VolumeShadowCopy}', 
-               'Get-WindowsPowerScheme', 
-               'New-FlashArrayCapacityReport', 
-               'New-VolumeShadowCopy', 'Open-CodePureStorage}', 
-               'Register-HostVolumes', 'Set-QueueDepth}', 
-               'Sync-FlashArrayHosts', 'Test-WindowsBestPractices}', 
-               'Unregister-HostVolumes', 'Update-DriveInformation}'
+CmdletsToExport = '*'
 
 # Variables to export from this module
 # VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+# AliasesToExport = @()
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -130,7 +123,7 @@ PrivateData = @{
         IconUri = 'https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/Installer/icon.ico'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Pure Storage PowerShell Toolkit 3.3.224.0.'
+        ReleaseNotes = 'Pure Storage PowerShell Toolkit.'
 
         # External dependent modules of this module
         # ExternalModuleDependencies = ''
