@@ -164,13 +164,13 @@ function New-FlashArrayCapacityReport() {
     $volumeInfo = $null
     $provisioned = 0
     $volumes = Get-PfaVolumes -Array $FlashArray
-    $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Protected</th><th>DR</th><th>SS</th><th>TP</th>"
+    $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th>"
 	
 	ForEach ($volume in $volumes)
 	{
 		$printVol = $volume.name
 		$volSize = ($volume.size)/1GB
-		$provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $provisioned -Precision 2) + $VolSize
+		$provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $volSize -Precision 4) + $provisioned
 		$dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
 		$datardx = "{0:N2}" -f $dr.data_reduction
 		$dataTP = "{0:N3}" -f $dr.thin_provisioning
@@ -191,17 +191,31 @@ function New-FlashArrayCapacityReport() {
 		{
 			$protected = "X"
 		}
-		$volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td></tr>"
+        
+        if (!(Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host) {
+            if (!(Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup) {
+                $hostconnname = "Not Connected"
+            } else {
+                if (((Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup).Count -gt 1) {
+                    $hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup[0]
+                } else {
+                    $hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup
+                }
+            }
+        }
+        else {
+            $hostconnname = (Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host
+        }
+		
+        $volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td>$($hostconnname)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td></tr>"
 	}
 	
 	$snapshotInfo = $null
-    $provisioned = 0
     $snapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
     $snapshotInfo += "<th>Snapshot Name</th><th>Snapshot Size (GB)</th>"				
     ForEach ($snapshot in $snapshots) {
     	$printSnapshot = $snapshot.name 
 		$snapshotSize = ($snapshot.size)/1GB
-        $provisioned =  (Convert-Size -ConvertFrom GB -ConvertTo TB $provisioned -Precision 2) + $snapshotSize
 		$snapshotInfo += "<tr><td>$("{0:N0}" -f $printSnapshot)</td> <td>$("{0:N0}" -f $snapshotSize)</td></tr>"
     }
 
@@ -1005,7 +1019,7 @@ AElFTkSuQmCC">
 </tr>
 <tr>
 <td>Provisioned Space (TB)</td>
-<td>$("{0:N0}" -f $provisioned)</td>
+<td> $("{0:N2}" -f $provisioned)</td>
 </tr>
 </table>
 <!--<img style="max-width: 1300px; max-height: 740px;" src="data:image/png;base64,$Script:PiechartImgSrc">-->
