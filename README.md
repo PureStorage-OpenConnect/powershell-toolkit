@@ -4,12 +4,19 @@ Pure Storage PowerShell Toolkit 4.0 Release Notes
 The Pure Storage PowerShell Toolkit provides ...
 
 RELEASE COMPATIBILITY
-This release requires PowerShell 3.0 or higher.
-This release requires .NET 4.5 minimum.
-This release is compatible with the Pure Storage PowerShell SDK 1.7.4.0 and greater.
-This release requires a 64-bit operating system. 
+
+* This release requires PowerShell 3.0 or higher.
+* This release requires .NET 4.5 minimum.
+* This release is compatible with the Pure Storage PowerShell SDK 1.7.4.0 and greater.
+* This release requires a 64-bit operating system. 
 
 INSTALL AND UNINSTALL
+
+The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery (https://www.powershellgallery.com). 
+
+* [Pure Storage PowerShell Toolkit](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/)
+* [Pure Storage PowerShell SDK](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) - Required
+
 To install the Pure Storage PowerShell Toolkit open up an elevated Windows PowerShell session and type:
 
 ```powershell
@@ -25,7 +32,3 @@ To see the available cmdlets:
 ```powershell
 Get-Command -Module PureStoragePowerShellToolkit
 ```
-
-The PowerShell Toolkit can be uninstalled from "Programs and Features" of the Control Panel.
-
-All releases of the Pure Storage PowerShell Toolkit will be distributing through the PowerShell Gallery, https://powershellgallery.com.
