@@ -1,23 +1,17 @@
-Pure Storage PowerShell Toolkit 3.0 Release Notes
-
-The Pure Storage PowerShell Toolkit provides integration with the Purity Operating Environment and FlashArray. It provides functionalities of Purity's REST API as PowerShell cmdlets.
+Pure Storage PowerShell Toolkit 4.0 Release Notes
+The Pure Storage PowerShell Toolkit provides 
 
 RELEASE COMPATIBILITY
-
 This release requires PowerShell 3.0 or higher.
-This release requires .NET 3.5.
-This release is compatible with the Pure Storage PowerShell SDK 1.0.15.0.
+This release requires .NET 4.5 minimum.
+This release is compatible with the Pure Storage PowerShell SDK 1.7.4.0 and greater.
 This release requires a 64-bit operating system. 
 
 INSTALLATION AND UNINSTALLATION
+To install the PowerShell Toolkit extract and run PowerShellToolkitInstaller.msi and follow the instructions. 
+Administrator privilege is required to install. 
 
-To install the PowerShell Toolkit extract and run PowerShellToolkitInstaller.msi and follow the instructions. Administrator privilege is required to install. To verify the installation, run "Get-Command -Module PureStoragePowerShellToolkit" in a new PowerShell prompt. The newly installed cmdlets should be listed. The PowerShell Toolkit can be uninstalled from "Programs and Features" of the Control Panel.
+To verify the installation, run "Get-Command -Module PureStoragePowerShellToolkit" in a new PowerShell session. 
+The newly installed module cmdlets should be listed. 
 
-KNOWN ISSUES
-...
-
-PERFORMANCE TESTING
-...
-
-OPEN SOURCE LICENSES
-...
+The PowerShell Toolkit can be uninstalled from "Programs and Features" of the Control Panel.
