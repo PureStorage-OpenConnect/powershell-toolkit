@@ -1,7 +1,9 @@
 # Pure Storage PowerShell Toolkit
 
 Pure Storage PowerShell Toolkit 4.0 Release Notes
-The Pure Storage PowerShell Toolkit is an open source project that provides additional cmdlets that leverage core Windows Server, System Center, WMI, Storage and other relevant cmdlets. The PowerShell Toolkit cmdlets provide configuration, best practices and monitoring and reporting by leveraging the Pure Storage PowerShell SDK.
+The new version of the Pure Storage PowerShell Toolkit leverages a number of different cmdlets ranging from core Windows Server, WMI, WSMAN, VMware PowerCLI, SQL Server and .NET assemblies. 
+
+The Pure Storage PowerShell Toolkit is an open source project that provides additional cmdlets that leverage core Windows Server, System Center, WMI, WSMAN, VMware PowerCLI, SQL Server, Storage and .NET Assemblies. The intention of the PowerShell Toolkit is to provide useful cmdlets for customers and the Pure Storage field to use in troubleshooting, monitoring, reporting, best practices and configuration. The PowerShell Toolkit leverages the Pure Storage PowerShell SDK from some of the cmdlets.
 
 RELEASE COMPATIBILITY
 
@@ -20,7 +22,7 @@ The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery
 To install the Pure Storage PowerShell Toolkit open up an elevated Windows PowerShell session and type:
 
 ```powershell
-Install-Module -Name PureStoragePowerShellToolkit 
+Install-Module -Name PureStoragePowerShellToolkit
 ```
 
 To verify the installation:
