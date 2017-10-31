@@ -21,106 +21,69 @@
 	such person has been advised of the possibility of such damages.
 	===========================================================================
 #>
-
 #Requires -Version 3
-
-#
-#  TODO -- Add welcome message with getting started information. 
-#
-
 #region Helper-functions
+<#
+.SYNOPSIS
+	Converts source file to Base64.
+.DESCRIPTION
+	Supporting function to handle conversions.
+.EXAMPLE
+	None.
+.INPUTS
+	Source (Mandatory)
+.OUTPUTS
+	Converted source.
+.NOTES
+	None.
+#>
 function ConvertTo-Base64() {
     Param (
-        [string] $ImgSrc
+		[Parameter(Mandatory=$true)][String] $Source
     )
-	return [Convert]::ToBase64String((Get-Content $ImgSrc -Encoding byte))
+	return [Convert]::ToBase64String((Get-Content $Source -Encoding byte))
 }
 
-function New-FlashArrayReportPiechart() {
-	Param (
-		[string]$FileName,
-        [float]$CapacitySpace,
-        [float]$SnapshotSpace,
-        [float]$VolumeSpace
-	)
-		
-	[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
-	[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
-	
-	$chart = New-Object System.Windows.Forms.DataVisualization.charting.chart
-    $chart.Width = 900
-    $chart.Height = 600
-    $chart.Left = 10
-    $chart.Top = 10
-
-	$chartArea = New-Object System.Windows.Forms.DataVisualization.charting.chartArea
-	$chart.chartAreas.Add($chartArea) 
-	[void]$chart.Series.Add("Data") 
-	
-   	$legend = New-Object system.Windows.Forms.DataVisualization.charting.Legend
-   	$legend.Name = "Legend"
-    $legend.Font = "Proxima Nova"
-   	$legend.Alignment = "Center"
-   	$legend.Docking = "top"
-   	$legend.Bordercolor = "#FE5000"
-   	$legend.Legendstyle = "row"
-    $chart.Legends.Add($legend)
-
-	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $capacitySpace)
-	$datapoint.AxisLabel = "Physical Capacity " + "(" + $("{0:N0}" -f $capacitySpace) + " GB)"
-	$chart.Series["Data"].Points.Add($datapoint)
-		
-	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $snapSpace)
-	$datapoint.AxisLabel = "SnapShots " + "(" + $snapSpace + " GB)"
-	$chart.Series["Data"].Points.Add($datapoint)
-		
-	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $volumeSpace)
-	$datapoint.AxisLabel = "Volumes " + "(" + $volumeSpace + " GB)"
-	$chart.Series["Data"].Points.Add($datapoint)
-		
-	$chart.Series["Data"].chartType = [System.Windows.Forms.DataVisualization.charting.SerieschartType]::Pie
-	$chart.Series["Data"]["PieLabelStyle"] = "Outside" 
-	$chart.Series["Data"]["PieLineColor"] = "#FE5000" 
-	$chart.Series["Data"]["PieDrawingStyle"] = "Concave" 
-	($chart.Series["Data"].Points.FindMaxByValue())["Exploded"] = $true
-
-	$Title = New-Object System.Windows.Forms.DataVisualization.charting.Title 
-	$chart.Titles.Add($Title) 
-	$chart.Titles[0].Text = "Capacity Usage Visualization"
-    $chart.SaveImage($FileName + ".png","png")
-
-    $Script:PiechartImgSrc = ConvertTo-Base64 ($FileName + ".png")
-    Remove-Item -Path ($FileName + ".png")
-
-}
-
+<#
+.SYNOPSIS
+	Converts volume sizes from B to MB, MB, GB, TB.
+.DESCRIPTION
+	Supporting function to handle conversions.
+.EXAMPLE
+	None.
+.INPUTS
+	ConvertFrom (Mandatory)
+	ConvertTo (Mandatory)
+	Value (Mandatory)
+	Precision (Optional)
+.OUTPUTS
+	Converted size of volume.
+.NOTES
+	None.
+#>
 function Convert-Size { 
     [CmdletBinding()]
     Param (
-		[validateset("Bytes","KB","MB","GB","TB")]            
-		[string]$ConvertFrom,            
-		[validateset("Bytes","KB","MB","GB","TB")]            
-		[string]$ConvertTo,            
-		[Parameter(Mandatory=$true)]            
-		[double]$Value,            
-		[int]$Precision = 4
-	)
-	           
-		switch($ConvertFrom) {            
-			"Bytes" {$value = $Value }            
-			"KB" {$value = $Value * 1024 }            
-			"MB" {$value = $Value * 1024 * 1024}            
-			"GB" {$value = $Value * 1024 * 1024 * 1024}            
-			"TB" {$value = $Value * 1024 * 1024 * 1024 * 1024}            
-		}            
-            
-		switch ($ConvertTo) {            
-			"Bytes" {return $value}            
-			"KB" {$Value = $Value/1KB}            
-			"MB" {$Value = $Value/1MB}            
-			"GB" {$Value = $Value/1GB}            
-			"TB" {$Value = $Value/1TB}                        
-		}            
+		[Parameter(Mandatory=$true)][ValidateSet("Bytes","KB","MB","GB","TB")][String]$ConvertFrom,            
+		[Parameter(Mandatory=$true)][ValidateSet("Bytes","KB","MB","GB","TB")][String]$ConvertTo,            
+		[Parameter(Mandatory=$true)][Double]$Value,            
+		[Parameter(Mandatory=$false)][Int]$Precision = 4
+	)           
+	switch($ConvertFrom) {            
+		"Bytes" {$value = $Value }            
+		"KB" {$value = $Value * 1024 }            
+		"MB" {$value = $Value * 1024 * 1024}            
+		"GB" {$value = $Value * 1024 * 1024 * 1024}            
+		"TB" {$value = $Value * 1024 * 1024 * 1024 * 1024}            
+	}            
+		
+	switch ($ConvertTo) {            
+		"Bytes" {return $value}            
+		"KB" {$Value = $Value/1KB}            
+		"MB" {$Value = $Value/1MB}            
+		"GB" {$Value = $Value/1GB}            
+		"TB" {$Value = $Value/1TB}                        
+	}            
             
 	return [Math]::Round($Value, $Precision, [MidPointRounding]::AwayFromZero)            
 }         
@@ -129,7 +92,8 @@ function New-FlashArrayCapacityReport() {
 	[CmdletBinding()]
     Param (
 		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $EndPoint,
-		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][System.Management.Automation.CredentialAttribute()] $Credential,	
+		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][System.Management.Automation.Credential()] $Credential,
+		[Parameter(Mandatory=$False)][ValidateNotNullOrEmpty()][string] $VolumeFilter,
         [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
         [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $HTMLFileName
 	)
@@ -142,12 +106,13 @@ function New-FlashArrayCapacityReport() {
 		Write-Error "Cannot connect to Pure Storage FlashArray at $EndPoint. Please check connectivity."
 		break
 	}
+	
 	$FlashArraySpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
 	$FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray
 
-    # Add Model
-	$FlashArrayVolumes = Get-PfaVolumes -Array $FlashArray
-	$FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
+	# Add Model
+	#$FlashArrayVolumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
+	#$FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
 
 	$capacitySpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.capacity -Precision 2
 	$snapSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.snapshots -Precision 2
@@ -162,8 +127,13 @@ function New-FlashArrayCapacityReport() {
 	#New-FlashArrayReportPiechart -FileName ($OutFilePath + "\TempPiechart") -CapacitySpace $capacitySpace -SnapshotSpace $snapSpace -VolumeSpace $volumeSpace
 	
     $volumeInfo = $null
-    $provisioned = 0
-    $volumes = Get-PfaVolumes -Array $FlashArray
+	$provisioned = 0
+	
+	switch ($VolumeFilter) {
+		(!$VolumeFilter) { $volumes = Get-PfaVolumes -Array $FlashArray }
+		($VolumeFilter) { $volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }}
+	}
+    
     $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th>"
 	
 	ForEach ($volume in $volumes)
@@ -211,7 +181,7 @@ function New-FlashArrayCapacityReport() {
 	}
 	
 	$snapshotInfo = $null
-    $snapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
+    $snapshots = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
     $snapshotInfo += "<th>Snapshot Name</th><th>Snapshot Size (GB)</th>"				
     ForEach ($snapshot in $snapshots) {
     	$printSnapshot = $snapshot.name 
