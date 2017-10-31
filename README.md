@@ -15,7 +15,7 @@ INSTALL AND UNINSTALL
 The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery (https://www.powershellgallery.com). 
 
 * [Pure Storage PowerShell Toolkit](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/)
-* [Pure Storage PowerShell SDK](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) - Required
+* [Pure Storage PowerShell SDK](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) (Required)
 
 To install the Pure Storage PowerShell Toolkit open up an elevated Windows PowerShell session and type:
 
