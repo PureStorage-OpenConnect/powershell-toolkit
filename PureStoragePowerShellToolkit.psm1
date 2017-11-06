@@ -21,8 +21,11 @@
 	such person has been advised of the possibility of such damages.
 	===========================================================================
 #>
+
 #Requires -Version 3
+
 #region Helper-functions
+
 <#
 .SYNOPSIS
 	Converts source file to Base64.
@@ -40,7 +43,7 @@
 function ConvertTo-Base64() {
     Param (
 		[Parameter(Mandatory=$true)][String] $Source
-    )
+	)
 	return [Convert]::ToBase64String((Get-Content $Source -Encoding byte))
 }
 
@@ -86,8 +89,29 @@ function Convert-Size {
 	}            
             
 	return [Math]::Round($Value, $Precision, [MidPointRounding]::AwayFromZero)            
-}         
+}
+#endregion
 
+<#
+.SYNOPSIS
+	Create a Pure Storage FlashArray capacity report.
+.DESCRIPTION
+	Creates an HTML formatted Pure Storage FlashArray capacity report that contains full details for the FlashArray and volume(s).
+.EXAMPLE
+	 New-FlashArrayCapacityReport -EndPoint 10.0.0.1 -Credential (Get-Credential) -VolumeFilter '*f*' -OutFilePath .\ -HTMLFileName Test.html
+
+	 New-FlashArrayCapacityReport -EndPoint 10.0.0.1 -Credential (Get-Credential) -OutFilePath .\ -HTMLFileName Test.html
+.INPUTS
+	EndPoint
+	Credential
+	VolumeFilter
+	OutFilePath
+	HTMLFileName
+.OUTPUTS
+	HTML report stored on the local filesystem or share location.
+.NOTES
+	None.
+#>
 function New-FlashArrayCapacityReport() {
 	[CmdletBinding()]
     Param (
@@ -198,9 +222,6 @@ $HTMLHeader = @"
 body {
     font-family: Verdana, Geneva, Arial, Helvetica, Sans-Serif;
 }
-
-#report { width: 900px; }
-
 table {
 	border-collapse: collapse;
 	border: none;
