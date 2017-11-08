@@ -168,6 +168,7 @@ function New-FlashArrayCapacityReport() {
 		$dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
 		$datardx = "{0:N2}" -f $dr.data_reduction
 		$dataTP = "{0:N3}" -f $dr.thin_provisioning
+		$WrittenSpace = ((1-$dr.thin_provisioning)*$dr.total)/1024/1024/1024
 		if ($dr.shared_space)
 		{
 			$dataSS = "{0:N2}" -f $dr.shared_space
@@ -183,7 +184,7 @@ function New-FlashArrayCapacityReport() {
 		}
 		else
 		{
-			$protected = "X"
+			$protected = "X ($($WrittenSpace)GB)"
 		}
         
         if (!(Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host) {
