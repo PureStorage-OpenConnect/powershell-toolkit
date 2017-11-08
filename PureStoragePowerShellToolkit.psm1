@@ -25,11 +25,11 @@
 #Requires -Version 3
 
 #region Helper-functions
-
 <#
 .SYNOPSIS
 	Converts source file to Base64.
 .DESCRIPTION
+	Helper function
 	Supporting function to handle conversions.
 .EXAMPLE
 	None.
@@ -51,6 +51,7 @@ function ConvertTo-Base64() {
 .SYNOPSIS
 	Converts volume sizes from B to MB, MB, GB, TB.
 .DESCRIPTION
+	Helper function
 	Supporting function to handle conversions.
 .EXAMPLE
 	None.
@@ -1051,6 +1052,8 @@ function Test-WindowsBestPractices()
 	
 	Write-Output '============================================================'
 	Write-Output 'Pure Storage Windows Server Best Practice Analyzer'
+	Import-Module ./PureStoragePowerShellToolkit.psd1
+	Write-Output " Version: $(Get-Module -Name PureStoragePowerShellToolkit | Select-Object Version)"
 	Write-Output '============================================================'
 	
 	<#TODO -- Add to output
