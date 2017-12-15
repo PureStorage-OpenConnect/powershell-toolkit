@@ -1111,11 +1111,13 @@ function Test-WindowsBestPractices()
 	Write-Output '=============================='
 	Write-Output 'MPIO Setting Verification'
 	Write-Output '=============================='
-	Write-Host   'Current MPIO Configuration' -BackgroundColor Gray -ForegroundColor White
+	Write-Host   'Current MPIO Configuration'
 	Get-MPIOSetting
+	Get-MPIOAvailableHW
+	Write-Host '=============================='
 	
 	$BPFail = 0
-	$DSMs = Get-MSDSMSupportedHW
+	$DSMs = Get-MPIOAvailableHW
 	ForEach ($DSM in $DSMs)
 	{
 		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray')
@@ -1124,51 +1126,41 @@ function Test-WindowsBestPractices()
 			
 			$MPIO = Get-MPIOSetting | Out-String -Stream
 			
-			if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:30')
-			{
+			if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:30') {
 				#30
 				Write-Output 'PASS: MPIO PDORemovePeriod passes Windows Server Best Practice check.'
-			}
-			else
-			{
+			} else {
 				Write-Warning 'FAIL: MPIO PDORemovePeriod does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
 			}
-			if (($MPIO[7] -replace " ", "") -ceq 'UseCustomPathRecoveryTime:Enabled')
-			{
+
+			if (($MPIO[7] -replace " ", "") -ceq 'UseCustomPathRecoveryTime:Enabled') {
 				#Enabled
 				Write-Output 'PASS: MPIO UseCustomPathRecoveryTime passes Windows Server Best Practice check.'
-			}
-			else
-			{
+			} else {
 				Write-Warning 'FAIL: MPIO UseCustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
 			}
-			if (($MPIO[8] -replace " ", "") -ceq 'CustomPathRecoveryTime:20')
-			{
+
+			if (($MPIO[8] -replace " ", "") -ceq 'CustomPathRecoveryTime:20') {
 				#20
 				Write-Output 'PASS: MPIO CustomPathRecoveryTime passes Windows Server Best Practice check.'
-			}
-			else
-			{
+			} else {
 				Write-Warning 'FAIL: MPIO CustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
 			}
-			if (($MPIO[9] -replace " ", "") -ceq 'DiskTimeoutValue:60')
-			{
+
+			if (($MPIO[9] -replace " ", "") -ceq 'DiskTimeoutValue:60') {
 				#60
 				Write-Output 'PASS: MPIO DiskTimeoutValue passes Windows Server Best Practice check.'
-			}
-			else
-			{
+			} else {
 				Write-Warning 'FAIL: MPIO PDiskTimeoutValue does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
 			}
 		}
 		else
 		{
-			if ($DSM.VendorId -eq 'Vendor 8')
-			{
+			if ($DSM.VendorId -eq 'Vendor 8') {
 				Write-Warning "RECOMMENDATION: Remove the sample DSM entry (VendorId=$DSM.VendorId and ProductId=$DSM.ProductId)"
 			}
 		}
@@ -1393,13 +1385,31 @@ function Get-WindowsPowerScheme()
 	}
 }
 
+# Connect to the Pure Storage FlashArray
+FlashArray = New-PfaArray -EndPoint  -Credentials (Get-Credential) -IgnoreCertificateError
+
+<#
+.SYNOPSIS
+	Short description
+.DESCRIPTION
+	Long description
+.EXAMPLE
+	PS C:\> <example usage>
+	Explanation of what the example does
+.INPUTS
+	Inputs (if any)
+.OUTPUTS
+	Output (if any)
+.NOTES
+	General notes
+#>
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Open-CodePureStorage
 {
     try
     {
         $link = 'http://code.purestorage.com'
-        $browserProcess = [System.Diagnostics.Process]::Start($link)
+        [System.Diagnostics.Process]::Start($link)
     }
     catch
     {
@@ -1407,6 +1417,21 @@ function Open-CodePureStorage
     }
 }
 
+<#
+.SYNOPSIS
+	Short description
+.DESCRIPTION
+	Long description
+.EXAMPLE
+	PS C:\> <example usage>
+	Explanation of what the example does
+.INPUTS
+	Inputs (if any)
+.OUTPUTS
+	Output (if any)
+.NOTES
+	General notes
+#>
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-PfaSerialNumbers ()
 {
@@ -1427,57 +1452,10 @@ function Get-PfaSerialNumbers ()
 	}
 }
 
-#.ExternalHelp PureStoragePowerShellToolkitt.psm1-help.xml
-function Set-QueueDepth()
-{
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][int] $Qd
-    )
-    try
-    {
-        $DriverParam = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\ql2300\Parameters\Device\'
-        If (!$DriverParam.DriverParameter)
-        {
-            $Confirm = Read-Host 'The Queue Depth setting for the QLogic Driver (ql2300.sys) does not exist would you like to create it? Y/N'
-            switch ($Confirm)
-            {
-                'Y' { Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\ql2300\Parameters\Device' -Name 'DriverParameter' -Value "qd=$Qd" }
-                'N' { }
-            }
-        }
-        Else
-        {
-            $CurrentQD = $DriverParam.DriverParameter
-            $Confirm = Read-Host "QLogic Driver Queue Depth is $CurrentQD. Do you want to update to $Qd ? Y/N"
-            switch ($Confirm)
-            {
-                'Y' { Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\ql2300\Parameters\Device' -Name 'DriverParameter' -Value "qd=$Qd" }
-                'N' { }
-            }
-        }
-    }
-    catch
-    {
-
-    }
-}
-
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-QuickFixEngineering
 {
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
-}
-
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-QueueDepth()
-{
-    try {
-        $DriverParam = Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Services\ql2300\Parameters\Device\'
-        'Queue Depth is ' + $DriverParam.DriverParameter
-    } catch {
-
-    }
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
@@ -1719,12 +1697,6 @@ function Create-HyperVReport()
 }
 #>
 
-#region PureStoragePowerShellSDK-Cmdlets
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-BlockSize ()
-{
-}
-
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Sync-FlashArrayHosts ()
 {
@@ -1769,10 +1741,31 @@ function Sync-FlashArrayHosts ()
 }
 #endregion
 
+# Get connected volumes to host
+$UniqueIds = Get-WMIObject -Class MSFT_Disk -Namespace 'ROOT\Microsoft\Windows\Storage' | Select-Object ProvisioningType,UniqueId,Number
 
-#Export-ModuleMember -function Optimize-Unmap
-#Export-ModuleMember -function Get-BlockSize
-#Export-ModuleMember -Function New-HyperVReport 
+# Connect to FlashArray
+$FlashArray = New-PfaArray -EndPoint 10.21.201.57 -Credentials (Get-Credential) -IgnoreCertificateError
+
+# Retrieved Volumes
+$Volumes = Get-PfaVolumes -Array $FlashArray | Select-Object Name,Serial
+
+# Inspect Volumes and compare to UniqueId
+ForEach ($UniqueId in $UniqueIds) {
+    ForEach ($Volume in $Volumes) {
+        If (($UniqueId.UniqueId).Substring($UniqueId.UniqueId.Length-24) -eq $Volume.Serial) {
+            Write-Host "Volume: $($Volume.Name)"
+            Write-Host "Serial: $($Volume.serial)"
+            Switch ($UniqueId.ProvisioningType) {
+                0 { Write-Host "Type: Unknown" }
+                1 { Write-Host "Type: Thin" }
+                2 { Write-Host "Type: Fixed" }
+            }
+        }
+    }
+}
+
+ 
 Export-ModuleMember -function Get-WindowsPowerScheme
 Export-ModuleMember -function Get-HostBusAdapter 
 Export-ModuleMember -function Register-HostVolumes
