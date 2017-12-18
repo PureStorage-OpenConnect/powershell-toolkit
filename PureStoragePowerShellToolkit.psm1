@@ -1182,9 +1182,6 @@ function Get-WindowsPowerScheme() {
 	}
 }
 
-# Connect to the Pure Storage FlashArray
-FlashArray = New-PfaArray -EndPoint  -Credentials (Get-Credential) -IgnoreCertificateError
-
 <#
 .SYNOPSIS
 	Short description
@@ -1229,9 +1226,8 @@ function Open-CodePureStorage {
 	General notes
 #>
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-PfaSerialNumbers ()
-{
-	$AllDevices = gwmi -Class Win32_DiskDrive -Namespace 'root\CIMV2'
+function Get-PfaSerialNumbers () {
+	$AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
 	ForEach ($Device in $AllDevices) {
 		if($Device.Model -like 'PURE FlashArray*') {
 			@{
@@ -1240,23 +1236,19 @@ function Get-PfaSerialNumbers ()
 				Index=$Device.Index;
 				SerialNo=$Device.SerialNumber;
 			}
-		}
-		else {
+		} else {
 			Write-Error "No Pure Storage FlashArray volumes are connected to system $env:COMPUTERNAME."
-		
 		}
 	}
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-QuickFixEngineering
-{
+function Get-QuickFixEngineering {
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-HostBusAdapter()
-{
+function Get-HostBusAdapter() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)]
@@ -1316,8 +1308,7 @@ function Register-HostVolumes () {
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Unregister-HostVolumes ()
-{
+function Unregister-HostVolumes () {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)]
@@ -1328,15 +1319,10 @@ function Unregister-HostVolumes ()
     $scriptblock = [string]::Join(',', $cmds)
     $diskpart = $ExecutionContext.InvokeCommand.NewScriptBlock("$scriptblock | DISKPART")
     $result = Invoke-Command -ComputerName $Computername -ScriptBlock $diskpart
-	
     $disks = Invoke-Command -Computername $Computername { Get-Disk }
-    $i = 0
-    ForEach ($disk in $disks)
-    {
-        If ($disk.FriendlyName -like 'PURE FlashArray*')
-        {
-            If ($disk.OperationalStatus -ne 1)
-            {
+    ForEach ($disk in $disks) {
+        If ($disk.FriendlyName -like 'PURE FlashArray*') {
+            If ($disk.OperationalStatus -ne 1) {
                 $disknumber = $disk.Number
                 $cmds = "`"SELECT DISK $disknumber`"",
                 "`"OFFLINE DISK`""
@@ -1349,8 +1335,7 @@ function Unregister-HostVolumes ()
 }
 
 #.ExternalHelp PureStoragePowerShellToolkitt.psm1-help.xml
-function Get-VolumeShadowCopy()
-{
+function Get-VolumeShadowCopy() {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)][string]$ScriptName = 'PUREVSS-SNAP',
@@ -1370,8 +1355,7 @@ function Get-VolumeShadowCopy()
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function New-VolumeShadowCopy()
-{
+function New-VolumeShadowCopy() {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)][string[]]$Volume,
@@ -1402,8 +1386,7 @@ function New-VolumeShadowCopy()
 }
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Update-DriveInformation ()
-{
+function Update-DriveInformation () {
   [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)]
@@ -1426,8 +1409,7 @@ function Update-DriveInformation ()
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 <#
-function Create-HyperVReport()
-{
+function Create-HyperVReport() {
 	try
 	{
 		
@@ -1493,12 +1475,7 @@ function Create-HyperVReport()
 #>
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Sync-FlashArrayHosts ()
-{
-	#
-	# Attribution: Ryan Stewart
-	# 
-	#
+function Sync-FlashArrayHosts () {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)]
@@ -1518,17 +1495,14 @@ function Sync-FlashArrayHosts ()
 	
 	$FlashArray1Hosts = Get-PfaHosts-Array $FlashArray1
 	
-	switch ($Procotol)
-	{
+	switch ($Procotol) {
 		'iSCSI'{
-			foreach ($FlashArray1Host in $FlashArray1Hosts)
-			{
+			foreach ($FlashArray1Host in $FlashArray1Hosts) {
 				Add-PfaHostIqns -Array $FlashArray2 -AddIqnList $FlashArray1Host.iqn -Name $FlashArray1Host.name
 			}
 		}
 		'Fibre Channel' {
-			foreach ($FlashArray1Host in $FlashArray1Hosts)
-			{
+			foreach ($FlashArray1Host in $FlashArray1Hosts) {
 				Add-PfaHostWwns -Array $FlashArray2 -AddWwnList $FlashArray1Host.wwn -Name $FlashArray1Host.name
 			}
 		}
@@ -1536,6 +1510,8 @@ function Sync-FlashArrayHosts ()
 }
 #endregion
 
+<# 
+# DEV
 # Get connected volumes to host
 $UniqueIds = Get-WMIObject -Class MSFT_Disk -Namespace 'ROOT\Microsoft\Windows\Storage' | Select-Object ProvisioningType,UniqueId,Number
 
@@ -1559,7 +1535,7 @@ ForEach ($UniqueId in $UniqueIds) {
         }
     }
 }
-
+#>
  
 Export-ModuleMember -function Get-WindowsPowerScheme
 Export-ModuleMember -function Get-HostBusAdapter 
