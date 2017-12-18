@@ -9,7 +9,8 @@ The Pure Storage PowerShell Toolkit is an open source project that provides addi
 UPDATES
 * New-FlashArrayCapacityReport -- Added a -Filter parameter to query for a subset of volume. Example: 
 ```
-New-FlashArrayCapacityReport -EndPoint 10.0.0.1 -Credential (Get-Credential) -VolumeFilter *Server* -OutFilePath c:\temp -HTMLFileName foobar.html
+New-FlashArrayCapacityReport -EndPoint 10.0.0.1 `
+  -Credential (Get-Credential) -VolumeFilter *Server* -OutFilePath c:\temp -HTMLFileName foobar.html
 ```
 * Test-WindowsBestPractices -- Fixed issue with Windows Server 2016 failing with Get-MSDSMSupportedHw. Now using Get-MPIOAvailableHw.
 
