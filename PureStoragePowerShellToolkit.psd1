@@ -31,7 +31,7 @@ RootModule = '.\PureStoragePowerShellToolkit.psm1'
 ModuleVersion = '3.5.1217.0'
 
 # Supported PSEditions
-CompatiblePSEditions = 'Desktop'
+#CompatiblePSEditions = 'Desktop'
 
 # ID used to uniquely identify this module
 GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
