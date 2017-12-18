@@ -216,6 +216,7 @@ function New-FlashArrayCapacityReport() {
     }
 
 # Create HTML/CSS report format
+#region HTML
 $HTMLHeader = @"
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 <html><head><title>Pure Storage FlashArray Capacity Report</title>
@@ -974,6 +975,7 @@ SRjlIErl0Zw4+nO9zUWE4nSySlfCAAAAAAAAAAAA0C4JozRiW+2SRvP2U71N6+1IVEbpc709n6x2nwAA
 AAAAAAAAALREwihhShXSvHT9vPyrf6ebZFKG7f1klZbCAAAAAAAAAAAA0B4JoyOwrXZJmpf1thANDkwF
 UQAAAAAAAAAAgB6YCMEIDvIqfa634/qPF6LBgeVk5BNhAAAAAAAAAAAA6Lb/X4ABALB1eFG6MQyjAAAA
 AElFTkSuQmCC">
+
 <div id="report">
 <p><div class='absolute'>Capacity Report<br><div class='time'>$(Get-Date -Format U)</div></div>
 <h3>FlashArray Information</h3>
@@ -1040,77 +1042,51 @@ AElFTkSuQmCC">
 	$HTMLmessage | Out-File ($OutFilePath + "\" + $HTMLFileName)
 }
 
-# UNDER DEVELOPMENT -- Test-WindowsBestPractices
-function Test-WindowsBestPractices()
-{
-	<#[CmdletBinding()]
-	Param (
-		[Parameter(Mandatory = $True)][string]$ComputerName
-	)#>
-	
+<#
+.SYNOPSIS
+	Short description
+.DESCRIPTION
+	Long description
+.EXAMPLE
+	PS C:\> <example usage>
+	Explanation of what the example does
+.INPUTS
+	Inputs (if any)
+.OUTPUTS
+	Output (if any)
+.NOTES
+	General notes
+#>
+ function Test-WindowsBestPractices() {
 	Clear-Host
-	
-	Write-Output '============================================================'
-	Write-Output 'Pure Storage Windows Server Best Practice Analyzer'
+	Write-Host '============================================================'
+	Write-Host 'Pure Storage Windows Server Best Practice Analyzer'
 	Import-Module ./PureStoragePowerShellToolkit.psd1
-	Write-Output " Version: $(Get-Module -Name PureStoragePowerShellToolkit | Select-Object Version)"
-	Write-Output '============================================================'
-	
-	<#TODO -- Add to output
-		VERSION #
-		VERSION # output to screeen
-		LINK at bottom
-		HBA
-		CHECK WINDOWS VERSION
-	$Windows2008R2 = @(
-	'KB979711', 'KB2520235', 'KB2528357',
-	'KB2684681', 'KB2718576', 'KB2522766',
-	'KB2528357', 'KB2684681', 'KB2754704', 'KB2990170')
-	$Windows2012 = @('KB2796995', 'KB2990170')
-	$Windows2012R2 = @('KB2990170')
-	$Windows2016 = @('KB2967917', 'KB2961072', 'KB2998527')
-	
-	$HotfixIds = Get-HotFix
-	
-	ForEach ($Hotfix in $Windows2016)
-	{
-		#Write-Host $Hotfix '---' $HotfixId  
-	}
-	#>
-	
-	Write-Output ''
-	Write-Output '=============================='
-	Write-Output 'Host Information'
-	Write-Output '=============================='
-	Get-SilComputer
-	#Get-SilWindowsUpdate | Format-Table -AutoSize
-	
-	Write-Output ''
-	Write-Output '=============================='
-	Write-Output 'Multipath-IO Verificaton'
-	Write-Output '=============================='
-	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed')
-	{
-		Write-Output 'PASS: Multipath-IO is installed.'
-	}
-	else
-	{
+	Write-Host " Version: $(Get-Module -Name PureStoragePowerShellToolkit | Select-Object Version)"
+	Write-Host '============================================================'
+	Write-Host 'Host Information'
+	Write-Host '=============================='
+	Get-SilComputer	
+	Write-Host ''
+	Write-Host '=============================='
+	Write-Host 'Multipath-IO Verificaton'
+	Write-Host '=============================='
+	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed') {
+		Write-Host 'PASS: Multipath-IO is installed.'
+	} else {
 		$resp = Write-Warning 'FAIL: Multipath-IO Windows feature not installed. Would you like to install this feature?'
-		if ($resp.ToUpper() -eq 'Y')
-		{
+		if ($resp.ToUpper() -eq 'Y') {
 			Add-WindowsFeature -Name Multipath-IO
-		}
-		else
-		{
+		} else {
 			Write-Warning 'Multipath-IO Windows feature has not been installed. Please add this feature manually.'
 			break
 		}
 	}
 	
-	Write-Output ''
-	Write-Output '=============================='
-	Write-Output 'MPIO Setting Verification'
-	Write-Output '=============================='
+	Write-Host ''
+	Write-Host '=============================='
+	Write-Host 'MPIO Setting Verification'
+	Write-Host '=============================='
 	Write-Host   'Current MPIO Configuration'
 	Get-MPIOSetting
 	Get-MPIOAvailableHW
@@ -1118,17 +1094,13 @@ function Test-WindowsBestPractices()
 	
 	$BPFail = 0
 	$DSMs = Get-MPIOAvailableHW
-	ForEach ($DSM in $DSMs)
-	{
-		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray')
-		{
-			Write-Output 'PASS: Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.'
-			
-			$MPIO = Get-MPIOSetting | Out-String -Stream
-			
+	ForEach ($DSM in $DSMs) {
+		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
+			Write-Host 'PASS: Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.'
+			$MPIO = Get-MPIOSetting			
 			if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:30') {
 				#30
-				Write-Output 'PASS: MPIO PDORemovePeriod passes Windows Server Best Practice check.'
+				Write-Host 'PASS: MPIO PDORemovePeriod passes Windows Server Best Practice check.'
 			} else {
 				Write-Warning 'FAIL: MPIO PDORemovePeriod does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
@@ -1136,7 +1108,7 @@ function Test-WindowsBestPractices()
 
 			if (($MPIO[7] -replace " ", "") -ceq 'UseCustomPathRecoveryTime:Enabled') {
 				#Enabled
-				Write-Output 'PASS: MPIO UseCustomPathRecoveryTime passes Windows Server Best Practice check.'
+				Write-Host 'PASS: MPIO UseCustomPathRecoveryTime passes Windows Server Best Practice check.'
 			} else {
 				Write-Warning 'FAIL: MPIO UseCustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
@@ -1144,7 +1116,7 @@ function Test-WindowsBestPractices()
 
 			if (($MPIO[8] -replace " ", "") -ceq 'CustomPathRecoveryTime:20') {
 				#20
-				Write-Output 'PASS: MPIO CustomPathRecoveryTime passes Windows Server Best Practice check.'
+				Write-Host 'PASS: MPIO CustomPathRecoveryTime passes Windows Server Best Practice check.'
 			} else {
 				Write-Warning 'FAIL: MPIO CustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
@@ -1152,221 +1124,46 @@ function Test-WindowsBestPractices()
 
 			if (($MPIO[9] -replace " ", "") -ceq 'DiskTimeoutValue:60') {
 				#60
-				Write-Output 'PASS: MPIO DiskTimeoutValue passes Windows Server Best Practice check.'
+				Write-Host 'PASS: MPIO DiskTimeoutValue passes Windows Server Best Practice check.'
 			} else {
 				Write-Warning 'FAIL: MPIO PDiskTimeoutValue does NOT pass Windows Server Best Practice check.'
 				$BPFail = $BPFail + 1
 			}
-		}
-		else
-		{
+		} else {
 			if ($DSM.VendorId -eq 'Vendor 8') {
 				Write-Warning "RECOMMENDATION: Remove the sample DSM entry (VendorId=$DSM.VendorId and ProductId=$DSM.ProductId)"
 			}
 		}
 	}
 	
-	if ($BPFail -gt 0)
-	{
+	if ($BPFail -gt 0) {
 		$resp = Read-Host "Would you like to correct the failed MPIO settings?"
-		if ($resp.ToUpper() -eq 'Y')
-		{
+		if ($resp.ToUpper() -eq 'Y') {
 			Set-MPIOSetting -NewPDORemovePeriod 30 -NewDiskTimeout 60 -CustomPathRecovery Enabled -NewPathRecoveryInterval 20
 			#Set-MPIOSetting -NewPDORemovePeriod 20 -NewDiskTimeout 90 -CustomPathRecovery Disabled -NewPathRecoveryInterval 10
 			
-			Write-Output '=============================='
+			Write-Host '=============================='
 			Write-Host   'Updated MPIO Configuration' -BackgroundColor Gray -ForegroundColor White
-			Write-Output '=============================='
+			Write-Host '=============================='
 			Get-MPIOSetting
-		}
-		else
-		{
+		} else {
 			Write-Warning 'No changes have been to MPIO settings. Please manually modify the settings to conform with Pure Storage Windows Server Best Practices.'
 		}
 	}
 	
-	Write-Output ''
-	Write-Output '=============================='
-	Write-Output 'TRIM/UNMAP Verification'
-	Write-Output '=============================='
-	if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0)
-	{
-		Write-Output 'PASS: Delete Notification Enabled'
-	}
-	else
-	{
+	Write-Host ''
+	Write-Host '=============================='
+	Write-Host 'TRIM/UNMAP Verification'
+	Write-Host '=============================='
+	if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0) {
+		Write-Host 'PASS: Delete Notification Enabled'
+	} else {
 		Write-Warning 'Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications.'
 	}
 }
-<#
-Support for Windows Server 2008 R2. 
-$Paths = (Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings").Name
-ForEach ($Path in $Paths) {
-	$PureVolumePath = $Path.Substring(93)
-	(Get-ChildItem -Path "hklm:\SYSTEM\CurrentControlSet\Services\msdsm\Parameters\DsmLoadBalanceSettings\$PureVolumePath").Name.Substring(93) | Select Name
-}
-$DsmContext = Get-WmiObject -Namespace 'root/WMI' -Class MPIO_REGISTERED_DSM
-$DsmCounters = Get-Wmiobject -ComputerName $ComputerName -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS             
-Invoke-WmiMethod -Class MPIO_WMI_METHODS -Name SetDSMCounters -ArgumentList $DsmContext#, $DsmCounters
-Invoke-WmiMethod -Class MPIO_TIMERS_COUNTERS -Name PDORemovePeriod -ArgumentList @{PDORemovePeriod=60}
-Set-WmiInstance -Class MPIO_TIMERS_COUNTERS -Arguments @{PDORemovePeriod=60}
-Get-WmiObject -Query 'SELECT InstanceName from MPIO_WMI_METHODS'
-Get-WmiObject -Namespace 'root/WMI' -Class MPIO_ADAPTER_INFORMATION -ComputerName $env:COMPUTERNAME
-Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT PathList FROM MPIO_PATH_INFORMATION'
-Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT NumberPaths FROM MPIO_PATH_INFORMATION' -ComputerName $env:COMPUTERNAME
-Get-WmiObject -Namespace 'root/WMI' -Query 'SELECT DsmParameters FROM MPIO_REGISTERED_DSM' -ComputerName $env:COMPUTERNAME
-Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_HEALTH_INFO
-Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_DISK_INFO 
-Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_HEALTH_INFO
-Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_PATH_INFORMATION
-Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_REGISTERED_DSM
-Get-Wmiobject -ComputerName CSG-WS2012R2-01 -NameSpace root/WMI -Class MPIO_TIMERS_COUNTERS ######             
-Get-WmiObject -Namespace 'root/cimv2' -Class DSM_Load_Balance_Policy
-#>
-
-# UNDER DEVELOPMENT -- Optimize-Unmap
-<#
-function Optimize-Unmap()
-{
-    [CmdletBinding()]
-    Param (
-        [Parameter(Mandatory = $True)][string]$vCenter,
-        [Parameter(Mandatory = $True)][string]$vCenterUser,
-        [Parameter(Mandatory = $True)][string]$vCenterPassword,
-        [Parameter(Mandatory = $True)][string[]]$FlashArrays,
-        [Parameter(Mandatory = $True)][PSCredential]$Creds,
-		[Parameter(Mandatory = $True)][string]$LogPath,
-		[Parameter(Mandatory = $True)][string]$LogFile
-    )
-
-	#Important PowerCLI if not done and connect to vCenter
-	Add-PsSnapin VMware.VimAutomation.Core
-
-	#Create log folder if non-existent
-	If (!(Test-Path -Path $LogPath)) { New-Item -ItemType Directory -Path $LogPath }
-	$LogFile = $LogPath + (Get-Date -Format o |ForEach-Object {$_ -Replace ':', '.'}) + $LogFile
-
-	#Connect to FlashArray via REST
-	$facount=0
-	$purevols=$null
-	$purevol=$null
-	$EndPoint= @()
-
-	#$Pwd = ConvertTo-SecureString $pureuserpwd -AsPlainText -Force
-	#$Creds = New-Object System.Management.Automation.PSCredential ($pureuser, $pwd)
-
-	foreach ($flasharray in $flasharrays)
-	{
-		if ($facount -eq 0)
-		{
-			$EndPoint = @(New-PfaArray -EndPoint $flasharray -Credentials $Creds -IgnoreCertificateError)
-			$purevolumes = @(Get-PfaVolumes -Array $EndPoint[$facount])
-			$tempvols = @(Get-PfaVolumes -Array $EndPoint[$facount])  
-			$arraysnlist = @(@{$tempvols[0].serial.substring(0,16) = $facount})
-		}
-		else
-		{
-			$EndPoint += New-PfaArray -EndPoint $flasharray -Credentials $Creds -IgnoreCertificateError
-			$purevolumes += Get-PfaVolumes -Array $EndPoint[$facount]
-			$tempvols = Get-PfaVolumes -Array $EndPoint[$facount]   
-			$arraysnlist += @{$tempvols[0].serial.substring(0,16) = $facount}
-		}
-		$facount = $facount + 1
-	}
-
-	add-content $LogFile 'Connected to FlashArray:'
-	add-content $LogFile $purevip
-	add-content $LogFile '----------------'
-
-	#Set-PowerCLIConfiguration -invalidcertificateaction 'ignore' -confirm:$false |out-null
-	#Set-PowerCLIConfiguration -Scope Session -WebOperationTimeoutSeconds -1 -confirm:$false |out-null
-	connect-viserver -Server $vCenter -username $vCenterUser -password $vCenterPassword | Out-Null
-	add-content $LogFile 'Connected to vCenter:'
-	add-content $LogFile $vCenter
-	add-content $LogFile '----------------'
-
-	#Gather VMFS Datastores and identify how many are Pure Storage volumes
-	$datastores = get-datastore
-	add-content $LogFile 'Found the following datastores:'
-	add-content $LogFile $datastores
-	add-content $LogFile '***************'
-
-	#Starting UNMAP Process on datastores
-	$volcount=0
-	$purevol = $null
-	foreach ($datastore in $datastores)
-	{
-		$esx = $datastore | get-vmhost | where-object {($_.version -like '5.5.*') -or ($_.version -like '6.0.*')} | Select-Object -last 1
-		if ($datastore.Type -ne 'VMFS')
-		{
-			add-content $LogFile 'This volume is not a VMFS volume and cannot be reclaimed. Skipping...'
-			add-content $LogFile $datastore.Type
-		}
-		else
-		{
-			$lun = get-scsilun -datastore $datastore | select-object -last 1
-			$esxcli=get-esxcli -VMHost $esx
-			add-content $LogFile 'The following datastore is being examined:'
-			add-content $LogFile $datastore 
-			add-content $LogFile 'The following ESXi is the chosen source:'
-			add-content $LogFile $esx 
-
-			if ($lun.canonicalname -like 'naa.624a9370*')
-			{
-				$volserial = ($lun.CanonicalName.ToUpper()).substring(12)
-				$purevol = $purevolumes | where-object { $_.serial -eq $volserial }
-				$arraychoice = $arraysnlist.($volserial.substring(0,16))
-				$volinfo = Get-PfaVolumeSpaceMetrics -Array $EndPoint[$arraychoice] -VolumeName $purevol.name
-				$volreduction = '{0:N3}' -f ($volinfo.data_reduction)
-				$volphysicalcapacity = '{0:N3}' -f ($volinfo.volumes/1024/1024/1024)
-				add-content $LogFile 'This datastore is a Pure Storage Volume.'
-				add-content $LogFile $lun.CanonicalName
-				add-content $LogFile 'The current data reduction for this volume prior to UNMAP is:'
-				add-content $LogFile $volreduction
-				add-content $LogFile 'The current physical space consumption in GB of this device prior to UNMAP is:'
-				add-content $LogFile $volphysicalcapacity
-        
-				$blockcount = [math]::floor($datastore.FreeSpaceMB * .01)
-				add-content $LogFile 'The maximum allowed block count for this datastore is'
-				add-content $LogFile $blockcount
-				$esxcli.storage.vmfs.unmap($blockcount, $datastore.Name, $null) |out-null
-				Start-Sleep -s 10
-				$volinfo = Get-PfaVolumeSpaceMetrics -Array $EndPoint[$arraychoice] -VolumeName $purevol.name
-				$volreduction = '{0:N3}' -f ($volinfo.data_reduction)
-				$volphysicalcapacitynew = '{0:N3}' -f ($volinfo.volumes/1024/1024/1024)
-				$unmapsavings = ($volphysicalcapacity - $volphysicalcapacitynew)
-				$volcount=$volcount+1
-				add-content $LogFile 'The new data reduction for this volume after UNMAP is:'
-				add-content $LogFile $volreduction
-				add-content $LogFile 'The new physical space consumption in GB of this device after UNMAP is:'
-				add-content $LogFile $volphysicalcapacitynew
-				add-content $LogFile 'The following capacity in GB has been reclaimed from the FlashArray from this volume:'
-				add-content $LogFile $unmapsavings
-				add-content $LogFile '---------------------'
-				Start-Sleep -s 5
-			}
-			else
-			{
-				add-content $LogFile 'This datastore is NOT a Pure Storage Volume. Skipping...'
-				add-content $LogFile $lun.CanonicalName
-				add-content $LogFile '---------------------'
-			}
-		}
-	}
-
-	#disconnecting sessions
-	$facount=0
-	foreach ($flasharray in $flasharrays)
-	{
-		Disconnect-PfaArray -Array $flasharray
-		$facount = $facount + 1
-	}
-}
-#>
 
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-WindowsPowerScheme()
-{
+function Get-WindowsPowerScheme() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)]
@@ -1404,8 +1201,7 @@ FlashArray = New-PfaArray -EndPoint  -Credentials (Get-Credential) -IgnoreCertif
 	General notes
 #>
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Open-CodePureStorage
-{
+function Open-CodePureStorage {
     try
     {
         $link = 'http://code.purestorage.com'
@@ -1487,8 +1283,7 @@ function Get-HostBusAdapter()
 }
 
 #.ExternalHelp PureStoragePowerShellToolkitpsm1-help.xml
-function Register-HostVolumes ()
-{
+function Register-HostVolumes () {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)]

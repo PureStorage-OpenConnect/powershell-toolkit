@@ -28,10 +28,10 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.5.1215.0'
+ModuleVersion = '3.5.1217.0'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = 'Desktop'
 
 # ID used to uniquely identify this module
 GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
@@ -133,7 +133,7 @@ PrivateData = @{
  } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
-HelpInfoURI = 'http://purepowershellguy.com/PureStoragePowerShellHelpInfo/'
+# HelpInfoURI = ''
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
