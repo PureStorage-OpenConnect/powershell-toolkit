@@ -181,11 +181,11 @@ function New-FlashArrayCapacityReport() {
 		
 		if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name))
 		{
-			$protected = ""
+			$protected = "No"
 		}
 		else
 		{
-			$protected = "X ($($WrittenSpace)GB)"
+			$protected = "Yes"
 		}
         
         if (!(Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host) {
