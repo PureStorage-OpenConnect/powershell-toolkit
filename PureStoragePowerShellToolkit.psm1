@@ -1061,7 +1061,6 @@ AElFTkSuQmCC">
 	Clear-Host
 	Write-Host '============================================================'
 	Write-Host ' Pure Storage Windows Server Best Practice Analyzer'
-	Write-Host " Version: $(Get-Module -Name PureStoragePowerShellToolkit | Select-Object Version)"
 	Write-Host '============================================================'
 	Write-Host 'Host Information'
 	Write-Host '=============================='
