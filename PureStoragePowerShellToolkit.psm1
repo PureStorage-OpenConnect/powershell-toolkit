@@ -3,7 +3,7 @@
 	Created by:   	barkz@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
-	Copyright:		(c) 2017 Pure Storage, Inc.
+	Copyright:		(c) 2018 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module (.psm1)
 	-------------------------------------------------------------------------
@@ -24,7 +24,7 @@
 
 #Requires -Version 3
 
-#region Helper-functions
+#region HELPER FUNCTIONS
 <#
 .SYNOPSIS
 	Converts source file to Base64.
@@ -46,7 +46,9 @@ function ConvertTo-Base64() {
 	)
 	return [Convert]::ToBase64String((Get-Content $Source -Encoding byte))
 }
+#endregion
 
+#region CONVERT-SIZE
 <#
 .SYNOPSIS
 	Converts volume sizes from B to MB, MB, GB, TB.
@@ -93,6 +95,7 @@ function Convert-Size {
 }
 #endregion
 
+#region NEW-FLASHARRAYCAPACITYREPORT
 <#
 .SYNOPSIS
 	Create a Pure Storage FlashArray capacity report.
@@ -118,9 +121,9 @@ function New-FlashArrayCapacityReport() {
     Param (
 		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $EndPoint,
 		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][System.Management.Automation.Credential()] $Credential,
-		[Parameter(Mandatory=$False)][ValidateNotNullOrEmpty()][string] $VolumeFilter,
         [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
-        [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $HTMLFileName
+		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $HTMLFileName,
+		[Parameter(Mandatory=$False)][ValidateNotNullOrEmpty()][string] $VolumeFilter="*"
 	)
 
     $ReportDateTime = Get-Date -Format d
@@ -133,32 +136,29 @@ function New-FlashArrayCapacityReport() {
 	}
 	
 	$FlashArraySpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
-	$FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray
+	$FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray	
+	$FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
 
-	# Add Model
-	#$FlashArrayVolumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
-	#$FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
-
-	$capacitySpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.capacity -Precision 2
-	$snapSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.snapshots -Precision 2
-	$volumeSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.volumes -Precision 2
-	$data_reduction = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.data_reduction -Precision 2
-	$totalSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.total -Precision 2
-	$shared_space = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.shared_space -Precision 0
-	$thin_prov = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.thin_provisioning -Precision 2
-	$total_reduction = 	[system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1)
-
+	$sysCapacity = Convert-Size -ConvertFrom Bytes -ConvertTo TB $FlashArraySpaceMetrics.capacity -Precision 2
+	$sysSnapshotSpace = Convert-Size -ConvertFrom Bytes -ConvertTo MB $FlashArraySpaceMetrics.snapshots -Precision 4
+	$sysVolumeSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.volumes -Precision 2
+	$sysDRR = [system.Math]::Round($FlashArraySpaceMetrics.data_reduction,1)
+	$sysSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.total -Precision 2
+	$sysSharedSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.shared_space -Precision 0
+	$sysTP = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.thin_provisioning -Precision 2
+	if([system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1) -gt 100) { 
+		$sysTotalDRR = ">100:1" 
+	} else {
+		$sysTotalDRR = [system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1)+":1"
+	}
+	
 	# Create the chart using our chart function
 	#New-FlashArrayReportPiechart -FileName ($OutFilePath + "\TempPiechart") -CapacitySpace $capacitySpace -SnapshotSpace $snapSpace -VolumeSpace $volumeSpace
 	
     $volumeInfo = $null
 	$provisioned = 0
 	
-	switch ($VolumeFilter) {
-		(!$VolumeFilter) { $volumes = Get-PfaVolumes -Array $FlashArray }
-		($VolumeFilter) { $volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }}
-	}
-    
+	$volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
     $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th>"
 	
 	ForEach ($volume in $volumes)
@@ -170,21 +170,16 @@ function New-FlashArrayCapacityReport() {
 		$datardx = "{0:N2}" -f $dr.data_reduction
 		$dataTP = "{0:N3}" -f $dr.thin_provisioning
 		$WrittenSpace = ((1-$dr.thin_provisioning)*$dr.total)/1024/1024/1024
-		if ($dr.shared_space)
-		{
+		if ($dr.shared_space) {
 			$dataSS = "{0:N2}" -f $dr.shared_space
-		}
-		else
-		{
+		} else {
 			$dataSS = "None"
 		}
 		
-		if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name))
-		{
+		# Does the volume have any snapshots?
+		if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name)) {
 			$protected = "No"
-		}
-		else
-		{
+		} else {
 			$protected = "Yes"
 		}
         
@@ -198,11 +193,9 @@ function New-FlashArrayCapacityReport() {
                     $hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup
                 }
             }
-        }
-        else {
+        } else {
             $hostconnname = (Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host
         }
-		
         $volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td>$($hostconnname)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td></tr>"
 	}
 	
@@ -997,24 +990,36 @@ AElFTkSuQmCC">
 <td>$($FlashArrayConfig.id)</td>
 </tr>
 <tr>
-<td>System Capacity (GB)</td>
-<td>$("{0:N0}" -f $capacitySpace)</td>
+<td>Total Volumes Space</td>
+<td>$sysVolumeSpace G</td>
 </tr>
 <tr>
-<td>Total Snapshots Space (GB)</td>
-<td>$("{0:N0}" -f $snapSpace)</td>
+<td>Total Snapshots Space</td>
+<td>$("{0:N2}" -f $sysSnapshotSpace) M</td>
 </tr>
 <tr>
-<td>Total Volumes Space (GB)</td>
-<td>$volumespace</td>
+<td>Shared Space</td>
+<td>$("{0:N2}" -f $sysSharedSpace) G</td>
 </tr>
 <tr>
-<td>Overall Data Reduction</td>
-<td>$total_reduction :1</td>
+<td>Used Space</td>
+<td>$("{0:N2}" -f $sysSpace) G</td>
 </tr>
 <tr>
-<td>Provisioned Space (TB)</td>
-<td> $("{0:N2}" -f $provisioned)</td>
+<td>System Capacity</td>
+<td>$("{0:N2}" -f $sysCapacity) T</td>
+</tr>
+<tr>
+<td>System Data Reduction</td>
+<td>$("{0:N2}" -f $sysDRR):1</td>
+</tr>
+<tr>
+<td>Total Data Reduction</td>
+<td>$($sysTotalDRR)</td>
+</tr>
+<tr>
+<td>Provisioned Space</td>
+<td> $("{0:N2}" -f $provisioned) T</td>
 </tr>
 </table>
 <!--<img style="max-width: 1300px; max-height: 740px;" src="data:image/png;base64,$Script:PiechartImgSrc">-->
@@ -1041,7 +1046,9 @@ AElFTkSuQmCC">
 	# Save the report out to a file in the current path$
 	$HTMLmessage | Out-File ($OutFilePath + "\" + $HTMLFileName)
 }
+#endregion
 
+#region TEST-WINDOWSBESTPRACTICES
 <#
 .SYNOPSIS
 	Short description
@@ -1090,62 +1097,194 @@ AElFTkSuQmCC">
 	Get-MPIOAvailableHW
 	Write-Host '=============================='
 	
-	$BPFail = 0
 	$DSMs = Get-MPIOAvailableHW
 	ForEach ($DSM in $DSMs) {
 		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
 			Write-Host 'PASS: Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.'
-			$MPIO = Get-MPIOSetting			
-			if (($MPIO[4] -replace " ", "") -ceq 'PDORemovePeriod:30') {
-				#30
-				Write-Host 'PASS: MPIO PDORemovePeriod passes Windows Server Best Practice check.'
-			} else {
-				Write-Warning 'FAIL: MPIO PDORemovePeriod does NOT pass Windows Server Best Practice check.'
-				$BPFail = $BPFail + 1
-			}
-
-			if (($MPIO[7] -replace " ", "") -ceq 'UseCustomPathRecoveryTime:Enabled') {
-				#Enabled
-				Write-Host 'PASS: MPIO UseCustomPathRecoveryTime passes Windows Server Best Practice check.'
-			} else {
-				Write-Warning 'FAIL: MPIO UseCustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
-				$BPFail = $BPFail + 1
-			}
-
-			if (($MPIO[8] -replace " ", "") -ceq 'CustomPathRecoveryTime:20') {
-				#20
-				Write-Host 'PASS: MPIO CustomPathRecoveryTime passes Windows Server Best Practice check.'
-			} else {
-				Write-Warning 'FAIL: MPIO CustomPathRecoveryTime does NOT pass Windows Server Best Practice check.'
-				$BPFail = $BPFail + 1
-			}
-
-			if (($MPIO[9] -replace " ", "") -ceq 'DiskTimeoutValue:60') {
-				#60
-				Write-Host 'PASS: MPIO DiskTimeoutValue passes Windows Server Best Practice check.'
-			} else {
-				Write-Warning 'FAIL: MPIO PDiskTimeoutValue does NOT pass Windows Server Best Practice check.'
-				$BPFail = $BPFail + 1
-			}
-		} else {
-			if ($DSM.VendorId -eq 'Vendor 8') {
-				Write-Warning "RECOMMENDATION: Remove the sample DSM entry (VendorId=$DSM.VendorId and ProductId=$DSM.ProductId)"
-			}
-		}
-	}
-	
-	if ($BPFail -gt 0) {
-		$resp = Read-Host "Would you like to correct the failed MPIO settings?"
-		if ($resp.ToUpper() -eq 'Y') {
-			Set-MPIOSetting -NewPDORemovePeriod 30 -NewDiskTimeout 60 -CustomPathRecovery Enabled -NewPathRecoveryInterval 20
-			#Set-MPIOSetting -NewPDORemovePeriod 20 -NewDiskTimeout 90 -CustomPathRecovery Disabled -NewPathRecoveryInterval 10
+			Write-Host
+			Write-Host
 			
-			Write-Host '=============================='
-			Write-Host   'Updated MPIO Configuration' -BackgroundColor Gray -ForegroundColor White
-			Write-Host '=============================='
-			Get-MPIOSetting
-		} else {
-			Write-Warning 'No changes have been to MPIO settings. Please manually modify the settings to conform with Pure Storage Windows Server Best Practices.'
+			<# Get-MPIOSetting Output with Best Practices
+				PS C:\> Get-MPIOSetting
+
+				PathVerificationState     : Disabled
+				PathVerificationPeriod    : 30
+				PDORemovePeriod           : 30
+				RetryCount                : 3
+				RetryInterval             : 1
+				UseCustomPathRecoveryTime : Enabled
+				CustomPathRecoveryTime    : 20
+				DiskTimeoutValue          : 60
+			#>
+
+			switch ((Get-CimInstance Win32_OperatingSystem).version) {
+				6.3.9600 { 
+					Write-Host "Windows 2012 R2 -- Current MPIO Settings for $($env:COMPUTERNAME)"
+					$MPIO = $null
+					$MPIO = Get-MPIOSetting | Out-String 
+					$MPIO.Replace(" ","")
+
+					$PathVerificationState = $MPIO.Substring(32,8)
+					$PDORemovePeriod = $MPIO.Substring(101,2)
+					$UseCustomPathRecoveryTime = $MPIO.Substring(195,8)
+					$CustomPathRecoveryTime = $MPIO.Substring(232,2)
+					$DiskTimeOutValue = $MPIO.Substring(264,2)
+
+					if($PathVerificationState -eq 'Disabled') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": PathVerificationState is $($PathVerificationState)."
+						$resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -NewPathVerificationState Enabled
+						} else {
+							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": PathVerificationState is Enabled. No action required."
+					}
+
+					if($PDORemovePeriod -ne '30') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
+						$resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -NewPDORemovePeriod 30
+						} else {
+							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": PDORemovePeriod is set to 30. No action required."
+					}
+
+					if($UseCustomPathRecoveryTime -eq 'Disabled') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
+						$resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -CustomPathRecovery Enabled
+						} else {
+							Write-Host "WARNING: Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
+					}
+
+					if($CustomPathRecoveryTime -ne '20') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
+						$resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -CustomPathRecovery Enabled
+						} else {
+							Write-Host "WARNING: Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
+					}
+
+					if($DiskTimeOutValue -ne '60') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
+						$resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -NewDiskTimeout 60
+						} else {
+							Write-Host "WARNING: Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
+					}
+				} # Windows 2012 R2
+				10.0.14393 { 
+					Write-Host "Windows 2016 -- Current MPIO Settings for $($env:COMPUTERNAME)"
+					$MPIO = $null
+					$MPIO = Get-MPIOSetting | Out-String 
+					$MPIO.Replace(" ","")
+
+					$PathVerificationState = $MPIO.Substring(32,8)
+					$PDORemovePeriod = $MPIO.Substring(102,2)
+					$UseCustomPathRecoveryTime = $MPIO.Substring(196,8)
+					$CustomPathRecoveryTime = $MPIO.Substring(233,2)
+					$DiskTimeOutValue = $MPIO.Substring(265,2)
+
+					if($PathVerificationState -eq 'Disabled') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": PathVerificationState is $($PathVerificationState)."
+						$resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -NewPathVerificationState Enabled
+						} else {
+							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": PathVerificationState is Enabled. No action required."
+					}
+
+					if($PDORemovePeriod -ne '30') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
+						$resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -NewPDORemovePeriod 30
+						} else {
+							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": PDORemovePeriod is set to 30. No action required."
+					}
+
+					if($UseCustomPathRecoveryTime -eq 'Disabled') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
+						$resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -CustomPathRecovery Enabled
+						} else {
+							Write-Host "WARNING: Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						#Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime). No action required."
+						Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
+
+					}
+
+					if($CustomPathRecoveryTime -ne '20') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
+						$resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -CustomPathRecovery Enabled
+						} else {
+							Write-Host "WARNING: Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
+					}
+
+					if($DiskTimeOutValue -ne '60') {
+						Write-Host "FAILED" -ForegroundColor Red -NoNewline
+						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
+						$resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60?"
+						if ($resp.ToUpper() -eq 'Y') {
+							Set-MPIOSetting -NewDiskTimeout 60
+						} else {
+							Write-Host "WARNING: Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues." -ForegroundColor Yellow
+						}
+					} else {
+						Write-Host "PASSED" -ForegroundColor Green -NoNewline
+						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
+					}
+				} # Windows 2016
+			}
 		}
 	}
 	
@@ -1159,7 +1298,9 @@ AElFTkSuQmCC">
 		Write-Warning 'Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications.'
 	}
 }
+#endregion
 
+#region GET-WINDOWSPOWERSCHEME
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-WindowsPowerScheme() {
 	[CmdletBinding()]
@@ -1179,7 +1320,9 @@ function Get-WindowsPowerScheme() {
 		
 	}
 }
+#endregion
 
+#region OPEN-CODEPURESTORAGE
 <#
 .SYNOPSIS
 	Short description
@@ -1207,7 +1350,9 @@ function Open-CodePureStorage {
 	
     }
 }
+#endregion
 
+#region GET-PFASERIALNUMBERS
 <#
 .SYNOPSIS
 	Short description
@@ -1239,12 +1384,16 @@ function Get-PfaSerialNumbers () {
 		}
 	}
 }
+#endregion
 
+#region GET-QUICKFIXENGINEERING
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-QuickFixEngineering {
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
+#endregion
 
+#region GET-HOSTBUSADAPTER
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-HostBusAdapter() {
 	[CmdletBinding()]
@@ -1271,7 +1420,9 @@ function Get-HostBusAdapter() {
 		
 	}
 }
+#endregion
 
+#region REGISTER-HOSTVOLUMES
 #.ExternalHelp PureStoragePowerShellToolkitpsm1-help.xml
 function Register-HostVolumes () {
     [CmdletBinding()]
@@ -1304,7 +1455,9 @@ function Register-HostVolumes () {
         }
     }
 }
+#endregion
 
+#region UNREGISTER-HOSTVOLUMES
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Unregister-HostVolumes () {
     [CmdletBinding()]
@@ -1331,7 +1484,9 @@ function Unregister-HostVolumes () {
         }
     }
 }
+#endregion
 
+#region GET-VOLUMESHADOWCOPY
 #.ExternalHelp PureStoragePowerShellToolkitt.psm1-help.xml
 function Get-VolumeShadowCopy() {
     [CmdletBinding()]
@@ -1351,7 +1506,9 @@ function Get-VolumeShadowCopy() {
     DISKSHADOW /s $dsh
     Remove-Item $dsh
 }
+#endregion
 
+#region NEW-VOLUMESHADOWCOPY
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function New-VolumeShadowCopy() {
     [CmdletBinding()]
@@ -1368,8 +1525,6 @@ function New-VolumeShadowCopy() {
     {
         "ADD VOLUME $Vol ALIAS $ShadowCopyAlias PROVIDER {781c006a-5829-4a25-81e3-d5e43bd005ab}"
     }
-	
-	
     'RESET',
     'SET CONTEXT PERSISTENT',
     'SET OPTION TRANSPORTABLE',
@@ -1382,7 +1537,9 @@ function New-VolumeShadowCopy() {
     DISKSHADOW /s $dsh
     Remove-Item $dsh
 }
+#endregion
 
+#region UPDATE-DRIVEINFORMATION
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Update-DriveInformation () {
   [CmdletBinding()]
@@ -1404,13 +1561,39 @@ function Update-DriveInformation () {
     Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):"; Label = "$($NewDriveLabel)" } | Out-Null
   }
 }
+#endregion
 
+#region UNDER DEVELOPMENT
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+<# 
+# DEV
+# Get connected volumes to host
+$UniqueIds = Get-WMIObject -Class MSFT_Disk -Namespace 'ROOT\Microsoft\Windows\Storage' | Select-Object ProvisioningType,UniqueId,Number
+
+# Connect to FlashArray
+$FlashArray = New-PfaArray -EndPoint 10.21.201.57 -Credentials (Get-Credential) -IgnoreCertificateError
+
+# Retrieved Volumes
+$Volumes = Get-PfaVolumes -Array $FlashArray | Select-Object Name,Serial
+
+# Inspect Volumes and compare to UniqueId
+ForEach ($UniqueId in $UniqueIds) {
+    ForEach ($Volume in $Volumes) {
+        If (($UniqueId.UniqueId).Substring($UniqueId.UniqueId.Length-24) -eq $Volume.Serial) {
+            Write-Host "Volume: $($Volume.Name)"
+            Write-Host "Serial: $($Volume.serial)"
+            Switch ($UniqueId.ProvisioningType) {
+                0 { Write-Host "Type: Unknown" }
+                1 { Write-Host "Type: Thin" }
+                2 { Write-Host "Type: Fixed" }
+            }
+        }
+    }
+}
+
 function Create-HyperVReport() {
 	try
-	{
-		
+	{	
 		Write-Host "Creating the Virtual Machine worksheet..." -ForegroundColor Green
 		
 		# Adding worksheet 
@@ -1471,7 +1654,9 @@ function Create-HyperVReport() {
 	}
 }
 #>
+#endregion
 
+#region SYNC-FLASHARRAYHOSTS
 #.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Sync-FlashArrayHosts () {
 	[CmdletBinding()]
@@ -1506,35 +1691,7 @@ function Sync-FlashArrayHosts () {
 		}
 	}
 }
-#endregion
-
-<# 
-# DEV
-# Get connected volumes to host
-$UniqueIds = Get-WMIObject -Class MSFT_Disk -Namespace 'ROOT\Microsoft\Windows\Storage' | Select-Object ProvisioningType,UniqueId,Number
-
-# Connect to FlashArray
-$FlashArray = New-PfaArray -EndPoint 10.21.201.57 -Credentials (Get-Credential) -IgnoreCertificateError
-
-# Retrieved Volumes
-$Volumes = Get-PfaVolumes -Array $FlashArray | Select-Object Name,Serial
-
-# Inspect Volumes and compare to UniqueId
-ForEach ($UniqueId in $UniqueIds) {
-    ForEach ($Volume in $Volumes) {
-        If (($UniqueId.UniqueId).Substring($UniqueId.UniqueId.Length-24) -eq $Volume.Serial) {
-            Write-Host "Volume: $($Volume.Name)"
-            Write-Host "Serial: $($Volume.serial)"
-            Switch ($UniqueId.ProvisioningType) {
-                0 { Write-Host "Type: Unknown" }
-                1 { Write-Host "Type: Thin" }
-                2 { Write-Host "Type: Fixed" }
-            }
-        }
-    }
-}
-#>
- 
+#endregion 
 Export-ModuleMember -function Get-WindowsPowerScheme
 Export-ModuleMember -function Get-HostBusAdapter 
 Export-ModuleMember -function Register-HostVolumes

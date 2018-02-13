@@ -3,7 +3,7 @@
 	Created by:   	barkz@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
-	Copyright:		(c) 2017 Pure Storage, Inc.
+	Copyright:		(c) 2018 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module Manifest (.psd1)
 	-------------------------------------------------------------------------
@@ -28,7 +28,7 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.5.1218.1'
+ModuleVersion = '1802.13'
 
 # Supported PSEditions
 #CompatiblePSEditions = 'Desktop'
