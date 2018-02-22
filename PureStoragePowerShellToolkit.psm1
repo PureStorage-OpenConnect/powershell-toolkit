@@ -151,7 +151,7 @@ function New-FlashArrayCapacityReport() {
 	} else {
 		$sysTotalDRR = [system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1)+":1"
 	}
-	
+
 	# Create the chart using our chart function
 	#New-FlashArrayReportPiechart -FileName ($OutFilePath + "\TempPiechart") -CapacitySpace $capacitySpace -SnapshotSpace $snapSpace -VolumeSpace $volumeSpace
 	
@@ -159,7 +159,7 @@ function New-FlashArrayCapacityReport() {
 	$provisioned = 0
 	
 	$volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
-    $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th>"
+    $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th><th>WS (GB)</th>"
 	
 	ForEach ($volume in $volumes)
 	{
@@ -169,7 +169,7 @@ function New-FlashArrayCapacityReport() {
 		$dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
 		$datardx = "{0:N2}" -f $dr.data_reduction
 		$dataTP = "{0:N3}" -f $dr.thin_provisioning
-		$WrittenSpace = ((1-$dr.thin_provisioning)*$dr.total)/1024/1024/1024
+		$WrittenSpace = "{0:N2}" -f (((1-$dr.thin_provisioning)*$dr.total)/1024/1024/1024)
 		if ($dr.shared_space) {
 			$dataSS = "{0:N2}" -f $dr.shared_space
 		} else {
@@ -196,7 +196,7 @@ function New-FlashArrayCapacityReport() {
         } else {
             $hostconnname = (Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host
         }
-        $volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td>$($hostconnname)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td></tr>"
+        $volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td>$($hostconnname)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td><td>$($WrittenSpace)</td></tr>"
 	}
 	
 	$snapshotInfo = $null
@@ -1024,7 +1024,7 @@ AElFTkSuQmCC">
 </table>
 <!--<img style="max-width: 1300px; max-height: 740px;" src="data:image/png;base64,$Script:PiechartImgSrc">-->
 <h3>Volume Information</h3>
-<p>Volumes(s), Sizes (GB) and Data Reduction columes include DR (Data Reduction), SS (Shared Space)<br>and TP (Thin Provisioning) for $($FlashArrayConfig.array_name) listed below.</p>
+<p>Volumes(s), Sizes (GB) and Data Reduction columes include DR (Data Reduction), SS (Shared Space)<br>and TP (Thin Provisioning) and WS (Written Space) for $($FlashArrayConfig.array_name) listed below.</p>
 <table class="list">$volumeInfo</table>
 <h3>FlashRecover SnapShot Information</h3>
 <p>Snapshot(s) and Sizes (GB) for $($FlashArrayConfig.array_name) listed below.</p>
