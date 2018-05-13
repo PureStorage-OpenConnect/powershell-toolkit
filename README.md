@@ -1,8 +1,9 @@
 # Pure Storage PowerShell Toolkit
-## Version: 1802.13
+## Version: 1802.22
 
-### ISSUE NOTE
-There is still an issue I am working on resolving with the Test-WindowsBestPractice cmdlet. 
+# ISSUE NOTE
+There is still an issue I am working with Microsoft on resolving with the Test-WindowsBestPractice cmdlet. The problems is with Get-MPIOSetting and the return object from the cmdlet. In previous versions of the Test-WindowsBestPractices cmdlet I used output from Get-MPIOSetting which provided array addressable data (Get-MPIOSetting)[0].PathVerificationState and now that is not the case. This is an active investigation. 
+
 
 ### Pure Storage PowerShell Toolkit Release Notes
 The new version of the Pure Storage PowerShell Toolkit leverages a number of different cmdlets ranging from core Windows Server, WMI, WSMAN, VMware PowerCLI, SQL Server and .NET assemblies. 
