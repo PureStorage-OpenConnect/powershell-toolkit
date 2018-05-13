@@ -28,7 +28,7 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '1802.22'
+ModuleVersion = '1805.11.1'
 
 # Supported PSEditions
 #CompatiblePSEditions = 'Desktop'

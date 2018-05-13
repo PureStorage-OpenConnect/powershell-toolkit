@@ -1064,239 +1064,222 @@ AElFTkSuQmCC">
 .NOTES
 	General notes
 #>
- function Test-WindowsBestPractices() {
+function Test-WindowsBestPractices() {
+	<#[CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $True)]
+		[ValidateNotNullOrEmpty()]
+		[string]$OutputReportPath
+	)
+	#>
+    $Report = @()
+
 	Clear-Host
 	Write-Host '============================================================'
-	Write-Host ' Pure Storage Windows Server Best Practice Analyzer'
+	Write-Host 'Pure Storage Windows Server Best Practice Analyzer'
 	Write-Host '============================================================'
+    <#Write-Host ''
+    Write-Host '========================================='
+    Write-Host 'Report Generation'
+    Write-Host '========================================='
+
+    if ($OutputReportPath -ne $null) {
+
+        if (!(Test-Path $OutputReportPath)) {
+            Write-Host "WARNING" -ForegroundColor Yellow -NoNewline 
+            Write-Host ": OutputReportPath path does not exist."
+            $resp = Read-Host "Would you like to create the path? Y/N"
+            if ($resp.ToUpper() -eq 'Y') {
+                New-Item -Path $OutputReportPath -ItemType Directory
+                "This is a test." | Out-File -FilePath "$OutputReportPath\PureStorage-BestPracticesReport.txt"  
+                Write-Host "Pure Storage Best Practices Report will be created at $OutputReportPath."
+            } else {
+                Write-Host "Pure Storage Best Practices Report will be created at $OutputReportPath."
+            }
+        } else {
+            Write-Host "Pure Storage Best Practices Report will be created at $OutputReportPath."
+            $test = "This is a test." | Out-File -FilePath "$OutputReportPath\PureStorage-BestPracticesReport.txt"  
+        }
+    }
+    #>
+    
+    Write-Host ''
+    Write-Host '========================================='
 	Write-Host 'Host Information'
-	Write-Host '=============================='
+    Write-Host '========================================='
 	Get-SilComputer	
 	Write-Host ''
-	Write-Host '=============================='
+    Write-Host '========================================='
 	Write-Host 'Multipath-IO Verificaton'
-	Write-Host '=============================='
+    Write-Host '========================================='
 	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed') {
-		Write-Host 'PASS: Multipath-IO is installed.'
+	    Write-Host "PASS" -ForegroundColor Green -NoNewline
+	    Write-Host ": Multipath-IO is installed."
 	} else {
-		$resp = Write-Warning 'FAIL: Multipath-IO Windows feature not installed. Would you like to install this feature?'
+        Write-Host "FAIL" -ForegroundColor Red -NoNewline
+        Write-Host ": Multipath-IO Windows feature not installed."
+		$resp = Read-Host "Would you like to install this feature? Y/N"
 		if ($resp.ToUpper() -eq 'Y') {
 			Add-WindowsFeature -Name Multipath-IO
 		} else {
-			Write-Warning 'Multipath-IO Windows feature has not been installed. Please add this feature manually.'
+            Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+			Write-Host ": You have chosen not to install the Multipath-IO Windows feature. Please add this feature manually using Add-WindowsFeature -Name Mulitpath-IO and re-run Test-WindowsBestPractices."
 			break
 		}
 	}
 	
-	Write-Host ''
-	Write-Host '=============================='
-	Write-Host 'MPIO Setting Verification'
-	Write-Host '=============================='
-	Write-Host   'Current MPIO Configuration'
-	Get-MPIOSetting
-	Get-MPIOAvailableHW
-	Write-Host '=============================='
-	
+    Write-Host ''
+    Write-Host '========================================='
+    Write-Host 'Mulitpath-IO Hardware Verification'
+    Write-Host '========================================='
+    Get-MPIOAvailableHW
+
 	$DSMs = Get-MPIOAvailableHW
 	ForEach ($DSM in $DSMs) {
 		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
-			Write-Host 'PASS: Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.'
-			Write-Host
-			Write-Host
-			
-			<# Get-MPIOSetting Output with Best Practices
-				PS C:\> Get-MPIOSetting
-
-				PathVerificationState     : Disabled
-				PathVerificationPeriod    : 30
-				PDORemovePeriod           : 30
-				RetryCount                : 3
-				RetryInterval             : 1
-				UseCustomPathRecoveryTime : Enabled
-				CustomPathRecoveryTime    : 20
-				DiskTimeoutValue          : 60
-			#>
-
-			switch ((Get-CimInstance Win32_OperatingSystem).version) {
-				6.3.9600 { 
-					Write-Host "Windows 2012 R2 -- Current MPIO Settings for $($env:COMPUTERNAME)"
-					$MPIO = $null
-					$MPIO = Get-MPIOSetting | Out-String 
-					$MPIO.Replace(" ","")
-
-					$PathVerificationState = $MPIO.Substring(32,8)
-					$PDORemovePeriod = $MPIO.Substring(101,2)
-					$UseCustomPathRecoveryTime = $MPIO.Substring(195,8)
-					$CustomPathRecoveryTime = $MPIO.Substring(232,2)
-					$DiskTimeOutValue = $MPIO.Substring(264,2)
-
-					if($PathVerificationState -eq 'Disabled') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": PathVerificationState is $($PathVerificationState)."
-						$resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -NewPathVerificationState Enabled
-						} else {
-							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": PathVerificationState is Enabled. No action required."
-					}
-
-					if($PDORemovePeriod -ne '30') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
-						$resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -NewPDORemovePeriod 30
-						} else {
-							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": PDORemovePeriod is set to 30. No action required."
-					}
-
-					if($UseCustomPathRecoveryTime -eq 'Disabled') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
-						$resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -CustomPathRecovery Enabled
-						} else {
-							Write-Host "WARNING: Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
-					}
-
-					if($CustomPathRecoveryTime -ne '20') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
-						$resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -CustomPathRecovery Enabled
-						} else {
-							Write-Host "WARNING: Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
-					}
-
-					if($DiskTimeOutValue -ne '60') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
-						$resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -NewDiskTimeout 60
-						} else {
-							Write-Host "WARNING: Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
-					}
-				} # Windows 2012 R2
-				10.0.14393 { 
-					Write-Host "Windows 2016 -- Current MPIO Settings for $($env:COMPUTERNAME)"
-					$MPIO = $null
-					$MPIO = Get-MPIOSetting | Out-String 
-					$MPIO.Replace(" ","")
-
-					$PathVerificationState = $MPIO.Substring(32,8)
-					$PDORemovePeriod = $MPIO.Substring(102,2)
-					$UseCustomPathRecoveryTime = $MPIO.Substring(196,8)
-					$CustomPathRecoveryTime = $MPIO.Substring(233,2)
-					$DiskTimeOutValue = $MPIO.Substring(265,2)
-
-					if($PathVerificationState -eq 'Disabled') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": PathVerificationState is $($PathVerificationState)."
-						$resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -NewPathVerificationState Enabled
-						} else {
-							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": PathVerificationState is Enabled. No action required."
-					}
-
-					if($PDORemovePeriod -ne '30') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
-						$resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -NewPDORemovePeriod 30
-						} else {
-							Write-Host "WARNING: Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": PDORemovePeriod is set to 30. No action required."
-					}
-
-					if($UseCustomPathRecoveryTime -eq 'Disabled') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
-						$resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -CustomPathRecovery Enabled
-						} else {
-							Write-Host "WARNING: Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						#Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime). No action required."
-						Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
-
-					}
-
-					if($CustomPathRecoveryTime -ne '20') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
-						$resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -CustomPathRecovery Enabled
-						} else {
-							Write-Host "WARNING: Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
-					}
-
-					if($DiskTimeOutValue -ne '60') {
-						Write-Host "FAILED" -ForegroundColor Red -NoNewline
-						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
-						$resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60?"
-						if ($resp.ToUpper() -eq 'Y') {
-							Set-MPIOSetting -NewDiskTimeout 60
-						} else {
-							Write-Host "WARNING: Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues." -ForegroundColor Yellow
-						}
-					} else {
-						Write-Host "PASSED" -ForegroundColor Green -NoNewline
-						Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
-					}
-				} # Windows 2016
-			}
-		}
+            Write-Host "PASSED" -ForegroundColor Green -NoNewline
+            Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.`n`r"
+		} else {
+	        Write-Host "FAILED" -ForegroundColor Red -NoNewline
+            Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.`n`r"
+        }
 	}
-	
-	Write-Host ''
-	Write-Host '=============================='
-	Write-Host 'TRIM/UNMAP Verification'
-	Write-Host '=============================='
-	if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0) {
-		Write-Host 'PASS: Delete Notification Enabled'
-	} else {
-		Write-Warning 'Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications.'
-	}
+
+    Write-Host ''
+    Write-Host '-----------------------------------------'
+    Write-Host 'Current MPIO Settings'
+    Write-Host '-----------------------------------------'
+
+	<# Get-MPIOSetting Output with Best Practices
+	PS C:\> Get-MPIOSetting
+
+	PathVerificationState     : Disabled
+	PathVerificationPeriod    : 30
+	PDORemovePeriod           : 30
+	RetryCount                : 3
+	RetryInterval             : 1
+	UseCustomPathRecoveryTime : Enabled
+	CustomPathRecoveryTime    : 20
+	DiskTimeoutValue          : 60
+	#>
+    $MPIOSettings = $null			
+    $MPIOSetting = $null
+    $MPIOSettings = Get-MPIOSetting | Out-String -Stream
+    $MPIOSettings = $MPIOSettings.Replace(" ","") 
+    $MPIOSettings | Out-Null
+
+    ForEach ($MPIOSetting in $MPIOSettings) {
+        $MPIOSetting.Split(':')[0]
+        $MPIOSetting.Split(':')[1]
+        switch ( $($MPIOSetting.Split(':')[0])) {
+            'PathVerificationState'     { $PathVerificationState = $($MPIOSetting.Split(':')[1]) }
+            'PDORemovePeriod'           { $PDORemovePeriod = $($MPIOSetting.Split(':')[1]) }
+            'UseCustomPathRecoveryTime' { $UseCustomPathRecoveryTime = $($MPIOSetting.Split(':')[1]) }
+            'CustomPathRecoveryTime'    { $CustomPathRecoveryTime = $($MPIOSetting.Split(':')[1]) }
+            'DiskTimeoutValue'          { $DiskTimeOutValue = $($MPIOSetting.Split(':')[1]) }
+        }
+    <#
+        # --- DEBUG ---
+        "PathVerificationState: $PathVerificationState"
+        "PDORemovePeriod: $PDORemovePeriod"
+        "UseCustomPathRecoveryTime: $UseCustomPathRecoveryTime"
+        "CustomPathRecoveryTime: $CustomPathRecoveryTime"
+        "DiskTimeoutValue: $DiskTimeOutValue`n`r"
+    #>
+    }
+
+    Write-Host ''
+    Write-Host '========================================='
+    Write-Host 'MPIO Settings Verification'
+    Write-Host '========================================='
+
+    if($PathVerificationState -eq 'Disabled') {
+	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
+	    Write-Host ": PathVerificationState is $($PathVerificationState)."
+	    $resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled? Y/N"
+	    if ($resp.ToUpper() -eq 'Y') {
+		    Set-MPIOSetting -NewPathVerificationState Enabled
+	    } else {
+		    Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." 
+	    }
+    } else {
+	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+	    Write-Host ": PathVerificationState is Enabled. No action required."
+    }
+
+    if($PDORemovePeriod -ne '30') {
+	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
+	    Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
+	    $resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30? Y/N"
+	    if ($resp.ToUpper() -eq 'Y') {
+		    Set-MPIOSetting -NewPDORemovePeriod 30
+	    } else {
+	        Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+	        Write-Host ": Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues"
+	    }
+    } else {
+	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+	    Write-Host ": PDORemovePeriod is set to 30. No action required."
+    }
+
+    if($UseCustomPathRecoveryTime -eq 'Disabled') {
+	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
+	    Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
+	    $resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled? Y/N"
+	    if ($resp.ToUpper() -eq 'Y') {
+		    Set-MPIOSetting -CustomPathRecovery Enabled
+	    } else {
+		    Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues."
+	    }
+    } else {
+	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+	    #Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime). No action required."
+	    Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
+    }
+
+    if($CustomPathRecoveryTime -ne '20') {
+	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
+	    Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
+	    $resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20? Y/N"
+	    if ($resp.ToUpper() -eq 'Y') {
+		    Set-MPIOSetting -CustomPathRecovery Enabled
+	    } else {
+		    Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues."
+	    }
+    } else {
+	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+	    Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
+    }
+
+    if($DiskTimeOutValue -ne '60') {
+	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
+	    Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
+	    $resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60? Y/N"
+	    if ($resp.ToUpper() -eq 'Y') {
+		    Set-MPIOSetting -NewDiskTimeout 60
+	    } else {
+		    Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues."
+	    }
+    } else {
+	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+	    Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
+    }
+
+    Write-Host ''
+    Write-Host '========================================='
+    Write-Host 'TRIM/UNMAP Verification'
+    Write-Host '========================================='
+    if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0) {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": Delete Notification Enabled"
+    } else {
+        Write-Host "WARNING" -ForegroundColor Yellow -NoNewline 
+        Write-Host ": Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications."
+    }
 }
 #endregion
 
