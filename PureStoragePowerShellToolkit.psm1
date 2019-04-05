@@ -1051,18 +1051,17 @@ AElFTkSuQmCC">
 #region TEST-WINDOWSBESTPRACTICES
 <#
 .SYNOPSIS
-	Short description
+	Test-WindowsBestPractices is a cmdlet that checks for all of Pure Storages Best Practices for Windows Server 2012, 2012 R2, 2016 and 2019.
 .DESCRIPTION
-	Long description
+	Pure Storage requires specific values to be configured for high availability of connectivity to the Pure Storage FlashArray.
 .EXAMPLE
-	PS C:\> <example usage>
-	Explanation of what the example does
+	PS C:\> Test-WindowsBestPractices
+	Screen output will show enabled, passes, fails. 
+	(UNDER DEVELOPMENT) Output to a file. 
 .INPUTS
-	Inputs (if any)
+	None
 .OUTPUTS
-	Output (if any)
-.NOTES
-	General notes
+	Windows PowerShell Console.
 #>
 function Test-WindowsBestPractices() {
 	<#[CmdletBinding()]
@@ -1244,7 +1243,7 @@ function Test-WindowsBestPractices() {
 	    Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
 	    $resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20? Y/N"
 	    if ($resp.ToUpper() -eq 'Y') {
-		    Set-MPIOSetting -CustomPathRecovery Enabled
+		    Set-MPIOSetting -NewPathRecoveryInterval 20
 	    } else {
 		    Write-Host "WARNING" -ForegroundColor Yellow
             Write-Host ": Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues."
@@ -1273,14 +1272,28 @@ function Test-WindowsBestPractices() {
     Write-Host '========================================='
     Write-Host 'TRIM/UNMAP Verification'
     Write-Host '========================================='
-    if (!(Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification') -eq 0) {
-        Write-Host "PASSED" -ForegroundColor Green -NoNewline
-        Write-Host ": Delete Notification Enabled"
-    } else {
-        Write-Host "WARNING" -ForegroundColor Yellow -NoNewline 
-        Write-Host ": Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications."
-    }
+	$DisableDeleteNotification = (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification')
+	if ($DisableDeleteNotification.DisableDeleteNotification -eq 0) {
+	   Write-Host "PASSED" -ForegroundColor Green -NoNewline
+	   Write-Host ": Delete Notification Enabled"
+	} else {
+		Write-Host "WARNING" -ForegroundColor Yellow -NoNewline 
+		Write-Host ": Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications."
+	}
 }
+
+<# CUSTOMER SUGGESTION - QUAD GRAPHICS
+Set-MPIOSetting -NewPDORemovePeriod 30 -NewDiskTimeout 60 -CustomPathRecovery Enabled -NewPathRecoveryInterval 20 -NewPathVerificationState Enabled
+
+Set-MSDSMGlobalDefaultLoadBalancePolicy -Policy LQD
+$puredisks = Get-PhysicalDisk | where FriendlyName -match "PURE"
+foreach ($puredisk in $puredisks) {
+	$subtract = "0"    # set to 0 if numbers match in the test above.
+	$id = (($ssd.DeviceId) -$subtract).ToString()
+	# Set Policy to Least Queue Depth = 4
+	start-process "c:\windows\system32\mpclaim.exe" -ArgumentList "-l -d $id 4" -Wait
+}
+#>
 #endregion
 
 #region GET-WINDOWSPOWERSCHEME
