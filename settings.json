@@ -1,7 +1,8 @@
 {
     "id": "powershell-toolkit",
+    "name": "PowerShell Toolkit",
     "filter": "microsoft devops",
     "image": "http://code.purestorage.com/images/5_Powershell-Toolkit.png",
-    "featured": 1,
+    "featured": 0,
     "priority": 1
 }
