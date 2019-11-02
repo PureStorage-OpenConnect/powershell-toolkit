@@ -28,7 +28,7 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '1903.7'
+ModuleVersion = '1911'
 
 # Supported PSEditions
 #CompatiblePSEditions = 'Desktop'
@@ -43,7 +43,7 @@ Author = 'barkz@purestorage.com'
 CompanyName = 'Pure Storage, Inc.'
 
 # Copyright statement for this module
-Copyright = '(c) 2017 Pure Storage, Inc. All rights reserved.'
+Copyright = '(c) 2019 Pure Storage, Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'Pure Storage PowerShell Toolkit.'

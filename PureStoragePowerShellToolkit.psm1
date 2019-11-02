@@ -149,7 +149,7 @@ function New-FlashArrayCapacityReport() {
 	if([system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1) -gt 100) { 
 		$sysTotalDRR = ">100:1" 
 	} else {
-		$sysTotalDRR = [system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1)+":1"
+		$sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1)).toString()+":1" 
 	}
 
 	# Create the chart using our chart function
