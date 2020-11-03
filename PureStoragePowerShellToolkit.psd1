@@ -1,23 +1,23 @@
-<#	
+<#
 	===========================================================================
-	Created by:   	barkz@purestorage.com
+	Created by:   	opensource@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
-	Copyright:		(c) 2019 Pure Storage, Inc.
+	Copyright:		(c) 2020 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module Manifest (.psd1)
 	-------------------------------------------------------------------------
 	Disclaimer
- 	The sample script and documentation are provided AS IS and are not supported by 
-	the author or the author's employer, unless otherwise agreed in writing. You bear 
-	all risk relating to the use or performance of the sample script and documentation. 
-	The author and the author's employer disclaim all express or implied warranties 
-	(including, without limitation, any warranties of merchantability, title, infringement 
-	or fitness for a particular purpose). In no event shall the author, the author's employer 
-	or anyone else involved in the creation, production, or delivery of the scripts be liable 
-	for any damages whatsoever arising out of the use or performance of the sample script and 
-	documentation (including, without limitation, damages for loss of business profits, 
-	business interruption, loss of business information, or other pecuniary loss), even if 
+ 	The sample script and documentation are provided AS IS and are not supported by
+	the author or the author's employer, unless otherwise agreed in writing. You bear
+	all risk relating to the use or performance of the sample script and documentation.
+	The author and the author's employer disclaim all express or implied warranties
+	(including, without limitation, any warranties of merchantability, title, infringement
+	or fitness for a particular purpose). In no event shall the author, the author's employer
+	or anyone else involved in the creation, production, or delivery of the scripts be liable
+	for any damages whatsoever arising out of the use or performance of the sample script and
+	documentation (including, without limitation, damages for loss of business profits,
+	business interruption, loss of business information, or other pecuniary loss), even if
 	such person has been advised of the possibility of such damages.
 	===========================================================================
 #>
@@ -28,7 +28,7 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '1911'
+ModuleVersion = '2.0.0.0'
 
 # Supported PSEditions
 #CompatiblePSEditions = 'Desktop'
@@ -37,13 +37,13 @@ ModuleVersion = '1911'
 GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
 
 # Author of this module
-Author = 'barkz@purestorage.com'
+Author = 'opensource@purestorage.com'
 
 # Company or vendor of this module
 CompanyName = 'Pure Storage, Inc.'
 
 # Copyright statement for this module
-Copyright = '(c) 2019 Pure Storage, Inc. All rights reserved.'
+Copyright = '(c) 2020 Pure Storage, Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'Pure Storage PowerShell Toolkit.'
@@ -129,7 +129,7 @@ PrivateData = @{
         # ExternalModuleDependencies = ''
 
     } # End of PSData hashtable
-    
+
  } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
