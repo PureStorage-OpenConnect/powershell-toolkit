@@ -1,6 +1,6 @@
 <#
 	===========================================================================
-	Maintained by: 	opensource@purestorage.com
+	Maintained by: 	fa-soln-db@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
 	Copyright:		(c) 2020 Pure Storage, Inc.
@@ -29,18 +29,26 @@
 	New-FlashArrayCapacityReport
 	New-HypervClusterVolumeReport
 	New-VolumeShadowCopy
-	Open-CodePureStorage
 	Register-hostVolumes
+	Set-TlsVersions
 	Set-WindowsPowerScheme
 	Sync-FlashArrays
 	Test-WindowsbestPractices
 	Unregister-HostVolumes
 	Update-DriveInformation
 
+	Contributors and thanks:
+	//Rob "Barkz" Barker
+	//Robert "Q" Quimbey
+	//Craig Dayton
+	//Mike Nelson
+	.. and all the others missed.
+
 	#>
 
 #Requires -Version 3
 
+#### Non-Exported Functions
 ## BEGIN HELPER FUNCTIONS
 
 #region ConvertTo-Base64
@@ -112,12 +120,73 @@ function Convert-Size {
 
 	return [Math]::Round($Value, $Precision, [MidPointRounding]::AwayFromZero)
 }
+function New-FlashArrayReportPiechart() {
+	Param (
+		[string]$FileName,
+		[float]$SnapshotSpace,
+		[float]$VolumeSpace,
+		[float]$CapacitySpace
+	)
+
+	[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+	[void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
+
+	$chart = New-Object System.Windows.Forms.DataVisualization.charting.chart
+	$chart.Width = 700
+	$chart.Height = 500
+	$chart.Left = 10
+	$chart.Top = 10
+
+	$chartArea = New-Object System.Windows.Forms.DataVisualization.charting.chartArea
+	$chart.chartAreas.Add($chartArea)
+	[void]$chart.Series.Add("Data")
+
+	$legend = New-Object system.Windows.Forms.DataVisualization.charting.Legend
+	$legend.Name = "Legend"
+	$legend.Font = "Proxima Nova"
+	$legend.Alignment = "Center"
+	$legend.Docking = "top"
+	$legend.Bordercolor = "#FE5000"
+	$legend.Legendstyle = "row"
+	$chart.Legends.Add($legend)
+
+	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $SnapshotSpace)
+	$datapoint.AxisLabel = "SnapShots " + "(" + $SnapshotSpace + " MB)"
+	$chart.Series["Data"].Points.Add($datapoint)
+
+	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $VolumeSpace)
+	$datapoint.AxisLabel = "Volumes " + "(" + $VolumeSpace + " GB)"
+	$chart.Series["Data"].Points.Add($datapoint)
+
+	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $CapacitySpace)
+	$datapoint.AxisLabel = "Total Capacity " + "(" + $CapacitySpace + " TB)"
+	$chart.Series["Data"].Points.Add($datapoint)
+
+	$chart.Series["Data"].chartType = [System.Windows.Forms.DataVisualization.charting.SerieschartType]::Doughnut
+	$chart.Series["Data"]["DoughnutLabelStyle"] = "Outside"
+	$chart.Series["Data"]["DoughnutLineColor"] = "#FE5000"
+
+
+	$annotation = New-Object System.Windows.Forms.DataVisualization.Charting.TextAnnotation
+	$usedPerc = $VolumeSpace / ($SnapshotSpace + $VolumeSpace + $CapacitySpace)
+	$annotation.Text = "$('{0:P0}' -f $usedPerc)"
+	$annotation.AnchorX = 50
+	$annotation.AnchorY = 62
+	$annotation.Font = [System.Drawing.Font]::new('Proxima Nova', 18, [System.Drawing.FontStyle]::Bold)
+	$chart.Annotations.Add($annotation)
+	$Title = New-Object System.Windows.Forms.DataVisualization.charting.Title
+	$chart.Titles.Add($Title)
+	$chart.SaveImage($FileName + ".png", "png")
+}
 #endregion
 
 ## END HELPER FUNCTIONS
+#### End Non-Exported Functions
+
+#### Exported Functions
 
 #region NEW-FLASHARRAYCAPACITYREPORT
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 
 function New-FlashArrayCapacityReport() {
 	[CmdletBinding()]
@@ -126,6 +195,7 @@ function New-FlashArrayCapacityReport() {
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][System.Management.Automation.Credential()] $Credential,
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $HTMLFileName,
+		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $PieChart,
 		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $VolumeFilter = "*"
 	)
 
@@ -152,12 +222,14 @@ function New-FlashArrayCapacityReport() {
 	if ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1) -gt 100) {
 		$sysTotalDRR = ">100:1"
 	}
- else {
+	else {
 		$sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1)).toString() + ":1"
 	}
 
-	# Create the chart using our chart function
-	#New-FlashArrayReportPiechart -FileName ($OutFilePath + "\TempPiechart") -CapacitySpace $capacitySpace -SnapshotSpace $snapSpace -VolumeSpace $volumeSpace
+	# Create the chart using our chart function if enabled
+	If ($PSBoundParameters.ContainsKey('PieChart') -eq $true) {
+	New-FlashArrayReportPiechart -FileName ($OutFilePath + "\piechart") -CapacitySpace $sysCapacity -SnapshotSpace $sysSnapshotSpace -VolumeSpace $sysVolumeSpace
+	}
 
 	$volumeInfo = $null
 	$provisioned = 0
@@ -224,7 +296,7 @@ function New-FlashArrayCapacityReport() {
 <style type="text/css">
 <!--
 body {
-    font-family: Verdana, Geneva, Arial, Helvetica, Sans-Serif;
+    font-family: Proxima Nova, Verdana, Geneva, Arial, Helvetica, Sans-Serif;
 }
 table {
 	border-collapse: collapse;
@@ -234,7 +306,7 @@ table {
     border-bottom: 1px grey solid;
     border-left: 1px grey solid;
 	text-align: left;
-	font: 14pt Verdana, Geneva, Arial, Helvetica, Sans-Serif;
+	font: 14pt Proxima Nova, Verdana, Geneva, Arial, Helvetica, Sans-Serif;
 	color: black;
 	margin-bottom: 10px;
     margin-left: 20px;
@@ -352,7 +424,7 @@ div.absolute {
     left: 350px;
     width: 200px;
     height: 75px;
-	font-size: 20px;
+	font-size: 16px;
 	font-weight: bold;
 }
 
@@ -362,7 +434,7 @@ div.time {
     left: 0px;
     width: 600px;
     height: 75px;
-	font-size: 18px;
+	font-size: 12px;
 	font-weight: normal;
 }
 
@@ -1030,7 +1102,7 @@ AElFTkSuQmCC">
 <td> $("{0:N2}" -f $provisioned) T</td>
 </tr>
 </table>
-<!--<img style="max-width: 1300px; max-height: 740px;" src="data:image/png;base64,$Script:PiechartImgSrc">-->
+<img style="max-width: 1300px; max-height: 740px;" src="$OutFilePath\piechart.png">
 <h3>Volume Information</h3>
 <p>Volumes(s), Sizes (GB) and Data Reduction columes include DR (Data Reduction), SS (Shared Space)<br>and TP (Thin Provisioning) and WS (Written Space) for $($FlashArrayConfig.array_name) listed below.</p>
 <table class="list">$volumeInfo</table>
@@ -1057,7 +1129,7 @@ AElFTkSuQmCC">
 #endregion
 
 #region TEST-WINDOWSBESTPRACTICES
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 ## Optional iSCSI functions
 function Set-TCPAdapterSettings() {
 	$AdapterNames = @()
@@ -1320,7 +1392,7 @@ function Test-WindowsBestPractices() {
 #endregion
 
 #region SET-WINDOWSPOWERSCHEME
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Set-WindowsPowerScheme() {
 	$ComputerName = $env:COMPUTERNAME
 	$PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
@@ -1342,21 +1414,8 @@ function Set-WindowsPowerScheme() {
 }
 #endregion
 
-#region OPEN-CODEPURESTORAGE
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Open-CodePureStorage {
-	try {
-		$link = 'http://code.purestorage.com'
-		[System.Diagnostics.Process]::Start($link)
-	}
-	catch {
-
-	}
-}
-#endregion
-
 #region GET-PFASERIALNUMBERS
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-PfaSerialNumbers () {
 	$AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
 	ForEach ($Device in $AllDevices) {
@@ -1368,22 +1427,19 @@ function Get-PfaSerialNumbers () {
 				SerialNo = $Device.SerialNumber;
 			}
 		}
-		else {
-			Write-Error "Ambigious, disconnected, or no Pure Storage FlashArray volumes are connected to system $env:COMPUTERNAME."
-		}
 	}
 }
 #endregion
 
 #region GET-QUICKFIXENGINEERING
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-QuickFixEngineering {
 	Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
 #endregion
 
 #region GET-HOSTBUSADAPTER
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-HostBusAdapter() {
 	[CmdletBinding()]
 	Param (
@@ -1409,7 +1465,7 @@ function Get-HostBusAdapter() {
 #endregion
 
 #region REGISTER-HOSTVOLUMES
-#.ExternalHelp PureStoragePowerShellToolkitpsm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Register-HostVolumes () {
 	[CmdletBinding()]
 	Param (
@@ -1441,7 +1497,7 @@ function Register-HostVolumes () {
 #endregion
 
 #region UNREGISTER-HOSTVOLUMES
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Unregister-HostVolumes () {
 	[CmdletBinding()]
 	Param (
@@ -1470,7 +1526,7 @@ function Unregister-HostVolumes () {
 #endregion
 
 #region GET-VOLUMESHADOWCOPY
-#.ExternalHelp PureStoragePowerShellToolkitt.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Get-VolumeShadowCopy() {
 	[CmdletBinding()]
 	Param (
@@ -1492,7 +1548,7 @@ function Get-VolumeShadowCopy() {
 #endregion
 
 #region NEW-VOLUMESHADOWCOPY
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function New-VolumeShadowCopy() {
 	[CmdletBinding()]
 	Param (
@@ -1522,7 +1578,7 @@ function New-VolumeShadowCopy() {
 #endregion
 
 #region UPDATE-DRIVEINFORMATION
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Update-DriveInformation () {
 	[CmdletBinding()]
 	Param (
@@ -1544,7 +1600,7 @@ function Update-DriveInformation () {
 #endregion
 
 #region NEW-HYPERVCLUSTERVOLUMEREPORT
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function New-HypervClusterVolumeReport () {
 	[CmdletBinding()]
 	Param (
@@ -1568,34 +1624,40 @@ function New-HypervClusterVolumeReport () {
 		}
 
 		## Check for modules
-		$PureSDKcheck = Get-InstalledModule | Where-Object name -EQ "PureStoragePowerShellSDK"
-		if ([string]::IsNullOrEmpty($PureSDKcheck)) {
-			Write-Host "Please install the Pure Storage PowerShell SDK as it is a prerequisite."
-			Write-Host "    Syntax: Install-Module PureStoragePowerShellSDK"
-			Write-Host "            Import-Module PureStoragePowerShellSDK"
-			break
+		Write-Host "Checking, installing, and importing prerequisite modules."
+		[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+		$modulesArray = @(
+			"PureStoragePowerShellSDK",
+			"ImportExcel"
+		)
+		ForEach ($mod in $modulesArray) {
+			If (Get-Module -ListAvailable $mod) {
+				Continue
+			}
+			Else {
+				Install-Module $mod -Force -ErrorAction 'SilentlyContinue'
+				Import-Module $mod -ErrorAction 'SilentlyContinue'
+			}
 		}
 
-		$HyperVcheck = Get-WindowsFeature hyper-v-powershell | Select-Object -ExpandProperty installed
-		if ($HyperVcheck -eq $false) {
-			Write-Host "Please install the Hyper-V PowerShell module as it is a prerequisite."
-			Write-Host "    Syntax: Add-WindowsFeature -Name  Hyper-V-PowerShell"
-			break
-		}
-
-		$Clustercheck = Get-WindowsFeature rsat-clustering-powershell | Select-Object -ExpandProperty installed
-		if ($Clustercheck -eq $false) {
-			Write-Host "Please install the Windows Clustering PowerShell module as it is a prerequisite."
-			Write-Host "    Syntax: Add-WindowsFeature -Name RSAT-Clustering-PowerShell"
-			break
-		}
-
-		$ImportExcelcheck = Get-InstalledModule | Where-Object name -EQ "ImportExcel"
-		if ([string]::IsNullOrEmpty($ImportExcelcheck)) {
-			Write-Host "Please install the ImportExcel Module as it is a prerequisite."
-			Write-Host "    Syntax: Install-Module ImportExcel"
-			Write-Host "            Import-Module ImportExcel"
-			break
+		Write-Host "Checking and installing prerequisite Windows Features."
+		$osVer = (Get-ComputerInfo).WindowsProductName
+		$featuresArray = @(
+			"hyper-v-powershell",
+			"rsat-clustering-powershell"
+		)
+		ForEach ($fea in $featuresArray) {
+			If (Get-WindowsFeature $fea | Select-Object -ExpandProperty installed) {
+				Continue
+			}
+			Else {
+				If ($osVer -le "2008") {
+					Add-WindowsFeature -Name $fea -Force -ErrorAction 'SilentlyContinue'
+				}
+				Else {
+					Install-WindowsFeature -Name $fea -Force -ErrorAction 'SilentlyContinue'
+				}
+			}
 		}
 
 		# FlashArray Credential request
@@ -1605,7 +1667,6 @@ function New-HypervClusterVolumeReport () {
 		$vmList = Get-VM -ComputerName (Get-ClusterNode)
 		$vmList | ForEach-Object { $vmState = $_.state; $vmName = $_.name; Write-Output $_; } | ForEach-Object { Get-VHD -ComputerName $_.ComputerName -VMId $_.VMId
 		} | Select-Object -Property path, @{n = 'VMName'; e = { $vmName } }, @{n = 'VMState'; e = { $vmState } }, computername, vhdtype, @{Label = 'Size(GB)'; expression = { [Math]::Round($_.size / 1gb, 2) -as [int] } }, @{label = 'SizeOnDisk(GB)'; expression = { [Math]::Round($_.filesize / 1gb, 2) -as [int] } } | Export-Csv $vmcsv
-		# If not using the ImportExcel module, comment out the Import-Csv line and manually work with the CSV files.
 		Import-Csv $vmcsv | Export-Excel -Path $excelfile -AutoSize -WorkSheetname 'VM List'
 
 		## Get windows physical disks - Windows Host Sheet
@@ -1619,21 +1680,16 @@ function New-HypervClusterVolumeReport () {
 					SizeOnDisk_GB = ([Math]::Round(($_.Capacity - $_.FreeSpace) / 1GB, 2))
 				}
 			} } | Export-Csv $wincsv -NoTypeInformation
-		# If not using the ImportExcel module, comment out the Import-Csv line and manually work with the CSV files.
 		Import-Csv $wincsv | Export-Excel -Path $excelfile -AutoSize -WorkSheetname 'Windows Host'
-
 		## Get Pure FlashArray volumes and space - FlashArray Sheet
 		Function GetSerial {
 			[Cmdletbinding()]
 			Param(   [Parameter(ValueFromPipeline)]
 				$findserial)
 			$GetVol = Get-Volume -FilePath $findserial | Select-Object -ExpandProperty path
-			# Using that path, find the disk number
 			$GetDiskNum = Get-Partition | Where-Object -Property accesspaths -CContains $getvol | Select-Object disknumber
-			# With disk number, get the serial number
 			Get-Disk -Number $getdisknum.disknumber | Select-Object serialnumber
 		}
-
 		$pathQ = $VmList | ForEach-Object { Get-VHD -ComputerName $_.ComputerName -VMId $_.VMId } | Select-Object -ExpandProperty path
 		$serials = GetSerial { $pathQ } -ErrorAction SilentlyContinue
 
@@ -1652,7 +1708,7 @@ function New-HypervClusterVolumeReport () {
 #endregion
 
 #region SYNC-FLASHARRAYHOSTS
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Sync-FlashArrayHosts () {
 	[CmdletBinding()]
 	Param (
@@ -1687,6 +1743,56 @@ function Sync-FlashArrayHosts () {
 	}
 }
 #endregion
+
+#region SET-TLSVERSIONS
+# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+function Set-TlsVersions {
+	function disable-tls-10 () {
+		Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+		Write-Host ": This cmdlet will change TLS protocol settings located in the Registry. It is highly recommended to make a backup of your registry before executing this cmdlet."
+		Write-Host " "
+		Write-Host "REQUIRED ACTION: Disable TLS 1.0 and enable TLS version 1.1 and 1.2 on this computer?"
+		$resp = Read-Host -Prompt "Y/N?"
+		if ($resp.ToUpper() -eq 'Y') {
+		# Disable TLS v1.0
+			New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Force | Out-Null
+			New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Force | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name 'Enabled' -Value '0' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name 'DisabledByDefault' -Value '1' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Name 'Enabled' -Value '0' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Name 'DisabledByDefault' -Value '1' –PropertyType 'DWORD' | Out-Null
+			Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+			Write-Host ": TLS version 1.0 disabled."
+		# Enable TLS v1.1
+			New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server' -Force | Out-Null
+			New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client' -Force | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+			Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+			Write-Host ": TLS version 1.1 enabled."
+		# Enable TLS v1.2
+			New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Force | Out-Null
+			New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Force | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+			New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+			Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+			Write-Host ": TLS version 1.2 enabled."
+	}
+	else {
+			Write-Host "CANCELLED" -ForegroundColor Yellow -NoNewline
+			Write-Host ": Cancelled at user request."
+	}
+}
+}
+#endregion
+
+#### End Exported Functions
+
+# Declare Exports
 Export-ModuleMember -Function Set-WindowsPowerScheme
 Export-ModuleMember -Function Get-HostBusAdapter
 Export-ModuleMember -Function Register-HostVolumes
@@ -1699,7 +1805,9 @@ Export-ModuleMember -Function New-VolumeShadowCopy
 Export-ModuleMember -Function Get-VolumeShadowCopy
 Export-ModuleMember -Function New-FlashArrayCapacityReport
 Export-ModuleMember -Function Update-DriveInformation
-Export-ModuleMember -Function Open-CodePureStorage
 Export-ModuleMember -Function Sync-FlashArrayHosts
 Export-ModuleMember -Function Get-PfaSerialNumbers
 Export-ModuleMember -Function New-HypervClusterVolumeReport
+Export-ModuleMember -Function Set-TlsVersions
+
+# END

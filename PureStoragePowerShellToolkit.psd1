@@ -28,7 +28,7 @@
 RootModule = '.\PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.0.0'
+ModuleVersion = '2.0.1.0'
 
 # Supported PSEditions
 #CompatiblePSEditions = 'Desktop'
@@ -37,7 +37,7 @@ ModuleVersion = '2.0.0.0'
 GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
 
 # Author of this module
-Author = 'opensource@purestorage.com'
+Author = 'fa-soln-db@purestorage.com'
 
 # Company or vendor of this module
 CompanyName = 'Pure Storage, Inc.'
