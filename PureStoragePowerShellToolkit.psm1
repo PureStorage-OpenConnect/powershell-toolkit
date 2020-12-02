@@ -1746,7 +1746,7 @@ function Sync-FlashArrayHosts () {
 
 #region SET-TLSVERSIONS
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Set-TlsVersions {
+function Set-TlsVersions () {
 	function disable-tls-10 () {
 		Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
 		Write-Host ": This cmdlet will change TLS protocol settings located in the Registry. It is highly recommended to make a backup of your registry before executing this cmdlet."
