@@ -25,6 +25,7 @@ The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery
 To install the Pure Storage PowerShell Toolkit open up an elevated Windows PowerShell session and type:
 
 ```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Install-Module -Name PureStoragePowerShellToolkit
 ```
 
