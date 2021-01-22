@@ -18,7 +18,7 @@ The Pure Storage PowerShell Toolkit is an open source project that provides addi
 
 ### Install and Uninstall
 The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery (https://www.powershellgallery.com). 
-
+* [Ensure that the proper TLS version is set for PSGallery](https://devblogs.microsoft.com/powershell/powershell-gallery-tls-support/)
 * [Pure Storage PowerShell Toolkit](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/)
 * [Pure Storage PowerShell SDK](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) (Required)
 
