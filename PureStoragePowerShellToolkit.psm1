@@ -158,22 +158,10 @@ function New-FlashArrayReportPiechart() {
 	$datapoint.AxisLabel = "Volumes " + "(" + $VolumeSpace + " GB)"
 	$chart.Series["Data"].Points.Add($datapoint)
 
-	$datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $CapacitySpace)
-	$datapoint.AxisLabel = "Total Capacity " + "(" + $CapacitySpace + " TB)"
-	$chart.Series["Data"].Points.Add($datapoint)
-
 	$chart.Series["Data"].chartType = [System.Windows.Forms.DataVisualization.charting.SerieschartType]::Doughnut
 	$chart.Series["Data"]["DoughnutLabelStyle"] = "Outside"
 	$chart.Series["Data"]["DoughnutLineColor"] = "#FE5000"
 
-
-	$annotation = New-Object System.Windows.Forms.DataVisualization.Charting.TextAnnotation
-	$usedPerc = $VolumeSpace / ($SnapshotSpace + $VolumeSpace + $CapacitySpace)
-	$annotation.Text = "$('{0:P0}' -f $usedPerc)"
-	$annotation.AnchorX = 50
-	$annotation.AnchorY = 62
-	$annotation.Font = [System.Drawing.Font]::new('Proxima Nova', 18, [System.Drawing.FontStyle]::Bold)
-	$chart.Annotations.Add($annotation)
 	$Title = New-Object System.Windows.Forms.DataVisualization.charting.Title
 	$chart.Titles.Add($Title)
 	$chart.SaveImage($FileName + ".png", "png")
@@ -195,7 +183,6 @@ function New-FlashArrayCapacityReport() {
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][System.Management.Automation.Credential()] $Credential,
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $HTMLFileName,
-		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $PieChart,
 		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $VolumeFilter = "*"
 	)
 
@@ -226,10 +213,8 @@ function New-FlashArrayCapacityReport() {
 		$sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1)).toString() + ":1"
 	}
 
-	# Create the chart using our chart function if enabled
-	If ($PSBoundParameters.ContainsKey('PieChart') -eq $true) {
+	# Create the chart using our chart function
 	New-FlashArrayReportPiechart -FileName ($OutFilePath + "\piechart") -CapacitySpace $sysCapacity -SnapshotSpace $sysSnapshotSpace -VolumeSpace $sysVolumeSpace
-	}
 
 	$volumeInfo = $null
 	$provisioned = 0
@@ -1218,18 +1203,18 @@ function Test-WindowsBestPractices() {
 	Write-Host '========================================='
 	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed') {
 		Write-Host "PASS" -ForegroundColor Green -NoNewline
-		Write-Host ": Multipath-IO is installed."
+		Write-Host ": The Multipath-IO feature is installed."
 	}
  else {
 		Write-Host "FAIL" -ForegroundColor Red -NoNewline
-		Write-Host ": Multipath-IO Windows feature not installed."
+		Write-Host ": Multipath-IO Windows feature is not installed."
 		$resp = Read-Host "Would you like to install this feature? Y/N"
 		if ($resp.ToUpper() -eq 'Y') {
 			Add-WindowsFeature -Name Multipath-IO
 		}
 		else {
 			Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-			Write-Host ": You have chosen not to install the Multipath-IO Windows feature. Please add this feature manually using Add-WindowsFeature -Name Mulitpath-IO and re-run Test-WindowsBestPractices."
+			Write-Host ": You have chosen not to install the Multipath-IO feature via this cmdlet. Please add this feature manually and re-run this cmdlet."
 			break
 		}
 	}
@@ -1244,11 +1229,11 @@ function Test-WindowsBestPractices() {
 	ForEach ($DSM in $DSMs) {
 		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
 			Write-Host "PASSED" -ForegroundColor Green -NoNewline
-			Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.`n`r"
+			Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for $($DSM.ProductID).`n`r"
 		}
 		else {
 			Write-Host "FAILED" -ForegroundColor Red -NoNewline
-			Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.`n`r"
+			Write-Host ": Microsoft Device Specific Module (MSDSM) is not configured for $($DSM.ProductID).`n`r"
 		}
 	}
 
@@ -1294,13 +1279,13 @@ function Test-WindowsBestPractices() {
 	}
  else {
 		Write-Host "PASSED" -ForegroundColor Green -NoNewline
-		Write-Host ": PathVerificationState is Enabled. No action required."
+		Write-Host ": PathVerificationState has a value of Enabled. No action required."
 	}
 
 	if ($PDORemovePeriod -ne '30') {
 		Write-Host "FAILED" -ForegroundColor Red -NoNewline
 		Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
-		$resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30? Y/N"
+		$resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to a value of 30? Y/N"
 		if ($resp.ToUpper() -eq 'Y') {
 			Set-MPIOSetting -NewPDORemovePeriod 30
 		}
@@ -1311,7 +1296,7 @@ function Test-WindowsBestPractices() {
 	}
  else {
 		Write-Host "PASSED" -ForegroundColor Green -NoNewline
-		Write-Host ": PDORemovePeriod is set to 30. No action required."
+		Write-Host ": PDORemovePeriod is set to a value of 30. No action required."
 	}
 
 	if ($UseCustomPathRecoveryTime -eq 'Disabled') {
@@ -1328,20 +1313,19 @@ function Test-WindowsBestPractices() {
 	}
  else {
 		Write-Host "PASSED" -ForegroundColor Green -NoNewline
-		#Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime). No action required."
 		Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
 	}
 
 	if ($CustomPathRecoveryTime -ne '20') {
 		Write-Host "FAILED" -ForegroundColor Red -NoNewline
 		Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
-		$resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20? Y/N"
+		$resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to a value of 20? Y/N"
 		if ($resp.ToUpper() -eq 'Y') {
 			Set-MPIOSetting -NewPathRecoveryInterval 20
 		}
 		else {
 			Write-Host "WARNING" -ForegroundColor Yellow
-			Write-Host ": Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues."
+			Write-Host ": Not changing the CustomPathRecoveryTime to a value of 20 could cause unexpected path recovery issues."
 		}
 	}
  else {
@@ -1352,13 +1336,13 @@ function Test-WindowsBestPractices() {
 	if ($DiskTimeOutValue -ne '60') {
 		Write-Host "FAILED" -ForegroundColor Red -NoNewline
 		Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
-		$resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60? Y/N"
+		$resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to a value of 60? Y/N"
 		if ($resp.ToUpper() -eq 'Y') {
 			Set-MPIOSetting -NewDiskTimeout 60
 		}
 		else {
 			Write-Host "WARNING" -ForegroundColor Yellow
-			Write-Host ": Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues."
+			Write-Host ": Not changing the DiskTimeOutValue to a value of 60 could cause unexpected path recovery issues."
 		}
 	}
  else {
@@ -1382,11 +1366,11 @@ function Test-WindowsBestPractices() {
 	$DisableDeleteNotification = (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification')
 	if ($DisableDeleteNotification.DisableDeleteNotification -eq 0) {
 		Write-Host "PASSED" -ForegroundColor Green -NoNewline
-		Write-Host ": Delete Notification Enabled"
+		Write-Host ": Delete Notification is Enabled"
 	}
  else {
 		Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-		Write-Host ": Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications."
+		Write-Host ": Delete Notification is Disabled. Pure Storage Best Practice is to enable delete notifications."
 	}
 }
 #endregion
@@ -1409,7 +1393,7 @@ function Set-WindowsPowerScheme() {
 	}
 	else {
 		Write-Host "PASSED" -ForegroundColor Green -NoNewline
-		Write-Host ": Power Scheme already configured for High Performance"
+		Write-Host ": Computer Power Scheme is already configured for High Performance"
 	}
 }
 #endregion
@@ -1616,10 +1600,20 @@ function New-HypervClusterVolumeReport () {
 		[string]$excelfile
 	)
 	try {
+		Write-Host "Checking for elevated permissions..."
+		if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+					[Security.Principal.WindowsBuiltInRole] "Administrator")) {
+			Write-Warning "Insufficient permissions to run this cmdlet. Open the PowerShell console as an administrator and run this cmdlet again."
+			Break
+		}
+		else {
+			Write-Host "Cmdlet is running as administrator. Continuing..." -ForegroundColor Green
+		}
+
 		## Check that Hyper-V is running on the host. If not, break.
 		$hypervStatus = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V).State
 		if ($hypervStatus -ne "Enabled") {
-			Write-Host "Hyper-V not running. This script must be run on a Hyper-V host."
+			Write-Host "Hyper-V not running. This cmdlet must be run on a Hyper-V host."
 			break
 		}
 
@@ -1661,7 +1655,7 @@ function New-HypervClusterVolumeReport () {
 		}
 
 		# FlashArray Credential request
-		$pfa = New-PfaArray -Endpoint $pfaip -Credential(Get-Credential) -IgnoreCertificateError
+		$pfa = New-PfaArray -Endpoint $pfaip -Credential (Get-Credential) -IgnoreCertificateError
 
 		## Get a list of VMs - VM Sheet
 		$vmList = Get-VM -ComputerName (Get-ClusterNode)
@@ -1697,12 +1691,11 @@ function New-HypervClusterVolumeReport () {
 		$pureVols = Get-PfaVolumes -Array $pfa | Where-Object { $serials.serialnumber -contains $_.serial } | ForEach-Object { Get-PfaVolumeSpaceMetrics -Array $pfa -VolumeName $_.name } | Select-Object name, size, total, data_reduction
 
 		$pureVols | Select-Object Name, @{Name = "Size(GB)"; Expression = { [math]::round($_.size / 1gb, 2) } }, @{Name = "SizeOnDisk(GB)"; Expression = { [math]::round($_.total / 1gb, 2) } }, @{Name = "DataReduction"; Expression = { [math]::round($_.data_reduction, 2) } } | Export-Csv $pfacsv -NoTypeInformation
-		# If not using the ImportExcel module, comment out the Import-Csv line and manually work with the CSV files.
 		Import-Csv $pfacsv | Export-Excel -Path $excelfile -AutoSize -WorkSheetname 'Pure FlashArray'
 
 	}
 	catch {
-		Write-Host "There was an problem running this cmdlet. Please try again or submit an Issue in the GitHub Repository."
+		Write-Host "There was a problem running this cmdlet. Please try again or submit an Issue in the GitHub Repository."
 	}
 }
 #endregion
@@ -1749,7 +1742,21 @@ function Sync-FlashArrayHosts () {
 function Set-TlsVersions () {
 	function disable-tls-10 () {
 		Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-		Write-Host ": This cmdlet will change TLS protocol settings located in the Registry. It is highly recommended to make a backup of your registry before executing this cmdlet."
+		Write-Host ": This cmdlet will change TLS protocol settings located in the Registry. It is *highly* recommended to make a backup of your registry before executing this cmdlet."
+		Write-Host ": Would you like to create a complete registry backup file before proceeding?"
+		$resp = Read-Host -Prompt "Y/N?"
+		if ($resp.ToUpper() -eq 'Y') {
+			Write-Host "A registry back up is being generated. It will be located in your $env:temp folder as registrybackup.reg."
+			cmd /c regedit /E $env:temp\registrybackup.reg
+			if (!(Test-Path $env:temp\registrybackup.reg -PathType leaf)) {
+				Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+				Write-Host ": Registry backup failed. Please proceed or manually backup the regsitry."
+			}
+			else {
+				Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+				Write-Host ": The registry back up is complete."
+			}
+		}
 		Write-Host " "
 		Write-Host "REQUIRED ACTION: Disable TLS 1.0 and enable TLS version 1.1 and 1.2 on this computer?"
 		$resp = Read-Host -Prompt "Y/N?"
@@ -1784,7 +1791,7 @@ function Set-TlsVersions () {
 	}
 	else {
 			Write-Host "CANCELLED" -ForegroundColor Yellow -NoNewline
-			Write-Host ": Cancelled at user request."
+			Write-Host ": Action cancelled at user request."
 	}
 }
 }
