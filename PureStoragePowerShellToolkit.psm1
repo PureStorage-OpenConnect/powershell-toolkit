@@ -1201,11 +1201,7 @@ function Test-WindowsBestPractices() {
 	Write-Host '========================================='
 	Write-Host 'Multipath-IO Verificaton'
 	Write-Host '========================================='
-	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed') {
-		Write-Host "PASS" -ForegroundColor Green -NoNewline
-		Write-Host ": The Multipath-IO feature is installed."
-	}
- else {
+	if ((Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed') {
 		Write-Host "FAIL" -ForegroundColor Red -NoNewline
 		Write-Host ": Multipath-IO Windows feature is not installed."
 		$resp = Read-Host "Would you like to install this feature? Y/N"
@@ -1216,6 +1212,11 @@ function Test-WindowsBestPractices() {
 			Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
 			Write-Host ": You have chosen not to install the Multipath-IO feature via this cmdlet. Please add this feature manually and re-run this cmdlet."
 			break
+		}
+	}
+ 	else {
+		Write-Host "PASS" -ForegroundColor Green -NoNewline
+		Write-Host ": The Multipath-IO feature is installed."
 		}
 	}
 
