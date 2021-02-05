@@ -1222,7 +1222,7 @@ function Test-WindowsBestPractices() {
 
 	Write-Host ''
 	Write-Host '========================================='
-	Write-Host 'Mulitpath-IO Hardware Verification'
+	Write-Host 'Multipath-IO Hardware Verification'
 	Write-Host '========================================='
 	Get-MPIOAvailableHW
 
