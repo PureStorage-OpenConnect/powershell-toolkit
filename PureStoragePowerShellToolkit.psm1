@@ -1201,7 +1201,7 @@ function Test-WindowsBestPractices() {
 	Write-Host '========================================='
 	Write-Host 'Multipath-IO Verificaton'
 	Write-Host '========================================='
-	if ((Get-WindowsFeature -Name 'Multipath-IO').InstalledState -eq 'Available') {
+	if ((Get-WindowsFeature -Name 'Multipath-IO').InstallState -eq 'Available') {
 		Write-Host "FAIL" -ForegroundColor Red -NoNewline
 		Write-Host ": Multipath-IO Windows feature is not installed."
 		$resp = Read-Host "Would you like to install this feature? Y/N"
