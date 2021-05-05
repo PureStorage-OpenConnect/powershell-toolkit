@@ -3,7 +3,7 @@
 	Created by:   	opensource@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
-	Copyright:		(c) 2020 Pure Storage, Inc.
+	Copyright:		(c) 2021 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module Manifest (.psd1)
 	-------------------------------------------------------------------------
@@ -25,31 +25,31 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = '.\PureStoragePowerShellToolkit.psm1'
+RootModule = 'PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.1.0'
+ModuleVersion = '2.0.0.0'
 
 # Supported PSEditions
-#CompatiblePSEditions = 'Desktop'
+CompatiblePSEditions  = @("Desktop", "Core")
 
 # ID used to uniquely identify this module
 GUID = 'e7b43c4e-8e89-4e4f-9112-18d19107ada9'
 
 # Author of this module
-Author = 'fa-soln-db@purestorage.com'
+Author = 'FlashArray Solutons Team @ purestorage'
 
 # Company or vendor of this module
 CompanyName = 'Pure Storage, Inc.'
 
 # Copyright statement for this module
-Copyright = '(c) 2020 Pure Storage, Inc. All rights reserved.'
+Copyright = '(c) 2021 Pure Storage, Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'Pure Storage PowerShell Toolkit.'
+Description = 'PowerShell Toolkit for Pure Storage Flasharray and initiators.'
 
 # Minimum version of the Windows PowerShell engine required by this module
-PowerShellVersion = '3.0'
+PowerShellVersion = '5.1'
 
 # Name of the Windows PowerShell host required by this module
 # PowerShellHostName = ''
@@ -58,7 +58,7 @@ PowerShellVersion = '3.0'
 # PowerShellHostVersion = ''
 
 # Minimum version of Microsoft .NET Framework required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
-DotNetFrameworkVersion = '4.5'
+# DotNetFrameworkVersion = '4.5'
 
 # Minimum version of the common language runtime (CLR) required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
 # CLRVersion = ''
@@ -85,10 +85,10 @@ DotNetFrameworkVersion = '4.5'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-# FunctionsToExport = @()
+FunctionsToExport = @()
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-CmdletsToExport = '*'
+CmdletsToExport = @('Get-AllHostVolumeInfo', 'Set-WindowsPowerScheme', 'Get-HostBusAdapter', 'Register-HostVolumes', 'Unregister-HostVolumes', 'Get-QuickFixEngineering', 'Test-WindowsBestPractices', 'New-VolumeShadowCopy', 'Get-VolumeShadowCopy', 'New-FlashArrayCapacityReport', 'Update-DriveInformation', 'Sync-FlashArrayHosts', 'Get-FlashArraySerialNumbers', 'New-HypervClusterVolumeReport', 'Set-TlsVersions', 'Get-MPIODiskLBPolicy', 'Set-MPIODiskLBPolicy', 'Get-FlashArrayStaleSnapshots', 'Get-FlashArrayDisconnectedVolumes', 'Get-FlashArrayArraySpace', 'Show-FlashArrayPgroupsConfig', 'Remove-FlashArrayPendingDeletes', 'Get-FlashArrayConfig')
 
 # Variables to export from this module
 # VariablesToExport = @()
@@ -111,7 +111,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'PureStorage'
+        Tags = "PureStorage", "PowerShell", "FlashArray"
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/LICENSE'
@@ -133,7 +133,7 @@ PrivateData = @{
  } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
-# HelpInfoURI = ''
+HelpInfoURI = 'https://github.com/PureStorage-OpenConnect/powershell-toolkit/blob/mnelson/HelpInfo'
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
