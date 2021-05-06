@@ -7,9 +7,9 @@
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module (.psm1)
 	-------------------------------------------------------------------------
-	Disclaimer
- 	The sample script and documentation are provided AS IS and are not supported by
-	the author or the author’s employer, unless otherwise agreed in writing. You bear
+	Disclaimer:
+ 	The sample script and documentation are provided AS IS and are supported in a
+	"best effort" capacity by members of Pure Storage staff and the cpommunity. You bear
 	all risk relating to the use or performance of the sample script and documentation.
 	The author and the author’s employer disclaim all express or implied warranties
 	(including, without limitation, any warranties of merchantability, title, infringement
@@ -22,7 +22,7 @@
 	===========================================================================
 
 	Revision information:
-	: version 2.0.0.0	Updated release
+	: version 2.0.0.0	Major release
 
 
 	Contributors and many thanks go out to:
@@ -33,21 +33,21 @@
 	//Julian Cates @purestorage
 	//Jake Daniels - https://github.com/JakeDennis
 	//Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
-	.. and all the others missed.
+	.. and all the others we may have missed.
 
 	#>
 
 #Requires -Version 3
 
-## BEGIN HELPER FUNCTIONS
+## BEGIN HELPER FunctionS
 
 #region ConvertTo-Base64
 <#
 .SYNOPSIS
 	Converts source file to Base64.
 .DESCRIPTION
-	Helper function
-	Supporting function to handle conversions.
+	Helper Function
+	Supporting Function to handle conversions.
 .EXAMPLE
 	None.
 .INPUTS
@@ -57,7 +57,7 @@
 .NOTES
 	None.
 #>
-function ConvertTo-Base64() {
+Function ConvertTo-Base64() {
 	Param (
 		[Parameter(Mandatory = $true)][String] $Source
 	)
@@ -70,8 +70,8 @@ function ConvertTo-Base64() {
 .SYNOPSIS
 	Converts volume sizes from B to MB, MB, GB, TB.
 .DESCRIPTION
-	Helper function
-	Supporting function to handle conversions.
+	Helper Function
+	Supporting Function to handle conversions.
 .EXAMPLE
 	None.
 .INPUTS
@@ -84,7 +84,7 @@ function ConvertTo-Base64() {
 .NOTES
 	None.
 #>
-function Convert-Size {
+Function Convert-Size {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)][ValidateSet("Bytes", "KB", "MB", "GB", "TB")][String]$ConvertFrom,
@@ -110,7 +110,7 @@ function Convert-Size {
 
 	return [Math]::Round($Value, $Precision, [MidPointRounding]::AwayFromZero)
 }
-function New-FlashArrayReportPiechart() {
+Function New-FlashArrayReportPiechart() {
 	Param (
 		[string]$FileName,
 		[float]$SnapshotSpace,
@@ -161,10 +161,10 @@ function New-FlashArrayReportPiechart() {
 #region Get-Sdk1Module
 <#
 .SYNOPSIS
-	Confirms that PureStoragePowerShellSDK version 1 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the function will error.
+	Confirms that PureStoragePowerShellSDK version 1 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the Function will error.
 .DESCRIPTION
-	Helper function
-	Supporting function to load required module.
+	Helper Function
+	Supporting Function to load required module.
 .EXAMPLE
 	None.
 .INPUTS
@@ -174,7 +174,7 @@ function New-FlashArrayReportPiechart() {
 .NOTES
 	None.
 #>
-function Get-Sdk1Module {
+Function Get-Sdk1Module {
 	$m = "PureStoragePowerShellSDK"
 	# If module is imported, continue
 	if (Get-Module | Where-Object { $_.Name -eq $m }) {
@@ -203,10 +203,10 @@ function Get-Sdk1Module {
 #region Get-Sdk2Module
 <#
 .SYNOPSIS
-	Confirms that PureStoragePowerShellSDK version 2 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the function will error.
+	Confirms that PureStoragePowerShellSDK version 2 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the Function will error.
 .DESCRIPTION
-	Helper function
-	Supporting function to load required module.
+	Helper Function
+	Supporting Function to load required module.
 .EXAMPLE
 	None.
 .INPUTS
@@ -216,7 +216,7 @@ function Get-Sdk1Module {
 .NOTES
 	None.
 #>
-function Get-Sdk2Module {
+Function Get-Sdk2Module {
 	$m = "PureStoragePowerShellSDK2"
 	# If module is imported, continue
 	if (Get-Module | Where-Object { $_.Name -eq $m }) {
@@ -247,8 +247,8 @@ function Get-Sdk2Module {
 .SYNOPSIS
 	Creates a new set of login credentials for a FlashArray using SDK v1.
 .DESCRIPTION
-	Helper function
-	Supporting function to create a new FA login.
+	Helper Function
+	Supporting Function to create a new FA login.
 .EXAMPLE
 	None.
 .INPUTS
@@ -258,7 +258,7 @@ function Get-Sdk2Module {
 .NOTES
 	None.
 #>
-function New-PfaArrayLogin {
+Function New-PfaArrayLogin {
 	Param (
 		[Parameter(Mandatory = $true)][String] $EndPoint
 	)
@@ -275,8 +275,8 @@ function New-PfaArrayLogin {
 .SYNOPSIS
 	Creates a new set of login credentials for a FlashArray using SDK v2.
 .DESCRIPTION
-	Helper function
-	Supporting function to create a new FA login.
+	Helper Function
+	Supporting Function to create a new FA login.
 .EXAMPLE
 	None.
 .INPUTS
@@ -286,7 +286,7 @@ function New-PfaArrayLogin {
 .NOTES
 	None.
 #>
-function New-Pfa2ArrayLogin {
+Function New-Pfa2ArrayLogin {
 	Param (
 		[Parameter(Mandatory = $true)][String] $EndPoint
 	)
@@ -303,8 +303,8 @@ function New-Pfa2ArrayLogin {
 .SYNOPSIS
 	Confirms elevated permissions to run cmdlets.
 .DESCRIPTION
-	Helper function
-	Supporting function to confirm administrator permissions.
+	Helper Function
+	Supporting Function to confirm administrator permissions.
 .EXAMPLE
 	None.
 .INPUTS
@@ -314,7 +314,7 @@ function New-Pfa2ArrayLogin {
 .NOTES
 	None.
 #>
-function Get-ElevatedStatus {
+Function Get-ElevatedStatus {
 	if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
 				[Security.Principal.WindowsBuiltInRole] "Administrator")) {
 		Write-Warning "Insufficient permissions to run this cmdlet. Open the PowerShell console as an administrator and run this cmdlet again."
@@ -328,8 +328,8 @@ function Get-ElevatedStatus {
 .SYNOPSIS
 	Confirms that the HyperV role is installed ont he server.
 .DESCRIPTION
-	Helper function
-	Supporting function to ensure proper role is installed.
+	Helper Function
+	Supporting Function to ensure proper role is installed.
 .EXAMPLE
 	None.
 .INPUTS
@@ -339,7 +339,7 @@ function Get-ElevatedStatus {
 .NOTES
 	None.
 #>
-function Get-HypervStatus {
+Function Get-HypervStatus {
 	$hypervStatus = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V).State
 	if ($hypervStatus -ne "Enabled") {
 		Write-Host "Hyper-V not running. This cmdlet must be run on a Hyper-V host."
@@ -353,8 +353,8 @@ function Get-HypervStatus {
 .SYNOPSIS
 	Cross-platform dialog box creator
 .DESCRIPTION
-	Helper function
-	Supporting function to create dialog boxes.
+	Helper Function
+	Supporting Function to create dialog boxes.
 .EXAMPLE
 	Message box with custom message, OK button only, and default title and icon
 	$null = Show-MessageBox 'some message'
@@ -371,7 +371,7 @@ function Get-HypervStatus {
         [-Icon {Information | Warning | Stop}]
         [-DefaultButtonIndex {0 | 1 | 2}]
 #>
-function Show-MessageBox {
+Function Show-MessageBox {
 	[CmdletBinding(PositionalBinding = $false)]
 	param(
 		[Parameter(Mandatory, Position = 0)]
@@ -429,13 +429,12 @@ function Show-MessageBox {
 #endregion
 
 ## END HELPER FUNCTIONS
-#### End Non-Exported Functions
 
 #### Exported Functions
 
 #region Get-HostVolumeInfo
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-AllHostVolumeInfo() {
+Function Get-AllHostVolumeInfo() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -502,7 +501,7 @@ function Get-AllHostVolumeInfo() {
       The new snap disk volume, ProdSQL001_L_X will be masked to the target server, DevSQL001 if need be.
       A different suffix can be applied to the new disk volumen by specifying the -suffix option.
   #>
-function Copy-FlashArrayHostVolume {
+Function Copy-FlashArrayHostVolume {
 	[cmdletbinding()]
 	Param (
 		[Parameter(Position = 0,
@@ -569,7 +568,7 @@ function Copy-FlashArrayHostVolume {
 
 #region Test-WindowsBestPractices
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Test-WindowsBestPractices() {
+Function Test-WindowsBestPractices() {
 	Clear-Host
 	Write-Host '             __________________________'
 	Write-Host '            /++++++++++++++++++++++++++\'
@@ -882,7 +881,7 @@ function Test-WindowsBestPractices() {
 
 #region Set-WindowsPowerScheme
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Set-WindowsPowerScheme() {
+Function Set-WindowsPowerScheme() {
 	$ComputerName = $env:COMPUTERNAME
 	$PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
 	if ($PowerScheme.ElementName -ne "High performance") {
@@ -905,7 +904,7 @@ function Set-WindowsPowerScheme() {
 
 #region Get-PfaSerialNumbers
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-PfaSerialNumbers () {
+Function Get-PfaSerialNumbers () {
 	$AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
 	ForEach ($Device in $AllDevices) {
 		if ($Device.Model -like 'PURE FlashArray*') {
@@ -922,14 +921,14 @@ function Get-PfaSerialNumbers () {
 
 #region Get-QuickFixEngineering
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-QuickFixEngineering {
+Function Get-QuickFixEngineering {
 	Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
 #endregion
 
 #region Get-HostBusAdapter
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-HostBusAdapter() {
+Function Get-HostBusAdapter() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $true)] [string] $ComputerName
@@ -954,7 +953,7 @@ function Get-HostBusAdapter() {
 
 #region Register-HostVolumes
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Register-HostVolumes () {
+Function Register-HostVolumes () {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)] [string]$Computername
@@ -985,7 +984,7 @@ function Register-HostVolumes () {
 
 #region Unregister-HostVolumes
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Unregister-HostVolumes () {
+Function Unregister-HostVolumes () {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)] [string]$Computername
@@ -1013,7 +1012,7 @@ function Unregister-HostVolumes () {
 
 #region Get-MPIODiskLBPolicy
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-MPIODiskLBPolicy() {
+Function Get-MPIODiskLBPolicy() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $False)][string]$ComputerName,
@@ -1033,7 +1032,7 @@ function Get-MPIODiskLBPolicy() {
 
 #region Set-MPIODiskLBPolicy
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Set-MPIODiskLBPolicy() {
+Function Set-MPIODiskLBPolicy() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $False)][string]$ComputerName,
@@ -1063,10 +1062,10 @@ function Set-MPIODiskLBPolicy() {
 
 #region Get-VolumeShadowCopy
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-VolumeShadowCopy() {
+Function Get-VolumeShadowCopy() {
 	[CmdletBinding()]
 	Param (
-		[Parameter(Mandatory = $True)][string]$ScriptName = 'PUREVSS-SNAP',
+		[Parameter(Mandatory = $True)][string]$ScriptName,
 		[Parameter(Mandatory = $True)][string]$MetadataFile,
 		[Parameter(Mandatory = $True)][string]$ShadowCopyAlias,
 		[Parameter(Mandatory = $True)][string]$ExposeAs
@@ -1085,11 +1084,11 @@ function Get-VolumeShadowCopy() {
 
 #region New-VolumeShadowCopy
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function New-VolumeShadowCopy() {
+Function New-VolumeShadowCopy() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)][string[]]$Volume,
-		[Parameter(Mandatory = $True)][string]$ScriptName = 'PUREVSS-SNAP',
+		[Parameter(Mandatory = $True)][string]$ScriptName,
 		[Parameter(Mandatory = $True)][string]$MetadataFile,
 		[Parameter(Mandatory = $True)][string]$ShadowCopyAlias,
 		[ValidateSet('On', 'Off')][string]$VerboseMode = 'On'
@@ -1115,7 +1114,7 @@ function New-VolumeShadowCopy() {
 
 #region Update-DriveInformation
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Update-DriveInformation () {
+Function Update-DriveInformation () {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)]
@@ -1137,7 +1136,7 @@ function Update-DriveInformation () {
 
 #region New-HypervClusterVolumeReport
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function New-HypervClusterVolumeReport () {
+Function New-HypervClusterVolumeReport () {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)]
@@ -1238,7 +1237,7 @@ function New-HypervClusterVolumeReport () {
 
 #region Sync-FlashArrayHosts
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Sync-FlashArrayHosts () {
+Function Sync-FlashArrayHosts () {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)]
@@ -1275,7 +1274,7 @@ function Sync-FlashArrayHosts () {
 
 #region Set-TlsVersions
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Set-TlsVersions () {
+Function Set-TlsVersions () {
 	Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
 	Write-Host ": This cmdlet will change TLS protocol settings located in the Registry. It is *highly* recommended to make a backup of your registry before executing this cmdlet."
 	Write-Host ": Would you like to create a complete registry backup file before proceeding?"
@@ -1333,7 +1332,7 @@ function Set-TlsVersions () {
 
 #region New-FlashArrayCapacityReport
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function New-FlashArrayCapacityReport() {
+Function New-FlashArrayCapacityReport() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
@@ -1367,7 +1366,7 @@ function New-FlashArrayCapacityReport() {
 		$sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1)).toString() + ":1"
 	}
 
-	# Create the chart using a chart function if parameter exists
+	# Create the chart using a chart Function if parameter exists
 	if ($PSBoundParameters.ContainsKey('-PieChart')) {
 		$PieChart = $true
 		New-FlashArrayReportPiechart -FileName ($OutFilePath + "\piechart") -CapacitySpace $sysCapacity -SnapshotSpace $sysSnapshotSpace -VolumeSpace $sysVolumeSpace
@@ -2272,7 +2271,7 @@ $(if (Test-Path $OutFilePath + "\piechart.png" -PathType Leaf) {
 
 #region Get-FlashArrayStaleSnapshots
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-FlashArrayStaleSnapshots() {
+Function Get-FlashArrayStaleSnapshots() {
 	[CmdletBinding()]
 	Param (
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $SnapAgeThreshold,
