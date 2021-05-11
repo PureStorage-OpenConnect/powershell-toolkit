@@ -28,9 +28,10 @@
 	Contributors and many thanks go out to:
 	//Rob "Barkz" Barker @purestorage
 	//Robert "Q" Quimbey @purestorage
-	//Craig Dayton - https://github.com/cadayton
 	//Mike Nelson @purestorage
 	//Julian Cates @purestorage
+	//Marcel Dussil @purestorage - https://en.pureflash.blog/
+	//Craig Dayton - https://github.com/cadayton
 	//Jake Daniels - https://github.com/JakeDennis
 	//Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
 	.. and all the others missed.
@@ -133,7 +134,7 @@ function New-FlashArrayReportPiechart() {
 
 	$legend = New-Object system.Windows.Forms.DataVisualization.charting.Legend
 	$legend.Name = "Legend"
-	$legend.Font = "Proxima Nova"
+	$legend.Font = "Verdana"
 	$legend.Alignment = "Center"
 	$legend.Docking = "top"
 	$legend.Bordercolor = "#FE5000"
@@ -1282,6 +1283,9 @@ function Sync-FlashArrayHosts() {
 #region Set-TlsVersions
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 function Set-TlsVersions() {
+	[CmdletBinding()]
+	Param (
+	)
 	Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
 	Write-Host ": This cmdlet will change TLS protocol settings located in the Registry. It is *highly* recommended to make a backup of your registry before executing this cmdlet."
 	Write-Host ": Would you like to create a complete registry backup file before proceeding?"
@@ -1342,17 +1346,14 @@ function Set-TlsVersions() {
 function New-FlashArrayCapacityReport() {
 	[CmdletBinding()]
 	Param (
-		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
 		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $HTMLFileName,
 		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $PieChart,
 		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $VolumeFilter = "*"
 	)
-
 	$ReportDateTime = Get-Date -Format d
 
 	Get-Sdk1Module
-	# Connect to FlashArray
 	New-PfaArrayLogin
 
 	$faSpaceMetrics = Get-PfaArraySpaceMetrics -Array $fa
@@ -2480,6 +2481,8 @@ Function Show-FlashArrayPgroupsConfig() {
 #region Remove-FlashArrayPendingDeletes
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 Function Remove-FlashArrayPendingDeletes() {
+	[CmdletBinding()]
+	Param ()
 	Get-Sdk1Module
 	New-PfaArrayLogin
 	$pendingvolumelist = Get-PfaPendingDeleteVolumes -Array $fa
