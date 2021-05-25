@@ -261,13 +261,13 @@ function Get-Sdk2Module() {
 #>
 function New-PfaArrayLogin() {
 	Param (
-		[Parameter(Mandatory = $true)][String] $EndPoint
+		[Parameter(Mandatory = $true)][String] $faEndPoint
 	)
-	$FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
-	New-Variable -Name fa -Value $FlashArray -Scope Script -Force
-	New-Variable -Name faEndPoint -Value $EndPoint -Scope Script -Force
+	$fa = New-PfaArray -EndPoint $faEndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+	New-Variable -Name $FlashArray -Value $fa -Scope Script -Force
+	New-Variable -Name EndPoint -Value $faEndPoint -Scope Script -Force
 	if (!$FlashArray) {
-		Write-Error "Cannot connect to Pure Storage FlashArray at $EndPoint. Please check connectivity."
+		Write-Error "Cannot connect to Pure Storage FlashArray at $faEndPoint. Please check connectivity."
 		break
 	}
 }
@@ -291,13 +291,23 @@ function New-PfaArrayLogin() {
 #>
 function New-Pfa2ArrayLogin() {
 	Param (
-		[Parameter(Mandatory = $true)][String] $EndPoint
+		[Parameter(Mandatory = $true)][String] $faEndPoint
 	)
-	$FlashArray = Connect-Pfa2Array -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
-	New-Variable -Name fa -Value $FlashArray -Scope Script -Force
-	New-Variable -Name faEndPoint -Value $EndPoint -Scope Script -Force
+	$apiVersions = Invoke-RestMethod -uri http://$faEndPoint/api/api_version | Select-Object -ExpandProperty version
+	if ($apiVersions -contains "2.2") {
+		$fa = Connect-Pfa2Array -EndPoint $faEndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+	}
+	else {
+		Write-Host ""
+		Write-Host "The maximum API version for this array is 2.0 or 2.1."
+		Write-host "These API versions require OAuth authentication to access via the API."
+		Write-Host "Please input the following information to complete the OAuth authentication."
+		$fa = Connect-Pfa2Array -EndPoint $faEndPoint -Api (Get-Credential) -IgnoreCertificateError
+	}
+	New-Variable -Name FlashArray -Value $fa -Scope Script -Force
+	New-Variable -Name EndPoint -Value $faEndPoint -Scope Script -Force
 	if (!$FlashArray) {
-		Write-Error "Cannot connect to Pure Storage FlashArray at $EndPoint. Please check connectivity."
+		Write-Error "Cannot connect to Pure Storage FlashArray at $faEndPoint. Please check connectivity."
 		break
 	}
 }
@@ -448,16 +458,16 @@ function Get-AllHostVolumeInfo() {
 	Get-Sdk1Module
 	# Connect to FlashArray
 	New-PfaArrayLogin
-	$hostNames = Get-PfaHosts -array $fa | Select-Object -Property name
+	$hostNames = Get-PfaHosts -array $FlashArray | Select-Object -Property name
 	foreach ($hostName in $hostnames) {
-		$hostvols = Get-PfaHostVolumeConnections -Array $fa -Name $hostName.name
+		$hostvols = Get-PfaHostVolumeConnections -Array $FlashArray -Name $hostName.name
 		$hostvols | Format-Table -AutoSize;
 		ForEach-Object -InputObject $hostvols {
 			$vols = $_.vol;
 			$volattribs = @();
 			if ($_.vol.count -gt 1) {
 				for ($i = 0; $i -lt $_.vol.count; $i++) {
-					$volattrib = Get-PfaVolume -Array $fa -Name $vols[$i];
+					$volattrib = Get-PfaVolume -Array $FlashArray -Name $vols[$i];
 					$volattribs += $volattrib;
 				}
 				$volattribs |
@@ -465,7 +475,7 @@ function Get-AllHostVolumeInfo() {
 				Format-Table -AutoSize;
 			}
 			else {
-				Get-PfaVolume -Array $fa -Name $_.vol |
+				Get-PfaVolume -Array $FlashArray -Name $_.vol |
 				Select-Object name, created, source, serial, @{Name = "Size(GB)"; Expression = { $_.size / 1GB } } |
 				Format-Table -AutoSize;
 			}
@@ -535,7 +545,7 @@ function Copy-FlashArrayHostVolume() {
 	)
 	New-PfaArrayLogin
 	# Validate source volume is masked to source server.
-	if (!(Test-VolumeMasking $fa $source $vol)) {
+	if (!(Test-VolumeMasking $FlashArray $source $vol)) {
 		$err = "Copy-FlashArrayHostVolume: The volume $vol is not masked to the source server, $source"
 		Write-Host $err -ForegroundColor Red
 		return 3;
@@ -543,13 +553,13 @@ function Copy-FlashArrayHostVolume() {
 	# Set target volume name and determine masking status
 	$newvol = $vol + "_" + $suffix;
 	[bool]$maskNewVol = $false;
-	if (!(Test-VolumeMasking $fa $target $newvol)) {
+	if (!(Test-VolumeMasking $FlashArray $target $newvol)) {
 		Write-Verbose "The volume $newvol is not masked to the target server, $target";
 		$maskNewVol = $true;
 	}
 	# Create new volume or overwrite existing volume
 	try {
-		New-PfaVolume -Array $fa -VolumeName $newvol -Source $vol -Overwrite | Out-Null;
+		New-PfaVolume -Array $FlashArray -VolumeName $newvol -Source $vol -Overwrite | Out-Null;
 	}
 	Catch {
 		$err = "Copy-FlashArrayHostVolume: Error creating or updating volume $newvol for target server, $target"
@@ -559,7 +569,7 @@ function Copy-FlashArrayHostVolume() {
 	# Mask new volume to target server if necessary
 	if ($maskNewVol) {
 		try {
-			New-PfaHostVolumeConnection -array $fa -VolumeName $newVol -HostName $target | Out-Null
+			New-PfaHostVolumeConnection -array $FlashArray -VolumeName $newVol -HostName $target | Out-Null
 		}
 		catch {
 			$err = "Copy-FlashArrayHostVolume: Error masking $newVol to target server, $target."
@@ -1231,7 +1241,7 @@ function New-HypervClusterVolumeReport() {
 		$serials = GetSerial { $pathQ } -ErrorAction SilentlyContinue
 
 		## FlashArray volumes
-		$pureVols = Get-PfaVolumes -Array $fa | Where-Object { $serials.serialnumber -contains $_.serial } | ForEach-Object { Get-PfaVolumeSpaceMetrics -Array $fa -VolumeName $_.name } | Select-Object name, size, total, data_reduction
+		$pureVols = Get-PfaVolumes -Array $FlashArray | Where-Object { $serials.serialnumber -contains $_.serial } | ForEach-Object { Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $_.name } | Select-Object name, size, total, data_reduction
 
 		$pureVols | Select-Object Name, @{Name = "Size(GB)"; Expression = { [math]::round($_.size / 1gb, 2) } }, @{Name = "SizeOnDisk(GB)"; Expression = { [math]::round($_.total / 1gb, 2) } }, @{Name = "DataReduction"; Expression = { [math]::round($_.data_reduction, 2) } } | Export-Csv $pfacsv -NoTypeInformation
 		Import-Csv $pfacsv | Export-Excel -Path $excelfile -AutoSize -WorkSheetname 'Pure FlashArray'
@@ -1356,9 +1366,9 @@ function New-FlashArrayCapacityReport() {
 	Get-Sdk1Module
 	New-PfaArrayLogin
 
-	$faSpaceMetrics = Get-PfaArraySpaceMetrics -Array $fa
-	$faConfig = Get-PfaArrayAttributes -Array $fa
-	$faSnapshots = Get-PfaAllVolumeSnapshots -Array $fa
+	$faSpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
+	$faConfig = Get-PfaArrayAttributes -Array $FlashArray
+	$faSnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
 
 	$sysCapacity = Convert-Size -ConvertFrom Bytes -ConvertTo TB $faSpaceMetrics.capacity -Precision 2
 	$sysSnapshotSpace = Convert-Size -ConvertFrom Bytes -ConvertTo MB $faSpaceMetrics.snapshots -Precision 4
@@ -1382,14 +1392,14 @@ function New-FlashArrayCapacityReport() {
 	$volumeInfo = $null
 	$provisioned = 0
 
-	$volumes = Get-PfaVolumes -Array $fa | Where-Object { $_.name -like $VolumeFilter }
+	$volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
 	$volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th><th>WS (GB)</th>"
 
 	ForEach ($volume in $volumes) {
 		$printVol = $volume.name
 		$volSize = ($volume.size) / 1GB
 		$provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $volSize -Precision 4) + $provisioned
-		$dr = Get-PfaVolumeSpaceMetrics -Array $fa -VolumeName $volume.name
+		$dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
 		$datardx = "{0:N2}" -f $dr.data_reduction
 		$dataTP = "{0:N3}" -f $dr.thin_provisioning
 		$WrittenSpace = "{0:N2}" -f (((1 - $dr.thin_provisioning) * $dr.total) / 1024 / 1024 / 1024)
@@ -1401,34 +1411,34 @@ function New-FlashArrayCapacityReport() {
 		}
 
 		# Does the volume have any snapshots?
-		if (!(Get-PfaVolumeSnapshots -Array $fa -VolumeName $volume.name)) {
+		if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name)) {
 			$protected = "No"
 		}
 		else {
 			$protected = "Yes"
 		}
 
-		if (!(Get-PfaVolumeHostConnections -Array $fa -VolumeName $volume.name).host) {
-			if (!(Get-PfaVolumeHostGroupConnections -Array $fa -VolumeName $volume.name).hgroup) {
+		if (!(Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host) {
+			if (!(Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup) {
 				$hostconnname = "Not Connected"
 			}
 			else {
-				if (((Get-PfaVolumeHostGroupConnections -Array $fa -VolumeName $volume.name).hgroup).Count -gt 1) {
-					$hostconnname = (Get-PfaVolumeHostGroupConnections -Array $fa -VolumeName $volume.name).hgroup[0]
+				if (((Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup).Count -gt 1) {
+					$hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup[0]
 				}
 				else {
-					$hostconnname = (Get-PfaVolumeHostGroupConnections -Array $fa -VolumeName $volume.name).hgroup
+					$hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup
 				}
 			}
 		}
 		else {
-			$hostconnname = (Get-PfaVolumeHostConnections -Array $fa -VolumeName $volume.name).host
+			$hostconnname = (Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host
 		}
 		$volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td>$($hostconnname)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td><td>$($WrittenSpace)</td></tr>"
 	}
 
 	$snapshotInfo = $null
-	$snapshots = Get-PfaVolumes -Array $fa | Where-Object { $_.name -like $VolumeFilter }
+	$snapshots = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
 	$snapshotInfo += "<th>Snapshot Name</th><th>Snapshot Size (GB)</th>"
 	ForEach ($snapshot in $snapshots) {
 		$printSnapshot = $snapshot.name
@@ -2299,7 +2309,7 @@ function Get-FlashArrayStaleSnapshots() {
 	[int]$SpaceConsumed = 0
 	[int]$SnapNumber = 0
 	try {
-		$Snapshots = Get-PfaAllVolumeSnapshots -Array $fa
+		$Snapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
 
 		Write-Output ""
 		Write-Output "========================================================================="
@@ -2319,18 +2329,18 @@ function Get-FlashArrayStaleSnapshots() {
 
 		#Find snaps older than given threshold and output with formatted data.
 		if ($SnapAge -gt $SnapAgeThreshold) {
-			$SnapStats = Get-PfaSnapshotSpaceMetrics -Array $fa -Name $Snapshot.name
+			$SnapStats = Get-PfaSnapshotSpaceMetrics -Array $FlashArray -Name $Snapshot.name
 			$SnapSize = [math]::round($($SnapStats.total / $1GB), 2)
 			$SpaceConsumed = $SpaceConsumed + $SnapSize
 			$SnapNumber = $SnapNumber + 1
 
 			#Delete snapshots
 			if ($Delete -eq $true -and $Eradicate -eq $true) {
-				Remove-PfaVolumeOrSnapshot -Array $fa -Name $Snapshot.name -Eradicate
+				Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $Snapshot.name -Eradicate
 				Write-Output "Eradicating $($Snapshot.name) - $($SnapSize) GB."
 			}
 			elseif ($Delete -eq $true) {
-				Remove-PfaVolumeOrSnapshot -Array $fa -Name $Snapshot.name
+				Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $Snapshot.name
 				Write-Output "Deleting $($Snapshot.name) - $($SnapSize) GB."
 			}
 			else {
@@ -2359,15 +2369,15 @@ Function Get-FlashArrayDisconnectedVolumes() {
 	Get-Sdk1Module
 	New-PfaArrayLogin
 
-	$faSpace = Get-PfaArraySpaceMetrics -Array $fa
+	$faSpace = Get-PfaArraySpaceMetrics -Array $FlashArray
 
-	$Hosts = Get-PfaHosts -Array $fa
+	$Hosts = Get-PfaHosts -Array $FlashArray
 	ForEach ($HostVol in $Hosts) {
-		$ConnectedVolumes += @(Get-PfaHostVolumeConnections -Array $fa -Name $HostVol.name | Select-Object vol)
+		$ConnectedVolumes += @(Get-PfaHostVolumeConnections -Array $FlashArray -Name $HostVol.name | Select-Object vol)
 	}
 
 	#Get all volumes
-	$AllVolumes = @(Get-PfaVolumes -Array $fa | Select-Object name)
+	$AllVolumes = @(Get-PfaVolumes -Array $FlashArray | Select-Object name)
 	$hash = @{}
 	foreach ($i in $ConnectedVolumes) {
 		$Vol = $i.vol
@@ -2383,7 +2393,7 @@ Function Get-FlashArrayDisconnectedVolumes() {
 		}
 	}
 	Write-Output ""
-	Write-Output "`t$($fa) - $([math]::Round((($faSpace.total)/$1TB),2)) TB/$([math]::Round($(($faSpace.capacity)/$1TB),2)) TB ($([math]::Round((($faSpace.total)*100)/$($faSpace.capacity),2))% Full)`n"
+	Write-Output "`t$($FlashArray) - $([math]::Round((($faSpace.total)/$1TB),2)) TB/$([math]::Round($(($faSpace.capacity)/$1TB),2)) TB ($([math]::Round((($faSpace.total)*100)/$($faSpace.capacity),2))% Full)`n"
 	Write-Output "==================================================="
 	Write-Output "`t`t Disconnected Volumes ($($DisconnectedVolumes.Count-1) of $($hash.Count))"
 	Write-Output "==================================================="
@@ -2392,8 +2402,8 @@ Function Get-FlashArrayDisconnectedVolumes() {
 	if (($DisconnectedVolumes.Count) -gt 1 ) {
 		foreach ($DisconnectedVolume in $DisconnectedVolumes) {
 			if ($null -ne $DisconnectedVolume) {
-				$VolDetails = Get-PfaVolumeSpaceMetrics -array $fa -VolumeName $DisconnectedVolume
-				$GetVol = Get-PfaVolume -Array $fa -Name $DisconnectedVolume
+				$VolDetails = Get-PfaVolumeSpaceMetrics -array $FlashArray -VolumeName $DisconnectedVolume
+				$GetVol = Get-PfaVolume -Array $FlashArray -Name $DisconnectedVolume
 				$VolSerial = $GetVol.serial
 				$Space = ($($VolDetails.volumes / $1GB))
 				$Space = [math]::Round($Space, 3)
@@ -2422,7 +2432,7 @@ Function Get-FlashArraySpace() {
 
 	New-PfaArrayLogin
 	$ArraySpace = @()
-	$faSpace = Get-PfaArraySpaceMetrics -Array $fa
+	$faSpace = Get-PfaArraySpaceMetrics -Array $FlashArray
 	$faSpace | Select-Object @{name = 'Hostname'; expr = { $_.Hostname } },
 	@{name = 'Percent Used'; expr = { ($faSpace.total / $faSpace.capacity).ToString("P") } },
 	@{name = 'Capacity Used (TB)'; expr = { ([math]::Round([double]($_.Total / $1TB), 2)) } },
@@ -2444,12 +2454,12 @@ Function Show-FlashArrayPgroupsConfig() {
 	Get-Sdk1Module
 	New-PfaArrayLogin
 
-	$ProtectionGroups = Get-PfaProtectionGroups -Array $fa
+	$ProtectionGroups = Get-PfaProtectionGroups -Array $FlashArray
 	$ErrorActionPreference = "Continue"
 
 	foreach ($ProtectionGroup in $ProtectionGroups) {
-		$RetentionDetails = Get-PfaProtectionGroupRetention -Array $fa -ProtectionGroupName $ProtectionGroup.name
-		$ScheduleDetails = Get-PfaProtectionGroupSchedule -Array $fa -ProtectionGroupName $ProtectionGroup.name
+		$RetentionDetails = Get-PfaProtectionGroupRetention -Array $FlashArray -ProtectionGroupName $ProtectionGroup.name
+		$ScheduleDetails = Get-PfaProtectionGroupSchedule -Array $FlashArray -ProtectionGroupName $ProtectionGroup.name
 
 		if ($ScheduleDetails.replicate_enabled -eq "True") {
 			Write-Host "========================================================================================"
@@ -2485,8 +2495,8 @@ Function Remove-FlashArrayPendingDeletes() {
 	Param ()
 	Get-Sdk1Module
 	New-PfaArrayLogin
-	$pendingvolumelist = Get-PfaPendingDeleteVolumes -Array $fa
-	$pendingsnaplist = Get-PfaPendingDeleteVolumeSnapshots -Array $fa
+	$pendingvolumelist = Get-PfaPendingDeleteVolumes -Array $FlashArray
+	$pendingsnaplist = Get-PfaPendingDeleteVolumeSnapshots -Array $FlashArray
 	Write-Host "Listing PENDING volumes and snapshots that exist on the array."
 	Write-Host "======================================================================================================================`n"
 	Write-Host "Volumes in PENDING state"
@@ -2512,12 +2522,12 @@ Function Remove-FlashArrayPendingDeletes() {
 	Write-Host "VOLUMES IN PENDING STATE"
 	foreach ($volume in $pendingvolumelist) {
 		Write-Host " -" $volume.name
-		Remove-PfaVolumeOrSnapshot -Array $fa -Name $volume.name -Eradicate
+		Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $volume.name -Eradicate
 	}
 	Write-Host "SNAPSHOTS IN PENDING STATE"
 	foreach ($volumesnap in $pendingsnaplist) {
 		Write-Host " -" $volumesnap.name
-		Remove-PfaVolumeOrSnapshot -Array $fa -Name $volumesnap.name -Eradicate
+		Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $volumesnap.name -Eradicate
 	}
 	Write-Host "Volume and Snapshot pending deletes have been eradicated."
 }
@@ -2557,8 +2567,8 @@ Function Get-FlashArrayConfig() {
 Function Get-ArrayHierarchy() {
 	Get-Sdk1Module
 	New-PfaArrayLogin
-	$Initiators = Get-PfaHosts -Array $fa
-	$Volumes = Get-PfaVolumes -Array $fa
+	$Initiators = Get-PfaHosts -Array $FlashArray
+	$Volumes = Get-PfaVolumes -Array $FlashArray
 	$1GB = 1024 * 1024 * 1024
 	Write-Host ""
 	Write-Host "Please indicate if you would like to see the hierarchy by host." -ForegroundColor Cyan
@@ -2577,7 +2587,7 @@ Function Get-ArrayHierarchy() {
 		#Start at host level
 		ForEach ($Initiator in $Initiators) {
 			Write-Host "  [H] $($Initiator.name)"
-			$Volumes = Get-PfaHostVolumeConnections -Array $fa -Name $Initiator.name
+			$Volumes = Get-PfaHostVolumeConnections -Array $FlashArray -Name $Initiator.name
 			If (!$Volumes) {
 				Write-Host ' [No volumes connected]' -ForegroundColor Yellow
 			}
@@ -2587,8 +2597,8 @@ Function Get-ArrayHierarchy() {
 				ForEach ($Volume in $Volumes) {
 
 					#Reset variables
-					$Snapshots = Get-PfaVolumeSnapshots -Array $fa -VolumeName $Volume.vol
-					$SnapshotDetails = Get-PfaSnapshotSpaceMetrics -Array $fa -name $Volume.vol
+					$Snapshots = Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $Volume.vol
+					$SnapshotDetails = Get-PfaSnapshotSpaceMetrics -Array $FlashArray -name $Volume.vol
 					$SpaceConsumed = 0
 
 					#Change value for snapshot count threshold
@@ -2630,8 +2640,8 @@ Function Get-ArrayHierarchy() {
 		ForEach ($Volume in $Volumes) {
 
 			#Reset variables
-			$Snapshots = Get-PfaVolumeSnapshots -Array $fa -VolumeName $Volume.name
-			$SnapshotDetails = Get-PfaSnapshotSpaceMetrics -Array $fa -name $Volume.name
+			$Snapshots = Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $Volume.name
+			$SnapshotDetails = Get-PfaSnapshotSpaceMetrics -Array $FlashArray -name $Volume.name
 			$SpaceConsumed = 0
 
 			#Change value for snapshot count threshold
