@@ -1,5 +1,5 @@
 # Pure Storage PowerShell Toolkit
-## Version: 1911 
+## Version: 2.x.x.x
 
 ### Pure Storage PowerShell Toolkit Release Notes
 The new version of the Pure Storage PowerShell Toolkit leverages a number of different cmdlets ranging from core Windows Server, WMI, WSMAN, VMware PowerCLI, SQL Server and .NET assemblies. 
@@ -7,8 +7,7 @@ The new version of the Pure Storage PowerShell Toolkit leverages a number of dif
 The Pure Storage PowerShell Toolkit is an open source project that provides additional cmdlets that leverage core Windows Server, System Center, WMI, WSMAN, SQL Server, Storage and .NET Assemblies. The intention of the PowerShell Toolkit is to provide useful cmdlets for customers and the Pure Storage field to use in troubleshooting, monitoring, reporting, best practices and configuration. The PowerShell Toolkit leverages the Pure Storage PowerShell SDK from some of the cmdlets.
 
 ### Updates
-* New-FlashArrayCapacityReport -- Fixed issue with data reduction output.
-* Get-WindowsServerLogs -- Log collector for troubleshooting. Outputs all logs needed for Pure Storage Support to analyze.
+* 
 
 ### Release Compatibility
 * This release requires PowerShell 3.0 or higher.
