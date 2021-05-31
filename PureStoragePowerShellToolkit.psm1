@@ -297,13 +297,14 @@ function New-Pfa2ArrayLogin() {
 	if ($apiVersions -contains "2.2") {
 		$fa = Connect-Pfa2Array -EndPoint $faEndPoint -Credentials (Get-Credential) -IgnoreCertificateError
 	}
-	else {
-		Write-Host ""
-		Write-Host "The maximum API version for this array is 2.0 or 2.1."
-		Write-host "These API versions require OAuth authentication to access via the API."
-		Write-Host "Please input the following information to complete the OAuth authentication."
-		$fa = Connect-Pfa2Array -EndPoint $faEndPoint -Api (Get-Credential) -IgnoreCertificateError
-	}
+	# Need to figure this out
+	#else {
+	#	Write-Host ""
+	#	Write-Host "The maximum API version for this array is 2.0 or 2.1."
+	#	Write-host "These API versions require OAuth authentication to access via the API."
+	#	Write-Host "Please input the following information to complete the OAuth authentication."
+	#	$fa = Connect-Pfa2Array -EndPoint $faEndPoint -Api (Get-Credential) -IgnoreCertificateError
+	#}
 	New-Variable -Name FlashArray -Value $fa -Scope Script -Force
 	New-Variable -Name EndPoint -Value $faEndPoint -Scope Script -Force
 	if (!$FlashArray) {
