@@ -217,7 +217,7 @@ function Get-Sdk1Module() {
 .NOTES
 	None.
 #>
-function Get-Sdk2Module() {
+<# function Get-Sdk2Module() {
 	$m = "PureStoragePowerShellSDK2"
 	# If module is imported, continue
 	if (Get-Module | Where-Object { $_.Name -eq $m }) {
@@ -240,8 +240,9 @@ function Get-Sdk2Module() {
 			}
 		}
 	}
-}
+} #>
 #endregion
+
 
 #region New-PfaArrayLogin
 <#
@@ -289,7 +290,7 @@ function New-PfaArrayLogin() {
 .NOTES
 	None.
 #>
-function New-Pfa2ArrayLogin() {
+<# function New-Pfa2ArrayLogin() {
 	Param (
 		[Parameter(Mandatory = $true)][String] $faEndPoint
 	)
@@ -313,6 +314,7 @@ function New-Pfa2ArrayLogin() {
 	}
 }
 #endregion
+#>
 
 #region Get-ElevatedStatus
 <#
@@ -387,7 +389,7 @@ function Get-HypervStatus() {
         [-Icon {Information | Warning | Stop}]
         [-DefaultButtonIndex {0 | 1 | 2}]
 #>
-function Show-MessageBox() {
+<# function Show-MessageBox() {
 	[CmdletBinding(PositionalBinding = $false)]
 	param(
 		[Parameter(Mandatory, Position = 0)]
@@ -441,7 +443,7 @@ function Show-MessageBox() {
 		# Output the chosen button as a stringified [System.Windows.Forms.DialogResult] enum value, for consistency with the macOS behavior.
 		[System.Windows.Forms.MessageBox]::Show($Message, $Title, $Buttons, $Icon, $defaultIndex * 256).ToString()
 	}
-}
+} #>
 #endregion
 
 ## END HELPER FUNCTIONS
@@ -2556,10 +2558,10 @@ Function Get-FlashArrayConfig() {
 	$InvokeCommand_pureconfig_list_system = "pureconfig list --system"
 	"FlashArray OBJECT configuration export (host-pod-volume-hgroup-connection):" | Out-File -FilePath $FilePath -Append
 	" " | Out-File -FilePath $FilePath -Append
-	Invoke-Pfa2CLICommand -EndPoint $array -Credential $Creds -IgnoreCertificateError -CommandText $InvokeCommand_pureconfig_list_object | Out-File -FilePath $FilePath -Append
+	New-PfaCLICommand -EndPoint $array -Credential $Creds -IgnoreCertificateError -CommandText $InvokeCommand_pureconfig_list_object | Out-File -FilePath $FilePath -Append
 	"FlashArray SYSTEM configuration export (array-network-alert-support):" | Out-File -FilePath $FilePath -Append
 	" " | Out-File -FilePath $FilePath -Append
-	Invoke-Pfa2CLICommand -EndPoint $array -Credential $Creds -IgnoreCertificateError -CommandText $InvokeCommand_pureconfig_list_system | Out-File -FilePath $FilePath -Append
+	New-PfaCLICommand -EndPoint $array -Credential $Creds -IgnoreCertificateError -CommandText $InvokeCommand_pureconfig_list_system | Out-File -FilePath $FilePath -Append
 }
 #endregion
 
