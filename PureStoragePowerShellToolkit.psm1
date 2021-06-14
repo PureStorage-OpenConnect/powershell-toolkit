@@ -183,11 +183,14 @@ function Get-Sdk1Module() {
     else {
         # If module is not imported, but available on disk, then import
         if (Get-Module -ListAvailable | Where-Object { $_.Name -eq $m }) {
+            Write-Host 'Importing Pure Storage FlashArray PowerShell SDK module...'
             Import-Module $m -ErrorAction SilentlyContinue
         }
         else {
             # If module is not imported, not available on disk, then install and import
             if (Find-Module -Name $m | Where-Object { $_.Name -eq $m }) {
+                Write-Warning 'Pure Storage FlashArray PowerShell SDK module does not exist.'
+                Write-host 'We will attempt to install the module from the PowerShell Gallery.'
                 Install-Module -Name $m -Force -ErrorAction SilentlyContinue -Scope CurrentUser
                 Import-Module $m -ErrorAction SilentlyContinue
             }
@@ -262,18 +265,18 @@ function Get-HypervStatus() {
 # .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
 <#
     .SYNOPSIS
-      Retrieves Host Volume information from FlashArray.
+    Retrieves Host Volume information from FlashArray.
     .DESCRIPTION
-      Retrieves Host Volume information including volumes attributes from a FlashArray.
+    Retrieves Host Volume information including volumes attributes from a FlashArray.
     .INPUTS
-      EndPoint IP or FQDN required
+    EndPoint IP or FQDN required
     .OUTPUTS
-      Outputs Host volume information
+    Outputs Host volume information
     .EXAMPLE
-      Get-HostVolumeinfo -EndPoint myarray.mydomain.com
+    Get-HostVolumeinfo -EndPoint myarray.mydomain.com
 
-      Rerieves Host Volume information from the FlashArray myarray.mydomain.com.
-  #>
+    Rerieves Host Volume information from the FlashArray myarray.mydomain.com.
+#>
 function Get-AllHostVolumeInfo() {
 	[CmdletBinding()]
 	Param (
@@ -319,12 +322,12 @@ function Get-AllHostVolumeInfo() {
     .INPUTS
     EndPoint IP or FQDN required.
     .OUTPUTS
-      Outputs serial numbers of FlashArrays devices.
+    Outputs serial numbers of FlashArrays devices.
     .EXAMPLE
     Get-PfaSerialNumbers
 
     Returns serial number information on Pure FlashArray disk devices connected to the host.
-  #>
+#>
 function Get-PfaSerialNumbers() {
     $AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
     ForEach ($Device in $AllDevices) {
@@ -350,12 +353,12 @@ function Get-PfaSerialNumbers() {
     .INPUTS
     Endpoint is mandatory. VM, Win, and PFA csv file names are optional.
     .OUTPUTS
-      Outputs individual CSV files and creates an Excel workbook that is built using the required PowerShell module ImportExcel, created by Douglas Finke.
+    Outputs individual CSV files and creates an Excel workbook that is built using the required PowerShell module ImportExcel, created by Douglas Finke.
     .EXAMPLE
     New-HypervClusterVolumeReport -EndPoint myarray -VmCsvName myVMs.csv -WinCsvName myWinHosts.csv -PfaCsvName myFlashArray.csv -ExcelFile myExcelFile
 
     This will create three seperate CSV files with HyperV cluster information and incorprate them into a single Excel workbook.
-  #>
+#>
 function New-HypervClusterVolumeReport() {
     [CmdletBinding()]
     Param (
@@ -469,12 +472,12 @@ function New-HypervClusterVolumeReport() {
     .INPUTS
     None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     Sync-FlashArraysHosts -SourceArray mySourceArray -TargetArray myTargetArray -Protocol FC
 
     Synchrnizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
-  #>
+#>
 function Sync-FlashArrayHosts() {
     [CmdletBinding()]
     Param (
@@ -535,7 +538,7 @@ function Sync-FlashArrayHosts() {
     Get-FlashArrayStaleSnapshots -EndPoint myArray -SnapAgeThreshold 30 -Delete:$true -Eradicate:$true -Confirm:$false
 
     Returns all snapshots that are older than 30 days from the current date, deletes and eradicates them without confirmation.
-  #>
+#>
 function Get-FlashArrayStaleSnapshots() {
     [CmdletBinding()]
     Param (
@@ -622,12 +625,12 @@ Write-Output "There are $($SnapNumberTotal) snapshot(s) older than $($SnapAgeThr
     .PARAMETER $EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Disconnected volume information is displayed.
+    Disconnected volume information is displayed.
     .EXAMPLE
     Get-FlashArrayDisconnectedVolumes -EndPoint myArray
-  #>
+#>
 Function Get-FlashArrayDisconnectedVolumes() {
     [CmdletBinding()]
     Param (
@@ -704,12 +707,12 @@ Function Get-FlashArrayDisconnectedVolumes() {
     .PARAMETER $EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Various FlashArray space used and available information.
+    Various FlashArray space used and available information.
     .EXAMPLE
     Get-FlashArraySpace -EndPoint myArray
-  #>
+#>
 Function Get-FlashArraySpace() {
     [CmdletBinding()]
     Param (
@@ -750,12 +753,12 @@ Function Get-FlashArraySpace() {
     .PARAMETER $EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Protection Group information is displayed.
+    Protection Group information is displayed.
     .EXAMPLE
     Show-FlashArraypGroupsConfig -EndPoint myArray
-  #>
+#>
 Function Show-FlashArrayPgroupsConfig() {
     [CmdletBinding()]
     Param (
@@ -811,12 +814,12 @@ Function Show-FlashArrayPgroupsConfig() {
     .PARAMETER $EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Volume and volume snapshots awaiting eradication.
+    Volume and volume snapshots awaiting eradication.
     .EXAMPLE
     Remove-FlashArrayPendingDelete -EndPoint myArray
-  #>
+#>
 Function Remove-FlashArrayPendingDeletes() {
     [CmdletBinding()]
     Param (
@@ -880,14 +883,14 @@ Function Remove-FlashArrayPendingDeletes() {
     .PARAMETER ArrayName
     Optional. The FlashArray name to use in the output. Defaults to $EndPoint.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Configuration file.
+    Configuration file.
     .EXAMPLE
     Get-FlashArray -EndPoint myArray -ArrayName Array100
 
     Rerieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.
-  #>
+#>
 Function Get-FlashArrayConfig() {
     [CmdletBinding()]
     Param (
@@ -902,7 +905,7 @@ Function Get-FlashArrayConfig() {
     $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
 
     If ($PSBoundParameters.ContainsKey('OutFilePath') -eq $False) {
-        $FilePath = .\$($ArrayName)_config.txt
+        $FilePath = $ArrayName_config.txt
     }
     If ($PSBoundParameters.ContainsKey('ArrayName') -eq $False) {
         $ArrayName = $EndPoint
@@ -928,16 +931,16 @@ Function Get-FlashArrayConfig() {
     .SYNOPSIS
     Displays array hierarchy in relation to hosts and/or volumes.
     .DESCRIPTION
-    Thsi cmdlet will display the heirachy from a FlashArray of hosts and volumes.
+    This cmdlet will display the heirachy from a FlashArray of hosts and volumes. The output is to the console in text.
     .PARAMETER $EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      FlashArray host and/or volume hierachy.
+    FlashArray host and/or volume hierachy.
     .EXAMPLE
     Get-ArrayHierarchy -EndPoint myArray
-  #>
+#>
 Function Get-ArrayHierarchy() {
     [CmdletBinding()]
     Param (
@@ -1077,9 +1080,9 @@ Function Get-ArrayHierarchy() {
     .PARAMETER $VolumeFilter
     Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Formatted HTML report containing retrieved data and specified options.
+    Formatted HTML report containing retrieved data and specified options.
     .EXAMPLE
     New-FlashArrayCapacityReport -EndPoint myArray
 
@@ -1090,7 +1093,7 @@ Function Get-ArrayHierarchy() {
 
     Creates a capacity report c:\temp\myArrayReport.html that conatins a pie chart and includes volumes that contain the name 'Volume1*'.
 
-  #>
+#>
 function New-FlashArrayCapacityReport() {
     [CmdletBinding()]
     Param (
@@ -1275,7 +1278,7 @@ h3 {
 }
 
 protected {
- 	font-weight: bold;
+    font-weight: bold;
 	text-align: left;
 }
 
@@ -2070,9 +2073,9 @@ $ReportDateTime
     .PARAMETER EnableIscsiTests
     Optional. If added to the command line, this cmdlet will run tests for iSCSI settings.
     .INPUTS
-      Optional parameter for iSCSI testing.
+    Optional parameter for iSCSI testing.
     .OUTPUTS
-      Output status and best practice options for every test.
+    Output status and best practice options for every test.
     .EXAMPLE
     Test-WindowsBestPractices
 
@@ -2082,8 +2085,28 @@ $ReportDateTime
     Test-WindowsZBestPractices -EnableIscsiTests
 
     Run the cmdlet against the local machine and run the additional iSCSI tests.
-  #>
+#>
 function Test-WindowsBestPractices() {
+    function Write-Log {
+        [CmdletBinding()]
+        param(
+            [Parameter()]
+            [ValidateNotNullOrEmpty()]
+            [string]$Message,
+
+            [Parameter()]
+            [ValidateNotNullOrEmpty()]
+            [ValidateSet('Information', 'Passed', 'Warning', 'Failed')]
+            [string]$Severity = 'Information'
+        )
+
+        [pscustomobject]@{
+            Time     = (Get-Date -f g)
+            Message  = $Message
+            Severity = $Severity
+        } | Export-Csv -Path "$env:Temp\Test-WindowsBestPractices.csv" -Append -NoTypeInformation
+    }
+
     Clear-Host
     Write-Host '             __________________________'
     Write-Host '            /++++++++++++++++++++++++++\'
@@ -2113,28 +2136,35 @@ function Test-WindowsBestPractices() {
     Write-Host '========================================='
     Write-Host 'Host Information'
     Write-Host '========================================='
-    Get-SilComputer
+    $compinfo = Get-SilComputer
+    $compinfo | Export-Csv -Path "$env:Temp\Test-WindowsBestPractices.csv" -Append -NoTypeInformation
+    $compinfo
+    Write-Log -Message "Successfully retrieved computer properties. Continuing..." -Severity Information
     Write-Host ''
     Write-Host '========================================='
     Write-Host 'Multipath-IO Verificaton'
     Write-Host '========================================='
     # Multipath-IO
     if ((Get-WindowsFeature -Name 'Multipath-IO').InstallState -eq 'Available') {
-        Write-Host "FAIL" -ForegroundColor Red -NoNewline
+        Write-Host "FAILED" -ForegroundColor Red -NoNewline
         Write-Host ": Multipath-IO Windows feature is not installed. This feature can be installed by this cmdlet, but a reboot of the server will be required, and the you must re-run the cmdlet again."
+        Write-Log -Message 'Multipath-IO Windows feature is not installed.' -Severity Failed
         $resp = Read-Host "Would you like to install this feature? (***Reboot Required) Y/N"
         if ($resp.ToUpper() -eq 'Y') {
             Add-WindowsFeature -Name Multipath-IO
+            Write-Log -Message 'Multipath-IO Windows feature was installed per user request. Continuing...' -Severity Passed
         }
         else {
             Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
             Write-Host ": You have chosen not to install the Multipath-IO feature via this cmdlet. Please add this feature manually and re-run this cmdlet."
+            Write-Log -Message 'Multipath-IO Windows feature not installed per user request. Exiting.' -Severity Warning
             exit
         }
     }
     else {
-        Write-Host "PASS" -ForegroundColor Green -NoNewline
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
         Write-Host ": The Multipath-IO feature is installed."
+        Write-Log -Message 'Multipath-IO Windows feature is installed. Continuing...' -Severity Passed
     }
 
     Write-Host ''
@@ -2148,10 +2178,12 @@ function Test-WindowsBestPractices() {
         if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
             Write-Host "PASSED" -ForegroundColor Green -NoNewline
             Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for $($DSM.ProductID).`n`r"
+            Write-Log -Message "Microsoft Device Specific Module (MSDSM) is configured for $($DSM.ProductID).`n`r. Continuing..." -Severity Passed
         }
         else {
             Write-Host "FAILED" -ForegroundColor Red -NoNewline
             Write-Host ": Microsoft Device Specific Module (MSDSM) is not configured for $($DSM.ProductID).`n`r"
+            Write-Log -Message "Microsoft Device Specific Module (MSDSM) is not configured for $($DSM.ProductID).`n`r. Continuing anyway..." -Severity Failed
         }
     }
 
@@ -2162,9 +2194,11 @@ function Test-WindowsBestPractices() {
 
     $MPIOSettings = $null
     $MPIOSetting = $null
+    Write-Log -Message "Retrieving MPIO settings. Continuing..." -Severity Information
     $MPIOSettings = Get-MPIOSetting | Out-String -Stream
     $MPIOSettings = $MPIOSettings.Replace(" ", "")
     $MPIOSettings | Out-Null
+    $MPIOSettings | Export-Csv -Path "$env:Temp\Test-WindowsBestPractices.csv" -Append -NoTypeInformation
 
     ForEach ($MPIOSetting in $MPIOSettings) {
         $MPIOSetting.Split(':')[0]
@@ -2187,18 +2221,22 @@ function Test-WindowsBestPractices() {
     if ($PathVerificationState -eq 'Disabled') {
         Write-Host "FAILED" -ForegroundColor Red -NoNewline
         Write-Host ": PathVerificationState is $($PathVerificationState)."
+        Write-Log -Message "PathVerificationState is $($PathVerificationState)." -Severity Failed
         $resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled? Y/N"
         if ($resp.ToUpper() -eq 'Y') {
             Set-MPIOSetting -NewPathVerificationState Enabled
+            Write-Log -Message "PathVerificationState is now $($PathVerificationState) per to user request." -Severity Information
         }
         else {
             Write-Host "WARNING" -ForegroundColor Yellow
             Write-Host ": Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues."
+            Write-Log -Message "PathVerificationState $($PathVerificationState) was not altered due to user request." -Severity Warning
         }
     }
     else {
         Write-Host "PASSED" -ForegroundColor Green -NoNewline
         Write-Host ": PathVerificationState has a value of Enabled. No action required."
+        Write-Log -Message "PathVerificationState has a value of Enabled. No action required." -Severity Passed
     }
 
     # PDORemovalPeriod
@@ -2213,17 +2251,21 @@ function Test-WindowsBestPractices() {
             if ($PDORemovePeriod -ne '120') {
                 Write-Host "FAILED" -ForegroundColor Red -NoNewline
                 Write-Host ": PDORemovePeriod for this Azure VM is set to $($PDORemovePeriod)."
+                Write-Log -Message "PDORemovePeriod for this Azure VM is set to $($PDORemovePeriod)." -Severity Failed
                 $resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to a value of 120? Y/N"
                 if ($resp.ToUpper() -eq 'Y') {
                     Set-MPIOSetting -NewPDORemovePeriod 120
+                    Write-Log -Message ": PDORemovePeriod for this Azure VM is set to $($PDORemovePeriod) per user request." -Severity Information
                 }
                 else {
                     Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-                    Write-Host ": Not changing the PDORemovePeriod to 120 for an Azure VM could cause unexpected path recovery issues"
+                    Write-Host ": Not changing the PDORemovePeriod to 120 for an Azure VM could cause unexpected path recovery issues."
+                    Write-Log -Message "Not changing the PDORemovePeriod to 120 for an Azure VM could cause unexpected path recovery issues." -Severity Warning
                 }
                 else {
                     Write-Host "PASSED" -ForegroundColor Green -NoNewline
                     Write-Host ": PDORemovePeriod is set to a value of 120 for this Azure VM. No action required."
+                    Write-Log -Message "PDORemovePeriod is set to a value of 120 for this Azure VM. No action required." -Severity Passed
                 }
             }
         }
@@ -2231,17 +2273,21 @@ function Test-WindowsBestPractices() {
             if ($PDORemovePeriod -ne '30') {
                 Write-Host "FAILED" -ForegroundColor Red -NoNewline
                 Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
+                Write-Log -Message "PDORemovePeriod is set to $($PDORemovePeriod)." -Severity Failed
                 $resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to a value of 30? Y/N"
                 if ($resp.ToUpper() -eq 'Y') {
                     Set-MPIOSetting -NewPDORemovePeriod 30
+                    Write-Log -Message "PDORemovePeriod is set to $($PDORemovePeriod) per user request." -Severity Information
                 }
                 else {
                     Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-                    Write-Host ": Not changing the PDORemovePeriod to 30 could cause unexpected path recovery issues"
+                    Write-Host ": Not changing the PDORemovePeriod to 30 could cause unexpected path recovery issues."
+                    Write-Log -Message "Not changing the PDORemovePeriod to 30 could cause unexpected path recovery issues." -Severity Warning
                 }
                 else {
                     Write-Host "PASSED" -ForegroundColor Green -NoNewline
                     Write-Host ": PDORemovePeriod is set to a value of 30. No action required."
+                    Write-Log -Message "PDORemovePeriod is set to a value of 30. No action required." -Severity Passed
                 }
             }
         }
@@ -2250,53 +2296,65 @@ function Test-WindowsBestPractices() {
     if ($UseCustomPathRecoveryTime -eq 'Disabled') {
         Write-Host "FAILED" -ForegroundColor Red -NoNewline
         Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
+        Write-Log -Message "UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)." -Severity Failed
         $resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled? Y/N"
         if ($resp.ToUpper() -eq 'Y') {
             Set-MPIOSetting -CustomPathRecovery Enabled
+            Write-Log -Message "UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime) per user request." -Severity Information
         }
         else {
             Write-Host "WARNING" -ForegroundColor Yellow
             Write-Host ": Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues."
+            Write-Log -Message "Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues." -Severity Warning
         }
     }
     else {
         Write-Host "PASSED" -ForegroundColor Green -NoNewline
         Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
+        Write-Log -Message "UseCustomPathRecoveryTime is set to Enabled. No action required." -Severity Passed
     }
 
     if ($CustomPathRecoveryTime -ne '20') {
         Write-Host "FAILED" -ForegroundColor Red -NoNewline
         Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
+        Write-Log -Message "CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)." -Severity Failed
         $resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to a value of 20? Y/N"
         if ($resp.ToUpper() -eq 'Y') {
             Set-MPIOSetting -NewPathRecoveryInterval 20
+            Write-Log -Message "CustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime) per user request." -Severity Information
         }
         else {
             Write-Host "WARNING" -ForegroundColor Yellow
             Write-Host ": Not changing the CustomPathRecoveryTime to a value of 20 could cause unexpected path recovery issues."
+            Write-Log -Message "Not changing the CustomPathRecoveryTime to a value of 20 could cause unexpected path recovery issues." -Severity Warning
         }
     }
     else {
         Write-Host "PASSED" -ForegroundColor Green -NoNewline
         Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
+        Write-Log -Message "CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required." -Severity Passed
     }
 
     # DiskTimeOutValue
     if ($DiskTimeOutValue -ne '60') {
         Write-Host "FAILED" -ForegroundColor Red -NoNewline
         Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
+        Write-Log -Message "DiskTimeOutValue is set to $($DiskTimeOutValue)." -Severity Failed
         $resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to a value of 60? Y/N"
         if ($resp.ToUpper() -eq 'Y') {
             Set-MPIOSetting -NewDiskTimeout 60
+            Write-Log -Message "DiskTimeOutValue is set to $($DiskTimeOutValue) per user request." -Severity Information
         }
         else {
             Write-Host "WARNING" -ForegroundColor Yellow
             Write-Host ": Not changing the DiskTimeOutValue to a value of 60 could cause unexpected path recovery issues."
+            Write-Log -Message "Not changing the DiskTimeOutValue to a value of 60 could cause unexpected path recovery issues." -Severity Warning
         }
     }
     else {
         Write-Host "PASSED" -ForegroundColor Green -NoNewline
         Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
+        Write-Log -Message "DiskTimeOutValue is set to $($DiskTimeOutValue). No action required." -Severity Passed
     }
 
     Write-Host ''
@@ -2308,22 +2366,27 @@ function Test-WindowsBestPractices() {
     if ($DisableDeleteNotification.DisableDeleteNotification -eq 0) {
         Write-Host "PASSED" -ForegroundColor Green -NoNewline
         Write-Host ": Delete Notification is Enabled"
+        Write-Log -Message "Delete Notification is Enabled. No action required." -Severity Passed
     }
     else {
         Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
         Write-Host ": Delete Notification is Disabled. Pure Storage Best Practice is to enable delete notifications."
+        Write-Log -Message "Delete Notification is Disabled. Pure Storage Best Practice is to enable delete notifications." -Severity Warning
     }
-
+    Write-Log -Message "MPIO settings tests complete. Continuing..." -Severity Information
+    # iSCSI tests
     if ($PSBoundParameters.ContainsKey('-EnableIscsiTests')) {
         Write-Host ''
         Write-Host '========================================='
         Write-Host 'iSCSI Settings Verification'
         Write-Host '========================================='
-
+        Write-Log -Message "iSCSI testing enabled. Continuing..." -Severity Information
         $AdapterNames = @()
         Write-Host "All available adapters: "
         Write-Host " "
-        Get-NetAdapter | Sort-Object Name | Format-Table -Property "Name", "InterfaceDescription", "MacAddress", "Status"
+        $adapters = Get-NetAdapter | Sort-Object Name | Format-Table -Property "Name", "InterfaceDescription", "MacAddress", "Status"
+        $adapters | Export-Csv -Path "$env:Temp\Test-WindowsBestPractices.csv" -Append -NoTypeInformation
+        $adapters
         Write-Host " "
         $AdapterNames = Read-Host "Please enter all iSCSI adapter names to be tested. Use a comma to seperate the names - ie. NIC1,NIC2,NIC3"
         $AdapterNames = $AdapterNames.Split(',')
@@ -2340,30 +2403,37 @@ function Test-WindowsBestPractices() {
             if ((Get-ItemProperty $RegkeyPath).$TAFRegKey -eq "1") {
                 Write-Host "PASSED" -ForegroundColor Green -NoNewline
                 Write-Host ": TcpAckFrequency is set to disabled (1). No action required."
+                Write-Log -Message "TcpAckFrequency is set to disabled (1). No action required." -Severity Passed
             }
             if (-not (Get-ItemProperty $RegkeyPath $TAFRegKey -ErrorAction SilentlyContinue)) {
                 Write-Host "FAILED" -ForegroundColor Red -NoNewline
                 Write-Host ": TcpAckFrequency key does not exist."
+                Write-Log -Message "TcpAckFrequency key does not exist." -Severity Failed
                 Write-Host "REQUIRED ACTION: Set the TcpAckFrequency registry value to 1 for $adapter ?" -NoNewline
                 $resp = Read-Host -Prompt "Y/N?"
                 if ($resp.ToUpper() -eq 'Y') {
                     Write-Host "Creating Registry key and setting to disabled..."
                     New-ItemProperty -Path $RegKeyPath -Name 'TcpAckFrequency' -Value '1' -PropertyType DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "Creating Registry key and setting to disabled per user request." -Severity Information
                 }
                 else {
                     Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
                     Write-Host ": TcpAckFrequency registry key exists but is enabled. Changing to disabled."
                     Set-ItemProperty -Path $RegKeyPath -Name 'TcpAckFrequency' -Value '1' -Type DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "TcpAckFrequency registry key exists but is enabled. Changing to disabled." -Severity Warning
                 }
             }
             if ($resp.ToUpper() -eq 'N') {
                 Write-Host "ABORTED" -ForegroundColor Yellow -NoNewline
                 Write-Host ": Registry key not created or altered by request of user."
+                Write-Log -Message "Registry key not created or altered by request of user." -Severity Warning
+
             }
             ## TcpNoDelay
             if ((Get-ItemProperty $RegkeyPath).$TNDRegKey -eq "1") {
                 Write-Host "PASSED" -ForegroundColor Green -NoNewline
                 Write-Host ": TcpNoDelay (Nagle) is set to disabled (1). No action required."
+                Write-Log -Message "TcpNoDelay (Nagle) is set to disabled (1). No action required." -Severity Passed
             }
             if (-not (Get-ItemProperty $RegkeyPath $TNDRegKey -ErrorAction SilentlyContinue)) {
                 Write-Host "REQUIRED ACTION: Set the TcpNodelay (Nagle) registry value to 1 for $adapter ?" -NoNewline
@@ -2371,26 +2441,31 @@ function Test-WindowsBestPractices() {
                 if ($resp.ToUpper() -eq 'Y') {
                     Write-Host "TcpNoDelay registry key does not exist. Creating..."
                     New-ItemProperty -Path $RegKeyPath -Name 'TcpNoDelay' -Value '1' -PropertyType DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "TcpNoDelay registry key does not exist. Creating per user request." -Severity Information
                 }
                 else {
                     Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-                    Write-Host ": TcpNoDelay registry key exists. Setting value to 1"
+                    Write-Host ": TcpNoDelay registry key exists. Setting value to 1."
                     Set-ItemProperty -Path $RegKeyPath -Name 'TcpNoDelay' -Value '1' -Type DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "TcpNoDelay registry key exists. Setting value to 1." -Severity Warning
                 }
             }
             if ($resp.ToUpper() -eq 'N') {
                 Write-Host "ABORTED" -ForegroundColor Yellow -NoNewline
                 Write-Host ": TcpNoDelay registry key not created or altered by request of user."
+                Write-Log -Message "TcpNoDelay registry key not created or altered by request of user." -Severity Warning
             }
         }
     }
     else {
         Write-Host "The -EnableIscsiTests parameter not present. No iSCSI tests will be run." -ForegroundColor Yellow
         Write-Host ''
+        Write-Log -Message "The -EnableIscsiTests parameter not present. No iSCSI tests will be run." -Severity Information
     }
     Write-Host ''
-    Write-Host "The Test-WindowsBestPractices cmdlet has completed." -ForegroundColor Green
+    Write-Host "The Test-WindowsBestPractices cmdlet has completed. The log file has been created for reference." -ForegroundColor Green
     Write-Host ''
+    Write-Log -Message "The Test-WindowsBestPractices cmdlet has completed." -Severity Information
 }
 #endregion
 
@@ -2402,14 +2477,14 @@ function Test-WindowsBestPractices() {
     .DESCRIPTION
     Cmdlet to set the Power scheme for the Windows OS to High Performance.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Current power scheme and optional confirmation to alter the setting in the Windows registry.
+    Current power scheme and optional confirmation to alter the setting in the Windows registry.
     .EXAMPLE
     Set-WindowsPowerScheme
 
     Retrieves the current Power Scheme setting, and if not set to High Performance, asks for confirmation to set it.
-  #>
+#>
 function Set-WindowsPowerScheme() {
     $ComputerName = $env:COMPUTERNAME
     $PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
@@ -2439,12 +2514,12 @@ function Set-WindowsPowerScheme() {
     .DESCRIPTION
     Retrieves all the Windows OS QFE patches applied.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      Outputs a listing of QFE patches applied.
+    Outputs a listing of QFE patches applied.
     .EXAMPLE
     Get-QuickFixEngineering
-  #>
+#>
 function Get-QuickFixEngineering() {
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
@@ -2460,12 +2535,12 @@ function Get-QuickFixEngineering() {
     .PARAMETER ComputerName
     Optional. Sepecify the computername to run the cmdlet against.
     .INPUTS
-      Computer name is optional.
+    Computer name is optional.
     .OUTPUTS
-      Host Bus Adapter information.
+    Host Bus Adapter information.
     .EXAMPLE
     Get-HostBusAdapter
-  #>
+#>
 function Get-HostBusAdapter() {
     [CmdletBinding()]
     Param (
@@ -2499,14 +2574,14 @@ function Get-HostBusAdapter() {
     .PARAMETER ComputerName
     Required. The computer name to run the cmdlet against.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     Register-HostVolumes -ComputerName myComputer
 
     Sets all FlashArray disks for myComputer to online.
-  #>
+#>
 function Register-HostVolumes() {
     [CmdletBinding()]
     Param (
@@ -2546,14 +2621,14 @@ function Register-HostVolumes() {
     .PARAMETER ComputerName
     Required. The computer name to run the cmdlet against.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     Unregister-HostVolumes -ComputerName myComputer
 
     Offlines all FlashArray disks from myComputer.
-  #>
+#>
 function Unregister-HostVolumes() {
     [CmdletBinding()]
     Param (
@@ -2593,14 +2668,14 @@ function Unregister-HostVolumes() {
     .PARAMETER ComputerName
     Optional. Name of computer to run cmdlet against.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      MPIO LB policy for specified or all disks.
+    MPIO LB policy for specified or all disks.
     .EXAMPLE
     Get-MPIODiskLBPolicy -DiskID 1
 
     Returns the current MPIO LB policy for disk ID 1.
-  #>
+#>
 function Get-MPIODiskLBPolicy() {
     [CmdletBinding()]
     Param (
@@ -2639,9 +2714,9 @@ function Get-MPIODiskLBPolicy() {
         LB = Least Blocks
         clear = clears current policy and sets to OS default of RR
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     Set-MPIODiskLBPolicy -Policy LQD
 
@@ -2651,7 +2726,7 @@ function Get-MPIODiskLBPolicy() {
     Set-MPIODiskLBPolicy -Policy clear
 
     Clears the current MPIO policy for all Pure disks and sets to the default of RR.
-  #>
+#>
 function Set-MPIODiskLBPolicy() {
     [CmdletBinding()]
     Param (
@@ -2698,14 +2773,14 @@ function Set-MPIODiskLBPolicy() {
     .PARAMETER VerboseMode
     Optional. If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'on'.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     Get-VolumeShadowCopy -MetadataFile myFile.cab -ShadowCopyAlias MyAlias -ExposeAs MyShadowCopy
 
     Exposes the MyAias shadow copy as drive latter G: using the myFie.cab metadata file.
-  #>
+#>
 function Get-VolumeShadowCopy() {
     [CmdletBinding()]
     Param (
@@ -2749,14 +2824,14 @@ function Get-VolumeShadowCopy() {
     .PARAMETER VerboseMode
     Optional. If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'on'.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     New-VolumeShadowCopy -Volume Volume01 -ShadowCopyAlias MyAlias
 
     Adds a new volume shadow copy of Volume01 using Diskshadow with an alias of 'MyAlias'.
-  #>
+#>
 function New-VolumeShadowCopy() {
     [CmdletBinding()]
     Param (
@@ -2805,14 +2880,14 @@ function New-VolumeShadowCopy() {
     .PARAMETER NewDriveLabel
     Optional. Drive label text.
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
     Update-DriveInformation -NewDriveLetter S -CurrentDriveLetter M -NewDriveLabel NewDrive
 
     Updates the drive letter from M: to S: and re-labels S: to NewDrive.
-  #>
+#>
 function Update-DriveInformation() {
     [CmdletBinding()]
     Param (
@@ -2839,12 +2914,12 @@ function Update-DriveInformation() {
     .DESCRIPTION
 
     .INPUTS
-      None
+    None
     .OUTPUTS
-      None
+    None
     .EXAMPLE
 
-  #>
+#>
 function Set-TlsVersions() {
     [CmdletBinding()]
     Param (
