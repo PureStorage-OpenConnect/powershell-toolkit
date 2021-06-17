@@ -2144,7 +2144,7 @@ $ReportDateTime
 function Test-WindowsBestPractices() {
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $false)] [string] $FilePath = "$env:Temp\Test-WindowsBestPractices.log",
+        [Parameter(Mandatory = $false)] [string] $OutFile = "$env:Temp\Test-WindowsBestPractices.log",
         [Switch]$EnableIscsiTests
     )
     function Write-Log {
