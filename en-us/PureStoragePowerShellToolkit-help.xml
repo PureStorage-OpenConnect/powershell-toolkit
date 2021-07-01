@@ -1,0 +1,2386 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<helpItems schema="maml" xmlns="http://msh">
+	<!--Edited with: SAPIEN PowerShell HelpWriter 2021 v2.3.49-->
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-AllHostVolumeInfo</command:name>
+			<maml:description>
+				<maml:para>Retrieves Host Volume information from FlashArray.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>AllHostVolumeInfo</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Retrieves Host Volume information including volumes attributes from a FlashArray.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-AllHostVolumeInfo</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>EndPoint IP or FQDN required</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Outputs Host volume information</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-HostVolumeinfo -EndPoint myarray.mydomain.com</dev:code>
+				<dev:remarks>
+					<maml:para>Rerieves Host Volume information from the FlashArray myarray.mydomain.com.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-ArrayHierarchy</command:name>
+			<maml:description>
+				<maml:para>Displays array hierarchy in relation to hosts and/or volumes.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>ArrayHierarchy</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will display the hierarchy from a FlashArray of hosts and volumes. The output is to the console in text.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-ArrayHierarchy</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>FlashArray host and/or volume hierachy.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-ArrayHierarchy -EndPoint myArray</dev:code>
+				<dev:remarks>
+					<maml:para></maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-FlashArrayConfig</command:name>
+			<maml:description>
+				<maml:para>Retrieves and outputs to a file the configuration of the FlashArray.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>FlashArrayConfig</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will run Purity CLI commands to retrieve the base configuration of a FlashArray and output it to a file.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-FlashArrayConfig</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>ArrayName</maml:name>
+					<maml:description>
+						<maml:para>Optional. The FlashArray name to use in the output. Defaults to $EndPoint.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>OutFile</maml:name>
+					<maml:description>
+						<maml:para>Optional. The file path and filename that will contain the output. if not specified, the default is the current folder\Array_Config.txt.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>Array_Config.txt</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>ArrayName</maml:name>
+				<maml:description>
+					<maml:para>Optional. The FlashArray name to use in the output. Defaults to $EndPoint.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>OutFile</maml:name>
+				<maml:description>
+					<maml:para>Optional. The file path and filename that will contain the output. if not specified, the default is the current folder\Array_Config.txt.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>Array_Config.txt</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Configuration file.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-FlashArray -EndPoint myArray -ArrayName Array100</dev:code>
+				<dev:remarks>
+					<maml:para>Retrieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-FlashArrayDisconnectedVolumes</command:name>
+			<maml:description>
+				<maml:para>Retrieves disconnected volume information for a FlashArray.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>FlashArrayDisconnectedVolumes</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve information for volumes that are in a disconnected state for a FlashArray.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-FlashArrayDisconnectedVolumes</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Disconnected volume information is displayed.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-FlashArrayDisconnectedVolumes -EndPoint myArray</dev:code>
+				<dev:remarks>
+					<maml:para></maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-FlashArrayStaleSnapshots</command:name>
+			<maml:description>
+				<maml:para>Retrieves aged snapshots and allows for Deletion and Eradication of such snapshots.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>FlashArrayStaleSnapshots</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve all snapshots that are beyond the specified SnapAgeThreshold. It allows for the parameters of Delete and Eradicate, and if set to $true, it will delete and eradicate the snapshots returned. It allows for the parameter of Confirm, and if set to $true, it will prompt before deletion and/or eradication of the snapshots. Snapshots must be deleted before they can be eradicated.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-FlashArrayStaleSnapshots</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. Endpoiont is the FlashArray IP or FQDN.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>Delete</maml:name>
+					<maml:description>
+						<maml:para>Optional. If set to $true, delete the snapshots.</maml:para>
+					</maml:description>
+					<dev:type>
+						<maml:name>SwitchParameter</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>False</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>Eradicate</maml:name>
+					<maml:description>
+						<maml:para>Optional. If set to $true, eradicate the deleted snapshots (snapshot must be flagged as deleted).</maml:para>
+					</maml:description>
+					<dev:type>
+						<maml:name>SwitchParameter</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>False</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>SnapAgeThreshold</maml:name>
+					<maml:description>
+						<maml:para>Required. SnapAgeThreshold is the number of days from the current date. Delete. Confirm, and Eradicate are optional.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>Confirm</maml:name>
+					<maml:description>
+						<maml:para>Optional. If set to $true, provide user confirmation for Deletion or Eradication of the snapshots.</maml:para>
+					</maml:description>
+					<dev:type>
+						<maml:name>SwitchParameter</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>False</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>Delete</maml:name>
+				<maml:description>
+					<maml:para>Optional. If set to $true, delete the snapshots.</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+				<dev:type>
+					<maml:name>SwitchParameter</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>False</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. Endpoiont is the FlashArray IP or FQDN.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>Eradicate</maml:name>
+				<maml:description>
+					<maml:para>Optional. If set to $true, eradicate the deleted snapshots (snapshot must be flagged as deleted).</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+				<dev:type>
+					<maml:name>SwitchParameter</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>False</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>SnapAgeThreshold</maml:name>
+				<maml:description>
+					<maml:para>Required. SnapAgeThreshold is the number of days from the current date. Delete. Confirm, and Eradicate are optional.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>Confirm</maml:name>
+				<maml:description>
+					<maml:para>Optional. If set to $true, provide user confirmation for Deletion or Eradication of the snapshots.</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+				<dev:type>
+					<maml:name>SwitchParameter</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>False</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes />
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Returns a listing of snapshots that are beyond the specified threshold and displays final results.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-FlashArrayStaleSnapshots -EndPoint myArray -SnapAgeThreshold 30</dev:code>
+				<dev:remarks>
+					<maml:para>Returns all snapshots that are older than 30 days from the current date.</maml:para>
+				</dev:remarks>
+			</command:example>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+				<dev:code>Get-FlashArrayStaleSnapshots -EndPoint myArray -SnapAgeThreshold 30 -Delete:$true -Eradicate:$true -Confirm:$false</dev:code>
+				<dev:remarks>
+					<maml:para>Returns all snapshots that are older than 30 days from the current date, deletes and eradicates them without confirmation.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-HostBusAdapter</command:name>
+			<maml:description>
+				<maml:para>Retrieves host Bus Adapater (HBA) information.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>HostBusAdapter</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Retrieves host Bus Adapter (HBA) information for the host.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-HostBusAdapter</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>ComputerName</maml:name>
+					<maml:description>
+						<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>ComputerName</maml:name>
+				<maml:description>
+					<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>Computer name is optional.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Host Bus Adapter information.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-HostBusAdapter -ComputerName myComputer</dev:code>
+				<dev:remarks>
+					<maml:para></maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-MPIODiskLBPolicy</command:name>
+			<maml:description>
+				<maml:para>Retrieves the current MPIO Load Balancing policy for Pure FlashArray disk(s).</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>MPIODiskLBPolicy</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve the current MPIO Load Balancing policy for connected Pure FlashArrays disk(s) using the mpclaim.exe utlity.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-MPIODiskLBPolicy</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>DiskId</maml:name>
+					<maml:description>
+						<maml:para>Optional. If specified, retrieves only the policy for the that disk ID. Otherwise, returns all disks. DiskID is the 'Number' identifier of the disk from the cmdlet 'Get-Disk'.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+					<maml:name>OutFile</maml:name>
+					<maml:description>
+						<maml:para>Optional. File name to output results to. Defaults to %TEMP%\MPIOLBPolicy.txt</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:Temp\output.txt"</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>DiskId</maml:name>
+				<maml:description>
+					<maml:para>Optional. If specified, retrieves only the policy for the that disk ID. Otherwise, returns all disks. DiskID is the 'Number' identifier of the disk from the cmdlet 'Get-Disk'.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+				<maml:name>OutFile</maml:name>
+				<maml:description>
+					<maml:para>Optional. File name to output results to. Defaults to %TEMP%\MPIOLBPolicy.txt</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:Temp\output.txt"</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Outputs $OutFile contents.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-MPIODiskLBPolicy -DiskID 1</dev:code>
+				<dev:remarks>
+					<maml:para>Returns the current MPIO LB policy for disk ID 1.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-PfaSerialNumbers</command:name>
+			<maml:description>
+				<maml:para>Retrieves FlashArray volume serial numbers connected to the host.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>PfaSerialNumbers</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Cmdlet queries WMI on the localhost to retrieve the disks that are associated to Pure FlashArrays.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-PfaSerialNumbers</maml:name>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters />
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>EndPoint IP or FQDN required.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Outputs serial numbers of FlashArrays devices.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-PfaSerialNumbers</dev:code>
+				<dev:remarks>
+					<maml:para>Returns serial number information on Pure FlashArray disk devices connected to the host.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-QuickFixEngineering</command:name>
+			<maml:description>
+				<maml:para>Retrieves all the Windows OS QFE patches applied.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>QuickFixEngineering</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Retrieves all the Windows OS QFE patches applied.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-QuickFixEngineering</maml:name>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters />
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Outputs a listing of QFE patches applied.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-QuickFixEngineering</dev:code>
+				<dev:remarks>
+					<maml:para></maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Get-VolumeShadowCopy</command:name>
+			<maml:description>
+				<maml:para>Retrieves the volume shadow copy informaion using the Diskhadow command.</maml:para>
+			</maml:description>
+			<command:verb>Get</command:verb>
+			<command:noun>VolumeShadowCopy</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve the volume shadow copy information.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Get-VolumeShadowCopy</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>ScriptName</maml:name>
+					<maml:description>
+						<maml:para>Optional. Script text file name created to pass to the Diskshadow command. defaults to 'PUREVSS-SNAP'.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>PUREVSS-SNAP</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+					<maml:name>MetadataFile</maml:name>
+					<maml:description>
+						<maml:para>Required. Full filename for the metadata .cab file. It must exist in the current working folder.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+					<maml:name>ShadowCopyAlias</maml:name>
+					<maml:description>
+						<maml:para>Required. Name of the shadow copy alias.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none">
+					<maml:name>ExposeAs</maml:name>
+					<maml:description>
+						<maml:para>Required. Drive letter, share, or mount point to expose the shadow copy.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="5" aliases="none">
+					<maml:name>VerboseMode</maml:name>
+					<maml:description>
+						<maml:para>Optional. "On" or "Off". If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'On'.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>On</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none">
+				<maml:name>ExposeAs</maml:name>
+				<maml:description>
+					<maml:para>Required. Drive letter, share, or mount point to expose the shadow copy.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+				<maml:name>MetadataFile</maml:name>
+				<maml:description>
+					<maml:para>Required. Full filename for the metadata .cab file. It must exist in the current working folder.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>ScriptName</maml:name>
+				<maml:description>
+					<maml:para>Optional. Script text file name created to pass to the Diskshadow command. defaults to 'PUREVSS-SNAP'.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>PUREVSS-SNAP</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+				<maml:name>ShadowCopyAlias</maml:name>
+				<maml:description>
+					<maml:para>Required. Name of the shadow copy alias.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="5" aliases="none">
+				<maml:name>VerboseMode</maml:name>
+				<maml:description>
+					<maml:para>Optional. "On" or "Off". If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'On'.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>On</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>See https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow for more information on the Diskshadow utility.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Get-VolumeShadowCopy -MetadataFile myFile.cab -ShadowCopyAlias MyAlias -ExposeAs MyShadowCopy</dev:code>
+				<dev:remarks>
+					<maml:para>Exposes the MyAias shadow copy as drive latter G: using the myFie.cab metadata file.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>New-FlashArrayCapacityReport</command:name>
+			<maml:description>
+				<maml:para>Create a formatted report that contains FlashArray Capacity Information</maml:para>
+			</maml:description>
+			<command:verb>New</command:verb>
+			<command:noun>FlashArrayCapacityReport</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve volume and snapshot capacity information from the FlashArray and output it to a formatted report.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>New-FlashArrayCapacityReport</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>HTMLFileName</maml:name>
+					<maml:description>
+						<maml:para>Optional. File name of output report. Default is Array_Capacity_Report.html.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>Array_Capacity_Report.html</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>OutFile</maml:name>
+					<maml:description>
+						<maml:para>Optional. Full folder path for output report. Default is the current %TEMP% folder.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:Temp"</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>VolumeFilter</maml:name>
+					<maml:description>
+						<maml:para>Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>*</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>HTMLFileName</maml:name>
+				<maml:description>
+					<maml:para>Optional. File name of output report. Default is Array_Capacity_Report.html.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>Array_Capacity_Report.html</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>OutFile</maml:name>
+				<maml:description>
+					<maml:para>Optional. Full folder path for output report. Default is the current %TEMP% folder.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:Temp"</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>VolumeFilter</maml:name>
+				<maml:description>
+					<maml:para>Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>*</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Formatted HTML report containing retrieved data and specified options.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>New-FlashArrayCapacityReport -EndPoint myArray</dev:code>
+				<dev:remarks>
+					<maml:para>Creates a capacity report named myArray_Capacity_Report.html in the current folder.</maml:para>
+				</dev:remarks>
+			</command:example>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+				<dev:code>New-FlashArrayCapacityReport -EndPoint myArray -OutFile C:\temp -HTMLFileName MyArrayReport.html -VolumeFilter 'Volume1*'.</dev:code>
+				<dev:remarks>
+					<maml:para>Creates a capacity report c:\temp\myArrayReport.html that includes volumes that contain the name 'Volume1*'.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>New-HypervClusterVolumeReport</command:name>
+			<maml:description>
+				<maml:para>Creates a Excel report on volumes connected to a Hyper-V cluster.</maml:para>
+			</maml:description>
+			<command:verb>New</command:verb>
+			<command:noun>HypervClusterVolumeReport</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This creates seperate CSV files for VM, Windows Hosts, and FlashArray information that is part of a HyperV cluster. It then takes that output and places it into a an Excel workbook that contains sheets for each CSV file.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>New-HypervClusterVolumeReport</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>{{ Fill EndPoint Description }}</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>ExcelFile</maml:name>
+					<maml:description>
+						<maml:para>Optional. defaults to HypervClusterReport.xlsx.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>HypervClusterReport.xlxs</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>PfaCsvFileName</maml:name>
+					<maml:description>
+						<maml:para>Optional. defaults to FlashArrays.csv.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>FlashArrays.csv</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>VmCsvFileName</maml:name>
+					<maml:description>
+						<maml:para>Optional. Defaults to VMs.csv.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>VMs.csv</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>WinCsvFileName</maml:name>
+					<maml:description>
+						<maml:para>Optional. defaults to WindowsHosts.csv.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>WindowsHosts.csv</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>{{ Fill EndPoint Description }}</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>ExcelFile</maml:name>
+				<maml:description>
+					<maml:para>Optional. defaults to HypervClusterReport.xlsx.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>HypervClusterReport.xlxs</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>PfaCsvFileName</maml:name>
+				<maml:description>
+					<maml:para>Optional. defaults to FlashArrays.csv.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>FlashArrays.csv</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>VmCsvFileName</maml:name>
+				<maml:description>
+					<maml:para>Optional. Defaults to VMs.csv.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>VMs.csv</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>WinCsvFileName</maml:name>
+				<maml:description>
+					<maml:para>Optional. defaults to WindowsHosts.csv.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>WindowsHosts.csv</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>Endpoint is mandatory. VM, Win, and PFA csv file names are optional.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Outputs individual CSV files and creates an Excel workbook that is built using the required PowerShell module ImportExcel, created by Douglas Finke.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>New-HypervClusterVolumeReport -EndPoint myarray -VmCsvName myVMs.csv -WinCsvName myWinHosts.csv -PfaCsvName myFlashArray.csv -ExcelFile myExcelFile</dev:code>
+				<dev:remarks>
+					<maml:para>This will create three seperate CSV files with HyperV cluster information and incorprate them into a single Excel workbook.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>New-VolumeShadowCopy</command:name>
+			<maml:description>
+				<maml:para>Creates a new volume shadow copy using DiskShadow.</maml:para>
+			</maml:description>
+			<command:verb>New</command:verb>
+			<command:noun>VolumeShadowCopy</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will create a new volume shadow copy using the Diskshadow command, passing the variables specified.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>New-VolumeShadowCopy</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>Volume</maml:name>
+					<maml:description>
+						<maml:para>Required.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+					<dev:type>
+						<maml:name>String[]</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+					<maml:name>ScriptName</maml:name>
+					<maml:description>
+						<maml:para>Optional. Script text file name created to pass to the Diskshadow command. Pre-defined as 'PUREVSS-SNAP'.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>PUREVSS-SNAP</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+					<maml:name>ShadowCopyAlias</maml:name>
+					<maml:description>
+						<maml:para>Required. Name of the shadow copy alias.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none">
+					<maml:name>VerboseMode</maml:name>
+					<maml:description>
+						<maml:para>Optional. "On" or "Off". If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'on'.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>On</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+				<maml:name>ScriptName</maml:name>
+				<maml:description>
+					<maml:para>Optional. Script text file name created to pass to the Diskshadow command. Pre-defined as 'PUREVSS-SNAP'.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>PUREVSS-SNAP</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+				<maml:name>ShadowCopyAlias</maml:name>
+				<maml:description>
+					<maml:para>Required. Name of the shadow copy alias.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="4" aliases="none">
+				<maml:name>VerboseMode</maml:name>
+				<maml:description>
+					<maml:para>Optional. "On" or "Off". If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'on'.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>On</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>Volume</maml:name>
+				<maml:description>
+					<maml:para>Required.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+				<dev:type>
+					<maml:name>String[]</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>See https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow for more information on the Diskshadow utility.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>New-VolumeShadowCopy -Volume Volume01 -ShadowCopyAlias MyAlias</dev:code>
+				<dev:remarks>
+					<maml:para>Adds a new volume shadow copy of Volume01 using Diskshadow with an alias of 'MyAlias'.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Register-HostVolumes</command:name>
+			<maml:description>
+				<maml:para>Sets Pure FlashArray connected disks to online.</maml:para>
+			</maml:description>
+			<command:verb>Register</command:verb>
+			<command:noun>HostVolumes</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will set any FlashArray volumes (disks) to online in Windows using the diskpart command.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Register-HostVolumes</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>ComputerName</maml:name>
+					<maml:description>
+						<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>ComputerName</maml:name>
+				<maml:description>
+					<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Register-HostVolumes -ComputerName myComputer</dev:code>
+				<dev:remarks>
+					<maml:para>Sets all FlashArray disks for myComputer to online.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Remove-FlashArrayPendingDeletes</command:name>
+			<maml:description>
+				<maml:para>Reports on pending FlashArray Volume and Snapshot deletions and optionally Eradicates them.</maml:para>
+			</maml:description>
+			<command:verb>Remove</command:verb>
+			<command:noun>FlashArrayPendingDeletes</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrun information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Remove-FlashArrayPendingDeletes</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Volume and volume snapshots awaiting eradication.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Remove-FlashArrayPendingDelete -EndPoint myArray</dev:code>
+				<dev:remarks>
+					<maml:para></maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Set-MPIODiskLBPolicy</command:name>
+			<maml:description>
+				<maml:para>Sets the MPIO Load Balancing policy for FlashArray disks.</maml:para>
+			</maml:description>
+			<command:verb>Set</command:verb>
+			<command:noun>MPIODiskLBPolicy</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will set the MPIO Load Balancing policy for all connected Pure FlashArrays disks to the desired setting using the mpclaim.exe utlity. The default Windows OS setting is RR.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Set-MPIODiskLBPolicy</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>Policy</maml:name>
+					<maml:description>
+						<maml:para>Required. No default. The Policy type must be specified by the letter acronym for the policy name (ex. "RR" for Round Robin). Available options are:     LQD = Least Queue Depth     RR = Round Robin     FO = Fail Over Only     RRWS = Round Robin with Subset     WP = Weighted Paths     LB = Least Blocks     clear = clears current policy and sets to Windows OS default of RR</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>Policy</maml:name>
+				<maml:description>
+					<maml:para>Required. No default. The Policy type must be specified by the letter acronym for the policy name (ex. "RR" for Round Robin). Available options are:     LQD = Least Queue Depth     RR = Round Robin     FO = Fail Over Only     RRWS = Round Robin with Subset     WP = Weighted Paths     LB = Least Blocks     clear = clears current policy and sets to Windows OS default of RR</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Set-MPIODiskLBPolicy -Policy LQD</dev:code>
+				<dev:remarks>
+					<maml:para>Sets the MPIO load balancing policy for all Pure disks to Least Queue Depth.</maml:para>
+				</dev:remarks>
+			</command:example>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+				<dev:code>Set-MPIODiskLBPolicy -Policy clear</dev:code>
+				<dev:remarks>
+					<maml:para>Clears the current MPIO policy for all Pure disks and sets to the default of RR.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Set-TlsVersions</command:name>
+			<maml:description>
+				<maml:para>Sets the TLS Version in the local registry.</maml:para>
+			</maml:description>
+			<command:verb>Set</command:verb>
+			<command:noun>TlsVersions</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet disables TLS version 1.0 and enables TLS Versions 1.1, 1.2, and 1.3 in the local registry. It will prompt for creating a backup of the registry before execution for recovery purposes.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Set-TlsVersions</maml:name>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters />
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Backup of the registry before the changes are implemented.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Set-TlsVersions</dev:code>
+				<dev:remarks>
+					<maml:para>Prompts for creation of a registry backup, disables TLS version 1.0, and enables TLS versions 1.1, 1.2, and 1.3.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Set-WindowsPowerScheme</command:name>
+			<maml:description>
+				<maml:para>Cmdlet to set the Power scheme for the Windows OS to High Performance.</maml:para>
+			</maml:description>
+			<command:verb>Set</command:verb>
+			<command:noun>WindowsPowerScheme</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Cmdlet to set the Power scheme for the Windows OS to High Performance.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Set-WindowsPowerScheme</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>ComputerName</maml:name>
+					<maml:description>
+						<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>ComputerName</maml:name>
+				<maml:description>
+					<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Current power scheme and optional confirmation to alter the setting in the Windows registry.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Set-WindowsPowerScheme</dev:code>
+				<dev:remarks>
+					<maml:para>Retrieves the current Power Scheme setting, and if not set to High Performance, asks for confirmation to set it.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Show-FlashArrayPgroupsConfig</command:name>
+			<maml:description>
+				<maml:para>Retrieves Protection Group (PGroup) information for the FlashArray.</maml:para>
+			</maml:description>
+			<command:verb>Show</command:verb>
+			<command:noun>FlashArrayPgroupsConfig</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Retrieves Protection Group (PGroup) infromation for the FlashArray.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Show-FlashArrayPgroupsConfig</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>EndPoint</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>EndPoint</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Protection Group information is displayed.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Show-FlashArraypGroupsConfig -EndPoint myArray</dev:code>
+				<dev:remarks>
+					<maml:para></maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Sync-FlashArrayHosts</command:name>
+			<maml:description>
+				<maml:para>Synchronizes the hosts and host protocols between two FlashArrays.</maml:para>
+			</maml:description>
+			<command:verb>Sync</command:verb>
+			<command:noun>FlashArrayHosts</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve the current hosts from the Source array and create them on the target array. It will also add the FC (WWN) or iSCSI (iqn) settings for each host on the Target array.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Sync-FlashArrayHosts</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>SourceArray</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the source FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+					<maml:name>TargetArray</maml:name>
+					<maml:description>
+						<maml:para>Required. FQDN or IP address of the source FlashArray.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>Protocol</maml:name>
+					<maml:description>
+						<maml:para>Required. 'FC' for Fibre Channel WWNs or 'iSCSI' for iSCSI IQNs.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>Protocol</maml:name>
+				<maml:description>
+					<maml:para>Required. 'FC' for Fibre Channel WWNs or 'iSCSI' for iSCSI IQNs.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>SourceArray</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the source FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+				<maml:name>TargetArray</maml:name>
+				<maml:description>
+					<maml:para>Required. FQDN or IP address of the source FlashArray.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para>This cmdlet cannot utilize the global $Creds variable as it requires two logins to two seperate arrays.</maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Sync-FlashArraysHosts -SourceArray mySourceArray -TargetArray myTargetArray -Protocol FC</dev:code>
+				<dev:remarks>
+					<maml:para>Synchrnizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Test-WindowsBestPractices</command:name>
+			<maml:description>
+				<maml:para>Cmdlet used to retrieve hosts information, test and optionally configure MPIO (FC) and/or iSCSI settings in a Windows OS against FlashArray Best Practices.</maml:para>
+			</maml:description>
+			<command:verb>Test</command:verb>
+			<command:noun>WindowsBestPractices</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will retrieve the curretn host infromation, and iterate through several tests around MPIO (FC) and iSCSI OS settings and hardware, indicate whether they are adhearing to Pure Storage FlashArray Best Practices, and offer to alter the settings if applicable. All tests can be bypassed with a negative user response when prompted, or simply by using Ctrl-C to break the process.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Test-WindowsBestPractices</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>OutFile</maml:name>
+					<maml:description>
+						<maml:para>Optional. Specify the full filepath (ex. c:\mylog.log) for logging. If not specified, the default file of %TMP%\Test-WindowsBestPractices.log will be used.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:Temp\Test-WindowsBestPractices.log"</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+					<maml:name>EnableIscsiTests</maml:name>
+					<maml:description>
+						<maml:para>Optional. If this parameter is present, the cmdlet will run tests for iSCSI settings.</maml:para>
+					</maml:description>
+					<dev:type>
+						<maml:name>SwitchParameter</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>False</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+				<maml:name>EnableIscsiTests</maml:name>
+				<maml:description>
+					<maml:para>Optional. If this parameter is present, the cmdlet will run tests for iSCSI settings.</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+				<dev:type>
+					<maml:name>SwitchParameter</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>False</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>OutFile</maml:name>
+				<maml:description>
+					<maml:para>Optional. Specify the full filepath (ex. c:\mylog.log) for logging. If not specified, the default file of %TMP%\Test-WindowsBestPractices.log will be used.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:Temp\Test-WindowsBestPractices.log"</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>Optional parameter for iSCSI testing.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>Output status and best practice options for every test.</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Test-WindowsBestPractices</dev:code>
+				<dev:remarks>
+					<maml:para>Run the cmdlet against the local machine running the MPIO tests and the log is located in the %TMP%\Test-WindowsBestPractices.log file.</maml:para>
+				</dev:remarks>
+			</command:example>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+				<dev:code>Test-WindowsZBestPractices -EnableIscsiTests -OutFile "c:\temp\mylog.log"</dev:code>
+				<dev:remarks>
+					<maml:para>Run the cmdlet against the local machine, run the additional iSCSI tests, and create the log file at c:\temp\mylog.log.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Unregister-HostVolumes</command:name>
+			<maml:description>
+				<maml:para>Sets Pure FlashArray connected disks to offline.</maml:para>
+			</maml:description>
+			<command:verb>Unregister</command:verb>
+			<command:noun>HostVolumes</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>This cmdlet will set any FlashArray volumes (disks) to offline in Windows using the diskpart command.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Unregister-HostVolumes</maml:name>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>Computername</maml:name>
+					<maml:description>
+						<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>Computername</maml:name>
+				<maml:description>
+					<maml:para>Optional. The computer name to run the cmdlet against. It defaults to the local computer name.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>"$env:COMPUTERNAME"</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Unregister-HostVolumes -ComputerName myComputer</dev:code>
+				<dev:remarks>
+					<maml:para>Offlines all FlashArray disks from myComputer.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+		<command:details>
+			<command:name>Update-DriveInformation</command:name>
+			<maml:description>
+				<maml:para>Updates drive letters and assigns a label.</maml:para>
+			</maml:description>
+			<command:verb>Update</command:verb>
+			<command:noun>DriveInformation</command:noun>
+		</command:details>
+		<maml:description>
+			<maml:para>Thsi cmdlet will update the current drive letter to the new drive letter, and assign a new drive label if specified.</maml:para>
+		</maml:description>
+		<command:syntax>
+			<command:syntaxItem>
+				<maml:name>Update-DriveInformation</maml:name>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+					<maml:name>NewDriveLetter</maml:name>
+					<maml:description>
+						<maml:para>Required. Drive lettwre without the colon.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+					<maml:name>CurrentDriveLetter</maml:name>
+					<maml:description>
+						<maml:para>Required. Drive lettwre without the colon.</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>None</dev:defaultValue>
+				</command:parameter>
+				<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+					<maml:name>NewDriveLabel</maml:name>
+					<maml:description>
+						<maml:para>Optional. Drive label text. Defaults to "NewDrive".</maml:para>
+					</maml:description>
+					<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+					<dev:type>
+						<maml:name>String</maml:name>
+						<maml:uri />
+					</dev:type>
+					<dev:defaultValue>NewDrive</dev:defaultValue>
+				</command:parameter>
+			</command:syntaxItem>
+		</command:syntax>
+		<command:parameters>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+				<maml:name>CurrentDriveLetter</maml:name>
+				<maml:description>
+					<maml:para>Required. Drive lettwre without the colon.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+				<maml:name>NewDriveLabel</maml:name>
+				<maml:description>
+					<maml:para>Optional. Drive label text. Defaults to "NewDrive".</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>NewDrive</dev:defaultValue>
+			</command:parameter>
+			<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+				<maml:name>NewDriveLetter</maml:name>
+				<maml:description>
+					<maml:para>Required. Drive lettwre without the colon.</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+				<dev:type>
+					<maml:name>String</maml:name>
+					<maml:uri />
+				</dev:type>
+				<dev:defaultValue>None</dev:defaultValue>
+			</command:parameter>
+		</command:parameters>
+		<command:inputTypes>
+			<command:inputType>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:inputType>
+		</command:inputTypes>
+		<command:returnValues>
+			<command:returnValue>
+				<dev:type>
+					<maml:name>None</maml:name>
+				</dev:type>
+				<maml:description>
+					<maml:para></maml:para>
+				</maml:description>
+			</command:returnValue>
+		</command:returnValues>
+		<maml:alertSet>
+			<maml:alert>
+				<maml:para></maml:para>
+			</maml:alert>
+		</maml:alertSet>
+		<command:examples>
+			<command:example>
+				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+				<dev:code>Update-DriveInformation -NewDriveLetter S -CurrentDriveLetter M</dev:code>
+				<dev:remarks>
+					<maml:para>Updates the drive letter from M: to S: and labels S: to NewDrive.</maml:para>
+				</dev:remarks>
+			</command:example>
+		</command:examples>
+		<maml:relatedLinks />
+	</command:command>
+	<!--Edited with: SAPIEN PowerShell HelpWriter 2021 v2.3.49-->
+</helpItems>

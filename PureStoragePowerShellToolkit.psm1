@@ -22,18 +22,18 @@
 	===========================================================================
 
 	Revision information:
-	: version 2.0.0.0	GA release
+	: version 2.0.1.0	GA release
 
 
 	Contributors and many thanks go out to:
-	//Rob "Barkz" Barker @purestorage
-	//Robert "Q" Quimbey @purestorage
-	//Mike "Chief" Nelson @purestorage
-	//Julian "Doctor" Cates @purestorage
-	//Marcel Dussil @purestorage - https://en.pureflash.blog/
-	//Craig Dayton - https://github.com/cadayton
-	//Jake Daniels - https://github.com/JakeDennis
-	//Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
+	Rob "Barkz" Barker @purestorage
+	Robert "Q" Quimbey @purestorage
+	Mike "Chief" Nelson @purestorage
+	Julian "Doctor" Cates @purestorage
+	Marcel Dussil @purestorage - https://en.pureflash.blog/
+	Craig Dayton - https://github.com/cadayton
+	Jake Daniels - https://github.com/JakeDennis
+	Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
 	.. and all of the Pure Code community.
 
 	#>
@@ -43,6 +43,7 @@
 ## BEGIN HELPER FUNCTIONS
 
 #region ConvertTo-Base64
+function ConvertTo-Base64() {
 <#
     .SYNOPSIS
 	Converts source file to Base64.
@@ -54,7 +55,6 @@
     .OUTPUTS
 	Converted source.
 #>
-function ConvertTo-Base64() {
     Param (
         [Parameter(Mandatory = $true)][String] $Source
     )
@@ -63,6 +63,7 @@ function ConvertTo-Base64() {
 #endregion
 
 #region Convert-Size
+function Convert-Size() {
 <#
     .SYNOPSIS
 	Converts volume sizes from B to MB, MB, GB, TB.
@@ -77,7 +78,6 @@ function ConvertTo-Base64() {
     .OUTPUTS
 	Converted size of volume.
 #>
-function Convert-Size() {
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $true)][ValidateSet("Bytes", "KB", "MB", "GB", "TB")][String]$ConvertFrom,
@@ -106,6 +106,7 @@ function Convert-Size() {
 #endregion
 
 #region New-FlashArrayReportPieChart
+function New-FlashArrayReportPieChart() {
 <#
     .SYNOPSIS
 	Creates graphic pie chart .png image file for use in report.
@@ -115,7 +116,6 @@ function Convert-Size() {
     .OUTPUTS
 	piechart.png.
 #>
-function New-FlashArrayReportPieChart() {
     Param (
         [string]$FileName,
         [float]$SnapshotSpace,
@@ -164,6 +164,7 @@ function New-FlashArrayReportPieChart() {
 #endregion
 
 #region Get-Sdk1Module
+function Get-Sdk1Module() {
 <#
     .SYNOPSIS
 	Confirms that PureStoragePowerShellSDK version 1 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the function will error.
@@ -173,22 +174,20 @@ function New-FlashArrayReportPieChart() {
     .OUTPUTS
 	PureStoragePowerShellSDK version 1 module.
 #>
-function Get-Sdk1Module() {
     $m = "PureStoragePowerShellSDK"
     # If module is imported, continue
     if (Get-Module | Where-Object { $_.Name -eq $m }) {
     }
     else {
         # If module is not imported, but available on disk, then import
-        if (Get-Module -ListAvailable | Where-Object { $_.Name -eq $m }) {
-            Write-Host 'Importing Pure Storage FlashArray PowerShell SDK module...'
+        if (Get-InstalledModule | Where-Object { $_.Name -eq $m }) {
             Import-Module $m -ErrorAction SilentlyContinue
         }
         else {
             # If module is not imported, not available on disk, then install and import
             if (Find-Module -Name $m | Where-Object { $_.Name -eq $m }) {
                 Write-Warning 'Pure Storage FlashArray PowerShell SDK module does not exist.'
-                Write-host 'We will attempt to install the module from the PowerShell Gallery.'
+                Write-Host 'We will attempt to install the module from the PowerShell Gallery.'
                 Install-Module -Name $m -Force -ErrorAction SilentlyContinue -Scope CurrentUser
                 Import-Module $m -ErrorAction SilentlyContinue
             }
@@ -203,6 +202,7 @@ function Get-Sdk1Module() {
 #endregion
 
 #region Get-ElevatedStatus
+function Get-ElevatedStatus() {
 <#
     .SYNOPSIS
 	Confirms elevated permissions to run cmdlets.
@@ -212,7 +212,6 @@ function Get-Sdk1Module() {
     .OUTPUTS
 	Error on non-administrative permissions.
 #>
-function Get-ElevatedStatus() {
     if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
                 [Security.Principal.WindowsBuiltInRole] "Administrator")) {
         Write-Warning "Insufficient permissions to run this cmdlet. Open the PowerShell console as an administrator and run this cmdlet again."
@@ -222,7 +221,8 @@ function Get-ElevatedStatus() {
 #endregion
 
 #region Get-HypervStatus
-<#
+function Get-HypervStatus() {
+    <#
     .SYNOPSIS
 	Confirms that the HyperV role is installed ont he server.
     .DESCRIPTION
@@ -230,8 +230,7 @@ function Get-ElevatedStatus() {
 	Supporting function to ensure proper role is installed.
     .OUTPUTS
 	Error on missing HyperV role.
-#>
-function Get-HypervStatus() {
+    #>
     $hypervStatus = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V).State
     if ($hypervStatus -ne "Enabled") {
         Write-Host "Hyper-V is not running. This cmdlet must be run on a Hyper-V host."
@@ -244,8 +243,8 @@ function Get-HypervStatus() {
 #### FLASHARRAY FUNCTIONS
 
 #region Get-HostVolumeInfo
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-AllHostVolumeInfo() {
+    <#
     .SYNOPSIS
     Retrieves Host Volume information from FlashArray.
     .DESCRIPTION
@@ -260,8 +259,7 @@ function Get-HypervStatus() {
     Rerieves Host Volume information from the FlashArray myarray.mydomain.com.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-function Get-AllHostVolumeInfo() {
+    #>
 	[CmdletBinding()]
 	Param (
         [Parameter(Position=0,Mandatory=$True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -302,8 +300,8 @@ function Get-AllHostVolumeInfo() {
 #endregion
 
 #region Get-PfaSerialNumbers
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-PfaSerialNumbers() {
+    <#
     .SYNOPSIS
     Retrieves FlashArray volume serial numbers connected to the host.
     .DESCRIPTION
@@ -316,8 +314,7 @@ function Get-AllHostVolumeInfo() {
     Get-PfaSerialNumbers
 
     Returns serial number information on Pure FlashArray disk devices connected to the host.
-#>
-function Get-PfaSerialNumbers() {
+    #>
     $AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
     ForEach ($Device in $AllDevices) {
         if ($Device.Model -like 'PURE FlashArray*') {
@@ -333,8 +330,8 @@ function Get-PfaSerialNumbers() {
 #endregion
 
 #region New-HypervClusterVolumeReport
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function New-HypervClusterVolumeReport() {
+    <#
     .SYNOPSIS
     Creates a Excel report on volumes connected to a Hyper-V cluster.
     .DESCRIPTION
@@ -357,8 +354,7 @@ function Get-PfaSerialNumbers() {
     This will create three seperate CSV files with HyperV cluster information and incorprate them into a single Excel workbook.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-function New-HypervClusterVolumeReport() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
@@ -461,8 +457,8 @@ function New-HypervClusterVolumeReport() {
 #endregion
 
 #region Sync-FlashArrayHosts
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Sync-FlashArrayHosts() {
+    <#
     .SYNOPSIS
     Synchronizes the hosts amd host protocols between two FlashArrays.
     .DESCRIPTION
@@ -483,13 +479,12 @@ function New-HypervClusterVolumeReport() {
     Synchrnizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
     .NOTES
     This cmdlet cannot utilize the global $Creds variable as it requires two logins to two seperate arrays.
-#>
-function Sync-FlashArrayHosts() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position=0,Mandatory=$True)][ValidateNotNullOrEmpty()][string] $SourceArray,
         [Parameter(Position=1,Mandatory=$True)][ValidateNotNullOrEmpty()][string]$TargetArray,
-        [Parameter(Mandatory = $True)][ValidateSet('iSCSI', 'FC')][string]$Protocol
+        [Parameter(Mandatory = $True)][ValidateSet("iSCSI", "FC")][string]$Protocol
     )
 
     $FlashArray1 = New-PfaArray -EndPoint $SourceArray -Credentials (Get-Credential) -IgnoreCertificateError
@@ -516,8 +511,8 @@ function Sync-FlashArrayHosts() {
 #endregion
 
 #region Get-FlashArrayStaleSnapshots
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-FlashArrayStaleSnapshots() {
+    <#
     .SYNOPSIS
     Retrieves aged snapshots and allows for Deletion and Eradication of such snapshots.
     .DESCRIPTION
@@ -546,8 +541,7 @@ function Sync-FlashArrayHosts() {
     Returns all snapshots that are older than 30 days from the current date, deletes and eradicates them without confirmation.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-function Get-FlashArrayStaleSnapshots() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
@@ -560,7 +554,6 @@ function Get-FlashArrayStaleSnapshots() {
     $1GB = 1024 * 1024 * 1024
     $CurrentTime = Get-Date
     $DateTimeFormat = 'yyyy-MM-ddTHH:mm:ssZ'
-
 
     # Connect to FlashArray
     if (!($Creds)) {
@@ -629,13 +622,13 @@ Write-Output "There are $($SnapNumberTotal) snapshot(s) older than $($SnapAgeThr
 #endregion
 
 #region Get-FlashArrayDisconnectedVolumes
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+Function Get-FlashArrayDisconnectedVolumes() {
+    <#
     .SYNOPSIS
     Retrieves disconnected volume information for a FlashArray.
     .DESCRIPTION
     This cmndlet will retrieve information for volumes that are ina disconnected state for a FlashArray.
-    .PARAMETER $EndPoint
+    .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
@@ -645,8 +638,7 @@ Write-Output "There are $($SnapNumberTotal) snapshot(s) older than $($SnapAgeThr
     Get-FlashArrayDisconnectedVolumes -EndPoint myArray
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-Function Get-FlashArrayDisconnectedVolumes() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -718,13 +710,13 @@ Function Get-FlashArrayDisconnectedVolumes() {
 #endregion
 
 #region Get-FlashArraySpace
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+Function Get-FlashArraySpace() {
+    <#
     .SYNOPSIS
     Retrives the space used and available for a FlashArray.
     .DESCRIPTION
     This cmdlet will return various array space metrics for the given FlashArray.
-    .PARAMETER $EndPoint
+    .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
@@ -735,8 +727,7 @@ Function Get-FlashArrayDisconnectedVolumes() {
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-Function Get-FlashArraySpace() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -772,13 +763,13 @@ Function Get-FlashArraySpace() {
 #endregion
 
 #region Show-FlashArrayPgroupsConfig
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+Function Show-FlashArrayPgroupsConfig() {
+    <#
     .SYNOPSIS
     Retrieves Protection Group (PGroup) infromation for the FlashArray.
     .DESCRIPTION
     Retrieves Protection Group (PGroup) infromation for the FlashArray.
-    .PARAMETER $EndPoint
+    .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
@@ -789,8 +780,7 @@ Function Get-FlashArraySpace() {
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-Function Show-FlashArrayPgroupsConfig() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -840,13 +830,13 @@ Function Show-FlashArrayPgroupsConfig() {
 #endregion
 
 #region Remove-FlashArrayPendingDeletes
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+Function Remove-FlashArrayPendingDeletes() {
+    <#
     .SYNOPSIS
     Reports on pending FlashArray Volume and Snashots deletions and optionally Eradicates them.
     .DESCRIPTION
     This cmdlet will retrun information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.
-    .PARAMETER $EndPoint
+    .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
@@ -857,8 +847,7 @@ Function Show-FlashArrayPgroupsConfig() {
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-Function Remove-FlashArrayPendingDeletes() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -913,8 +902,8 @@ Function Remove-FlashArrayPendingDeletes() {
 #endregion
 
 #region Get-FlashArrayConfig
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+Function Get-FlashArrayConfig() {
+    <#
     .SYNOPSIS
     Retrieves and outputs to a file the configuration of the FlashArray.
     .DESCRIPTION
@@ -936,8 +925,7 @@ Function Remove-FlashArrayPendingDeletes() {
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-Function Get-FlashArrayConfig() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
@@ -974,13 +962,13 @@ Function Get-FlashArrayConfig() {
 #endregion
 
 #region Get-FlashArrayHierarchy
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+Function Get-ArrayHierarchy() {
+    <#
     .SYNOPSIS
     Displays array hierarchy in relation to hosts and/or volumes.
     .DESCRIPTION
     This cmdlet will display the heirachy from a FlashArray of hosts and volumes. The output is to the console in text.
-    .PARAMETER $EndPoint
+    .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
@@ -991,8 +979,7 @@ Function Get-FlashArrayConfig() {
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-Function Get-ArrayHierarchy() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
@@ -1119,20 +1106,18 @@ Function Get-ArrayHierarchy() {
 #endregion
 
 #region New-FlashArrayCapacityReport
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function New-FlashArrayCapacityReport() {
+    <#
     .SYNOPSIS
     Create a formatted report that conatins FlashArray Capatiry Information
     .DESCRIPTION
-    This cmdlet will retrieve volume and snapshot capacity information from the FlashArray and output it to a formatted report. There is an option to create and include a pie chart graph for visualization.
+    This cmdlet will retrieve volume and snapshot capacity information from the FlashArray and output it to a formatted report.
     .PARAMETER EndPoint
     Required. FQDN or IP address of FlashArray.
     .PARAMETER OutFile
     Optional. Full folder path for output report. Default is the current %TEMP% folder.
     .PARAMETER HTMLFileName
     Optional. File name of output report. Default is Array_Capacity_Report.html.
-    .PARAMETER PieChart
-    Optional. "$true" or "$false". Create a pie chart for visualization. The pie chart image will be created and stored as 'piechart.png'. The default is $false.
     .PARAMETER VolumeFilter
     Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).
     .INPUTS
@@ -1145,20 +1130,18 @@ Function Get-ArrayHierarchy() {
     Creates a capacity report named myArray_Capacity_Report.html in the current folder.
 
     .EXAMPLE
-    New-FlashArrayCapacityReport -EndPoint myArray -OutFile C:\temp -HTMLFileName MyArrayReport.html -PieChart -VolumeFilter 'Volume1*'.
+    New-FlashArrayCapacityReport -EndPoint myArray -OutFile C:\temp -HTMLFileName MyArrayReport.html -VolumeFilter 'Volume1*'.
 
-    Creates a capacity report c:\temp\myArrayReport.html that conatins a pie chart and includes volumes that contain the name 'Volume1*'.
+    Creates a capacity report c:\temp\myArrayReport.html that includes volumes that contain the name 'Volume1*'.
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
-#>
-function New-FlashArrayCapacityReport() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
-        [Parameter(Mandatory = $False)][string] $OutFile = $env:TEMP,
+        [Parameter(Mandatory = $False)][string] $OutFile = "$env:Temp",
         [Parameter(Mandatory = $False)][string] $HTMLFileName = "Array_Capacity_Report.html",
-        [Parameter(Mandatory = $False)][string] $PieChart = "$false",
         [Parameter(Mandatory = $False)][string] $VolumeFilter = "*"
     )
 
@@ -1183,27 +1166,22 @@ function New-FlashArrayCapacityReport() {
     }
 
     # populate variables
-    $faSpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
-    $faConfig = Get-PfaArrayAttributes -Array $FlashArray
-    $faSnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
+    $FlashArraySpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
+    $FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray
+    $FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
 
-    $sysCapacity = Convert-Size -ConvertFrom Bytes -ConvertTo TB $faSpaceMetrics.capacity -Precision 2
-    $sysSnapshotSpace = Convert-Size -ConvertFrom Bytes -ConvertTo MB $faSpaceMetrics.snapshots -Precision 4
-    $sysVolumeSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $faSpaceMetrics.volumes -Precision 2
-    $sysDRR = [system.Math]::Round($faSpaceMetrics.data_reduction, 1)
-    $sysSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $faSpaceMetrics.total -Precision 2
-    $sysSharedSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $faSpaceMetrics.shared_space -Precision 0
-    $sysTP = Convert-Size -ConvertFrom Bytes -ConvertTo GB $faSpaceMetrics.thin_provisioning -Precision 2
-    if ([system.Math]::Round($faSpaceMetrics.total_reduction, 1) -gt 100) {
+    $sysCapacity = Convert-Size -ConvertFrom Bytes -ConvertTo TB $FlashArraySpaceMetrics.capacity -Precision 2
+    $sysSnapshotSpace = Convert-Size -ConvertFrom Bytes -ConvertTo MB $FlashArraySpaceMetrics.snapshots -Precision 4
+    $sysVolumeSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.volumes -Precision 2
+    $sysDRR = [system.Math]::Round($FlashArraySpaceMetrics.data_reduction, 1)
+    $sysSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.total -Precision 2
+    $sysSharedSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.shared_space -Precision 0
+    $sysTP = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.thin_provisioning -Precision 2
+    if ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1) -gt 100) {
         $sysTotalDRR = ">100:1"
     }
     else {
-        $sysTotalDRR = ([system.Math]::Round($faSpaceMetrics.total_reduction, 1)).toString() + ":1"
-    }
-
-    # Create the chart using a chart function if parameter exists
-    if ($PieChart -eq $true) {
-        New-FlashArrayReportPiechart -FileName ($OutFile + "\piechart") -CapacitySpace $sysCapacity -SnapshotSpace $sysSnapshotSpace -VolumeSpace $sysVolumeSpace
+        $sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1)).toString() + ":1"
     }
 
     # zero out varables
@@ -1270,7 +1248,6 @@ function New-FlashArrayCapacityReport() {
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 <html>
 <head>
-$head = @"
 <!--
 $(($metadata | Out-String).Trim())
 -->
@@ -1429,7 +1406,8 @@ img {
 </head>
 <body>
 "@
-    $CurrentSystemHTML = @"
+
+$CurrentSystemHTML = @"
 <img class="relative" src="data:image/png;base64,
 iVBORw0KGgoAAAANSUhEUgAACowAAAHcCAYAAADmlhr5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFn
 ZVJlYWR5ccllPAAAi5dJREFUeNrs3et1G0fWKNAarPk/vBEYYgKmIjAUgdsRCIpAVAQkI6AUAakI1I5A
@@ -2031,7 +2009,7 @@ UQAAAAAAAAAAgB6YCMEIDvIqfa634/qPF6LBgeVk5BNhAAAAAAAAAAAA6Lb/X4ABALB1eFG6MQyjAAAA
 AElFTkSuQmCC">
 
 <div id="report">
-<p><div class='absolute'>Capacity Report<br><div class='time'>$(Get-Date -Format U)</div></div>
+<p><div class='absolute'>FlashArray Capacity Report<br><div class='time'>$(Get-Date -Format U)</div></div>
 <h3>FlashArray Information</h3>
 <table class="list">
 <tr>
@@ -2083,8 +2061,6 @@ AElFTkSuQmCC">
 <td> $("{0:N2}" -f $provisioned) T</td>
 </tr>
 </table>
-$(if (Test-Path $OutFile + "\piechart.png" -PathType Leaf) {
-<img style="max-width: 1300px; max-height: 740px;" src="$OutFile\piechart.png"> } )
 <h3>Volume Information</h3>
 <p>Volumes(s), Sizes (GB) and Data Reduction columes include DR (Data Reduction), SS (Shared Space)<br>and TP (Thin Provisioning) and WS (Written Space) for $($FlashArrayConfig.array_name) listed below.</p>
 <table class="list">$volumeInfo</table>
@@ -2108,6 +2084,9 @@ $ReportDateTime
     $HTMLmessage = $HTMLHeader + $HTMLMiddle + $HTMLEnd
     # Save the report out to a file in the current path$
     $HTMLmessage | Out-File ($OutFile + "\" + $HTMLFileName)
+
+    Write-Host " "
+    Write-Host "The report file is located in the $OutFile folder." -ForegroundColor Green
 }
 #endregion
 
@@ -2116,8 +2095,8 @@ $ReportDateTime
 #### WINDOWS FUNCTIONS
 
 #region Test-WindowsBestPractices
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Test-WindowsBestPractices() {
+    <#
     .SYNOPSIS
     Cmdlet used to retrieve hosts information, test and optionally configure MPIO (FC) and/or iSCSI settings in a Windows OS against FlashArray Best Practices.
     .DESCRIPTION
@@ -2140,8 +2119,7 @@ $ReportDateTime
     Test-WindowsZBestPractices -EnableIscsiTests -OutFile "c:\temp\mylog.log"
 
     Run the cmdlet against the local machine, run the additional iSCSI tests, and create the log file at c:\temp\mylog.log.
-#>
-function Test-WindowsBestPractices() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $false)] [string] $OutFile = "$env:Temp\Test-WindowsBestPractices.log",
@@ -2151,7 +2129,7 @@ function Test-WindowsBestPractices() {
         [CmdletBinding()]
         param(
             [Parameter()][ValidateNotNullOrEmpty()][string]$Message,
-            [Parameter()][ValidateNotNullOrEmpty()][ValidateSet('Information', 'Passed', 'Warning', 'Failed')][string]$Severity = 'Information'
+            [Parameter()][ValidateNotNullOrEmpty()][ValidateSet("Information", "Passed", "Warning", "Failed")][string]$Severity = "Information"
         )
         [pscustomobject]@{
             Time     = (Get-Date -f g)
@@ -2530,8 +2508,8 @@ function Test-WindowsBestPractices() {
 #endregion
 
 #region Set-WindowsPowerScheme
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Set-WindowsPowerScheme() {
+    <#
     .SYNOPSIS
     Cmdlet to set the Power scheme for the Windows OS to High Performance.
     .DESCRIPTION
@@ -2546,8 +2524,7 @@ function Test-WindowsBestPractices() {
     Set-WindowsPowerScheme
 
     Retrieves the current Power Scheme setting, and if not set to High Performance, asks for confirmation to set it.
-#>
-function Set-WindowsPowerScheme() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $False)] [string] $ComputerName = "$env:COMPUTERNAME"
@@ -2572,8 +2549,8 @@ function Set-WindowsPowerScheme() {
 #endregion
 
 #region Get-QuickFixEngineering
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-QuickFixEngineering() {
+    <#
     .SYNOPSIS
     Retrieves all the Windows OS QFE patches applied.
     .DESCRIPTION
@@ -2584,15 +2561,14 @@ function Set-WindowsPowerScheme() {
     Outputs a listing of QFE patches applied.
     .EXAMPLE
     Get-QuickFixEngineering
-#>
-function Get-QuickFixEngineering() {
+    #>
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
 #endregion
 
 #region Get-HostBusAdapter
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-HostBusAdapter() {
+    <#
     .SYNOPSIS
     Retrieves host Bus Adapater (HBA) information.
     .DESCRIPTION
@@ -2605,8 +2581,7 @@ function Get-QuickFixEngineering() {
     Host Bus Adapter information.
     .EXAMPLE
     Get-HostBusAdapter -ComputerName myComputer
-#>
-function Get-HostBusAdapter() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $False)] [string] $ComputerName  = "$env:COMPUTERNAME"
@@ -2630,8 +2605,8 @@ function Get-HostBusAdapter() {
 #endregion
 
 #region Register-HostVolumes
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Register-HostVolumes() {
+    <#
     .SYNOPSIS
     Sets Pure FlashArray connected disks to online.
     .DESCRIPTION
@@ -2646,8 +2621,7 @@ function Get-HostBusAdapter() {
     Register-HostVolumes -ComputerName myComputer
 
     Sets all FlashArray disks for myComputer to online.
-#>
-function Register-HostVolumes() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $False)] [string]$ComputerName = "$env:COMPUTERNAME"
@@ -2676,8 +2650,8 @@ function Register-HostVolumes() {
 #endregion
 
 #region Unregister-HostVolumes
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Unregister-HostVolumes() {
+    <#
     .SYNOPSIS
     Sets Pure FlashArray connected disks to offline.
     .DESCRIPTION
@@ -2692,8 +2666,7 @@ function Register-HostVolumes() {
     Unregister-HostVolumes -ComputerName myComputer
 
     Offlines all FlashArray disks from myComputer.
-#>
-function Unregister-HostVolumes() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $False)] [string]$Computername = "$env:COMPUTERNAME"
@@ -2720,8 +2693,8 @@ function Unregister-HostVolumes() {
 #endregion
 
 #region Get-MPIODiskLBPolicy
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-MPIODiskLBPolicy() {
+    <#
     .SYNOPSIS
     Retrieves the current MPIO Load Balancing policy for Pure FlashArray disk(s).
     .DESCRIPTION
@@ -2739,8 +2712,7 @@ function Unregister-HostVolumes() {
     Get-MPIODiskLBPolicy -DiskID 1
 
     Returns the current MPIO LB policy for disk ID 1.
-#>
-function Get-MPIODiskLBPolicy() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $False)][string]$DiskId,
@@ -2759,15 +2731,15 @@ function Get-MPIODiskLBPolicy() {
 #endregion
 
 #region Set-MPIODiskLBPolicy
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Set-MPIODiskLBPolicy() {
+    <#
     .SYNOPSIS
     Sets the MPIO Load Balancing policy for FlashArray disks.
     .DESCRIPTION
     This cmdlet will set the MPIO Load Balancing policy for all connected Pure FlashArrays disks to the desired setting using the mpclaim.exe utlity.
     The default Windows OS setting is RR.
     .PARAMETER Policy
-    Required. The Policy type must be specified by the letter acronym for the policy name (ex. "RR" for Round Robin). Available options are:
+    Required. No default. The Policy type must be specified by the letter acronym for the policy name (ex. "RR" for Round Robin). Available options are:
         LQD = Least Queue Depth
         RR = Round Robin
         FO = Fail Over Only
@@ -2788,8 +2760,7 @@ function Get-MPIODiskLBPolicy() {
     Set-MPIODiskLBPolicy -Policy clear
 
     Clears the current MPIO policy for all Pure disks and sets to the default of RR.
-#>
-function Set-MPIODiskLBPolicy() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)][ValidateSet(“LQD”, ”RR”, ”clear”, "FO", "RRWS", "WP", "LB")][string]$Policy
@@ -2817,8 +2788,8 @@ function Set-MPIODiskLBPolicy() {
 #endregion
 
 #region Get-VolumeShadowCopy
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Get-VolumeShadowCopy() {
+    <#
     .SYNOPSIS
     Retrieves the volume shadow copy informaion using the Diskhadow command.
     .DESCRIPTION
@@ -2844,15 +2815,14 @@ function Set-MPIODiskLBPolicy() {
 
     .NOTES
     See https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow for more information on the Diskshadow utility.
-#>
-function Get-VolumeShadowCopy() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $False)][string]$ScriptName = "PUREVSS-SNAP",
         [Parameter(Mandatory = $True)][string]$MetadataFile,
         [Parameter(Mandatory = $True)][string]$ShadowCopyAlias,
         [Parameter(Mandatory = $True)][string]$ExposeAs,
-        [ValidateSet('On', 'Off')][string]$VerboseMode = "On"
+        [ValidateSet("On", "Off")][string]$VerboseMode = "On"
     )
     $dsh = "./$ScriptName.PFA"
     "SET VERBOSE $VerboseMode",
@@ -2867,8 +2837,8 @@ function Get-VolumeShadowCopy() {
 #endregion
 
 #region New-VolumeShadowCopy
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function New-VolumeShadowCopy() {
+    <#
     .SYNOPSIS
     Creates a new volume shadow copy using Diskshadow.
     .DESCRIPTION
@@ -2892,14 +2862,13 @@ function Get-VolumeShadowCopy() {
 
     .NOTES
     See https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow for more information on the Diskshadow utility.
-#>
-function New-VolumeShadowCopy() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)][string[]]$Volume,
         [Parameter(Mandatory = $False)][string]$ScriptName = "PUREVSS-SNAP",
         [Parameter(Mandatory = $True)][string]$ShadowCopyAlias,
-        [ValidateSet('On', 'Off')][string]$VerboseMode = 'On'
+        [ValidateSet("On", "Off")][string]$VerboseMode = "On"
     )
 
     $dsh = "./$ScriptName.PFA"
@@ -2921,8 +2890,8 @@ function New-VolumeShadowCopy() {
 #endregion
 
 #region Update-DriveInformation
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Update-DriveInformation() {
+    <#
     .SYNOPSIS
     Updates drive letters and assigns a label.
     .DESCRIPTION
@@ -2941,8 +2910,7 @@ function New-VolumeShadowCopy() {
     Update-DriveInformation -NewDriveLetter S -CurrentDriveLetter M
 
     Updates the drive letter from M: to S: and labels S: to NewDrive.
-#>
-function Update-DriveInformation() {
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)][string]$NewDriveLetter,
@@ -2961,8 +2929,8 @@ function Update-DriveInformation() {
 #endregion
 
 #region Set-TlsVersions
-# .ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<#
+function Set-TlsVersions() {
+    <#
     .SYNOPSIS
     Sets the TLS Version in the local registry.
     .DESCRIPTION
@@ -2975,8 +2943,7 @@ function Update-DriveInformation() {
     Set-TlsVersions
 
     Prompts for creation of a registry backup, disables TLS version 1.0, and enables TLS versions 1.1, 1.2, and 1.3.
-#>
-function Set-TlsVersions() {
+    #>
     [CmdletBinding()]
     Param (
     )
@@ -3072,5 +3039,6 @@ Export-ModuleMember -Function Show-FlashArrayPgroupsConfig
 Export-ModuleMember -Function Remove-FlashArrayPendingDeletes
 Export-ModuleMember -Function Get-FlashArrayConfig
 Export-ModuleMember -Function Get-ArrayHierarchy
+Export-ModuleMember -Function Get-PfaSerialNumbers
 
 # END
