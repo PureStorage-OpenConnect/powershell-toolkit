@@ -28,16 +28,16 @@
 RootModule = 'PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.0.0'
+ModuleVersion = '2.0.1.0'
 
 # Supported PSEditions
-# CompatiblePSEditions  = @("Desktop", "Core")
+#CompatiblePSEditions  = @("Desktop", "Core")
 
 # ID used to uniquely identify this module
 GUID = 'e7b43c4e-8e89-4e4f-9172-18d19107ada9'
 
 # Author of this module
-Author = 'FlashArray Solutons Team @ purestorage'
+Author = 'Pure Storage'
 
 # Company or vendor of this module
 CompanyName = 'Pure Storage, Inc.'
@@ -109,7 +109,7 @@ FunctionsToExport = @(
 		'Show-FlashArrayPgroupsConfig',
 		'Remove-FlashArrayPendingDeletes',
 		'Get-FlashArrayConfig',
-		#Copy-FlashArrayHostVolume,
+		'Get-PfaSerialNumbers',
 		'Get-ArrayHierarchy')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -157,14 +157,14 @@ PrivateData = @{
         # RequireLicenseAcceptance = ""
 
         # Indicates this is a pre-release/testing version of the module.
-        Prerelease = 'True'
+        #Prerelease = 'True'
 
     } # End of PSData hashtable
 
  } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
-HelpInfoURI = 'https://github.com/PureStorage-OpenConnect/powershell-toolkit/blob/mnelson/HelpInfo'
+HelpInfoURI = 'https://github.com/PureStorage-OpenConnect/powershell-toolkit'
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 DefaultCommandPrefix = ''
