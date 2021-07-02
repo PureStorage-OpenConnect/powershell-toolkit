@@ -28,7 +28,7 @@
 RootModule = 'PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.1.0'
+ModuleVersion = '2.0.0.0'
 
 # Supported PSEditions
 #CompatiblePSEditions  = @("Desktop", "Core")
@@ -110,7 +110,7 @@ FunctionsToExport = @(
 		'Remove-FlashArrayPendingDeletes',
 		'Get-FlashArrayConfig',
 		'Get-PfaSerialNumbers',
-		'Get-ArrayHierarchy')
+		'Get-FlashArrayHierarchy')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
