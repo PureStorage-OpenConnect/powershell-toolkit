@@ -24,6 +24,14 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 
 ### Install and Uninstall
 
+* This release is compatible with the Pure Storage PowerShell SDK 1.7.4.0 and greater.
+* This release requires a 64-bit operating system.
+
+### Install and Uninstall
+
+The Pure Storage PowerShell Toolkit is distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
+
+
 The Pure Storage PowerShell Toolkit is distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
 The tookit requires the PowerShell SDK. A built-in global function will attempt to download and install it if it is not present.
 
@@ -61,3 +69,4 @@ We welcome PRs, Issues, and open discussions around the toolkit. Help make the t
 ### Pure Storage Code
 
 [Join the Pure Storage Code Slack team](https://codeinvite.purestorage.com)
+
