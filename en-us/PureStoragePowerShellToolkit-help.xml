@@ -82,19 +82,19 @@
 	</command:command>
 	<command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
 		<command:details>
-			<command:name>Get-ArrayHierarchy</command:name>
+			<command:name>Get-FlashArrayHierarchy</command:name>
 			<maml:description>
-				<maml:para>Displays array hierarchy in relation to hosts and/or volumes.</maml:para>
+				<maml:para>Displays FlashArray hierarchy in relation to hosts and/or volumes.</maml:para>
 			</maml:description>
 			<command:verb>Get</command:verb>
-			<command:noun>ArrayHierarchy</command:noun>
+			<command:noun>FlashArrayHierarchy</command:noun>
 		</command:details>
 		<maml:description>
 			<maml:para>This cmdlet will display the hierarchy from a FlashArray of hosts and volumes. The output is to the console in text.</maml:para>
 		</maml:description>
 		<command:syntax>
 			<command:syntaxItem>
-				<maml:name>Get-ArrayHierarchy</maml:name>
+				<maml:name>Get-FlashArrayHierarchy</maml:name>
 				<command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
 					<maml:name>EndPoint</maml:name>
 					<maml:description>
@@ -151,7 +151,7 @@
 		<command:examples>
 			<command:example>
 				<maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
-				<dev:code>Get-ArrayHierarchy -EndPoint myArray</dev:code>
+				<dev:code>Get-FlashArrayHierarchy -EndPoint myArray</dev:code>
 				<dev:remarks>
 					<maml:para></maml:para>
 				</dev:remarks>

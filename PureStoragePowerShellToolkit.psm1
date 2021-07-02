@@ -962,7 +962,7 @@ Function Get-FlashArrayConfig() {
 #endregion
 
 #region Get-FlashArrayHierarchy
-Function Get-ArrayHierarchy() {
+Function Get-FlashArrayHierarchy() {
     <#
     .SYNOPSIS
     Displays array hierarchy in relation to hosts and/or volumes.
@@ -975,7 +975,7 @@ Function Get-ArrayHierarchy() {
     .OUTPUTS
     FlashArray host and/or volume hierachy.
     .EXAMPLE
-    Get-ArrayHierarchy -EndPoint myArray
+    Get-FlashArrayHierarchy -EndPoint myArray
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
@@ -3038,7 +3038,7 @@ Export-ModuleMember -Function Get-FlashArraySpace
 Export-ModuleMember -Function Show-FlashArrayPgroupsConfig
 Export-ModuleMember -Function Remove-FlashArrayPendingDeletes
 Export-ModuleMember -Function Get-FlashArrayConfig
-Export-ModuleMember -Function Get-ArrayHierarchy
+Export-ModuleMember -Function Get-FlashArrayHierarchy
 Export-ModuleMember -Function Get-PfaSerialNumbers
 
 # END
