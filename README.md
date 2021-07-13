@@ -13,8 +13,8 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 ### Release History
 
 * v2.0.0.0 - Latest release
-* v1.1911
-* v1.1903.7
+* v1911.0
+* v1903.7
 
 ### Release Compatibility
 
