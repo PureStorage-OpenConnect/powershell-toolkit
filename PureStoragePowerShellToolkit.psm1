@@ -1,222 +1,1271 @@
-<#	
+<#
 	===========================================================================
-	Created by:   	barkz@purestorage.com
+	Maintained by: 	fa-solutions@purestorage.com
 	Organization: 	Pure Storage, Inc.
-	Filename:     	PureStoragePowerShellToolkit.psd1
-	Copyright:		(c) 2018 Pure Storage, Inc.
+	Filename:     	PureStoragePowerShellToolkit.psm1
+	Copyright:		(c) 2021 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module (.psm1)
 	-------------------------------------------------------------------------
 	Disclaimer
- 	The sample script and documentation are provided AS IS and are not supported by 
-	the author or the author’s employer, unless otherwise agreed in writing. You bear 
-	all risk relating to the use or performance of the sample script and documentation. 
-	The author and the author’s employer disclaim all express or implied warranties 
-	(including, without limitation, any warranties of merchantability, title, infringement 
-	or fitness for a particular purpose). In no event shall the author, the author’s employer 
-	or anyone else involved in the creation, production, or delivery of the scripts be liable 
-	for any damages whatsoever arising out of the use or performance of the sample script and 
-	documentation (including, without limitation, damages for loss of business profits, 
-	business interruption, loss of business information, or other pecuniary loss), even if 
+    The sample module and documentation are provided AS IS and are not supported by
+	the author or the author’s employer, unless otherwise agreed in writing. You bear
+	all risk relating to the use or performance of the sample script and documentation.
+	The author and the author’s employer disclaim all express or implied warranties
+	(including, without limitation, any warranties of merchantability, title, infringement
+	or fitness for a particular purpose). In no event shall the author, the author’s employer
+	or anyone else involved in the creation, production, or delivery of the scripts be liable
+	for any damages whatsoever arising out of the use or performance of the sample script and
+	documentation (including, without limitation, damages for loss of business profits,
+	business interruption, loss of business information, or other pecuniary loss), even if
 	such person has been advised of the possibility of such damages.
 	===========================================================================
-#>
+
+	Revision information:
+	: version 2.0.0.0	GA release
+
+
+	Contributors and many thanks go out to:
+	Rob "Barkz" Barker @purestorage
+	Robert "Q" Quimbey @purestorage
+	Mike "Chief" Nelson @purestorage
+	Julian "Doctor" Cates @purestorage
+	Marcel Dussil @purestorage - https://en.pureflash.blog/
+	Craig Dayton - https://github.com/cadayton
+	Jake Daniels - https://github.com/JakeDennis
+	Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
+	.. and all of the Pure Code community who provide excellent advice, feedback, & scripts, and for those that will in the future.
+	#>
 
 #Requires -Version 3
 
-#region HELPER FUNCTIONS
+## BEGIN HELPER FUNCTIONS
+
+#region ConvertTo-Base64
+function ConvertTo-Base64() {
 <#
-.SYNOPSIS
+    .SYNOPSIS
 	Converts source file to Base64.
-.DESCRIPTION
+    .DESCRIPTION
 	Helper function
 	Supporting function to handle conversions.
-.EXAMPLE
-	None.
-.INPUTS
+    .INPUTS
 	Source (Mandatory)
-.OUTPUTS
+    .OUTPUTS
 	Converted source.
-.NOTES
-	None.
 #>
-function ConvertTo-Base64() {
     Param (
-		[Parameter(Mandatory=$true)][String] $Source
-	)
-	return [Convert]::ToBase64String((Get-Content $Source -Encoding byte))
+        [Parameter(Mandatory = $true)][String] $Source
+    )
+    return [Convert]::ToBase64String((Get-Content $Source -Encoding byte))
 }
 #endregion
 
-#region CONVERT-SIZE
+#region Convert-Size
+function Convert-Size() {
 <#
-.SYNOPSIS
+    .SYNOPSIS
 	Converts volume sizes from B to MB, MB, GB, TB.
-.DESCRIPTION
+    .DESCRIPTION
 	Helper function
 	Supporting function to handle conversions.
-.EXAMPLE
-	None.
-.INPUTS
+    .INPUTS
 	ConvertFrom (Mandatory)
 	ConvertTo (Mandatory)
 	Value (Mandatory)
 	Precision (Optional)
-.OUTPUTS
+    .OUTPUTS
 	Converted size of volume.
-.NOTES
-	None.
 #>
-function Convert-Size { 
     [CmdletBinding()]
     Param (
-		[Parameter(Mandatory=$true)][ValidateSet("Bytes","KB","MB","GB","TB")][String]$ConvertFrom,            
-		[Parameter(Mandatory=$true)][ValidateSet("Bytes","KB","MB","GB","TB")][String]$ConvertTo,            
-		[Parameter(Mandatory=$true)][Double]$Value,            
-		[Parameter(Mandatory=$false)][Int]$Precision = 4
-	)           
-	switch($ConvertFrom) {            
-		"Bytes" {$value = $Value }            
-		"KB" {$value = $Value * 1024 }            
-		"MB" {$value = $Value * 1024 * 1024}            
-		"GB" {$value = $Value * 1024 * 1024 * 1024}            
-		"TB" {$value = $Value * 1024 * 1024 * 1024 * 1024}            
-	}            
-		
-	switch ($ConvertTo) {            
-		"Bytes" {return $value}            
-		"KB" {$Value = $Value/1KB}            
-		"MB" {$Value = $Value/1MB}            
-		"GB" {$Value = $Value/1GB}            
-		"TB" {$Value = $Value/1TB}                        
-	}            
-            
-	return [Math]::Round($Value, $Precision, [MidPointRounding]::AwayFromZero)            
+        [Parameter(Mandatory = $true)][ValidateSet("Bytes", "KB", "MB", "GB", "TB")][String]$ConvertFrom,
+        [Parameter(Mandatory = $true)][ValidateSet("Bytes", "KB", "MB", "GB", "TB")][String]$ConvertTo,
+        [Parameter(Mandatory = $true)][Double]$Value,
+        [Parameter(Mandatory = $false)][Int]$Precision = 4
+    )
+    switch ($ConvertFrom) {
+        "Bytes" { $value = $Value }
+        "KB" { $value = $Value * 1024 }
+        "MB" { $value = $Value * 1024 * 1024 }
+        "GB" { $value = $Value * 1024 * 1024 * 1024 }
+        "TB" { $value = $Value * 1024 * 1024 * 1024 * 1024 }
+    }
+
+    switch ($ConvertTo) {
+        "Bytes" { return $value }
+        "KB" { $Value = $Value / 1KB }
+        "MB" { $Value = $Value / 1MB }
+        "GB" { $Value = $Value / 1GB }
+        "TB" { $Value = $Value / 1TB }
+    }
+
+    return [Math]::Round($Value, $Precision, [MidPointRounding]::AwayFromZero)
 }
 #endregion
 
-#region NEW-FLASHARRAYCAPACITYREPORT
+#region New-FlashArrayReportPieChart
+function New-FlashArrayReportPieChart() {
 <#
-.SYNOPSIS
-	Create a Pure Storage FlashArray capacity report.
-.DESCRIPTION
-	Creates an HTML formatted Pure Storage FlashArray capacity report that contains full details for the FlashArray and volume(s).
-.EXAMPLE
-	 New-FlashArrayCapacityReport -EndPoint 10.0.0.1 -Credential (Get-Credential) -VolumeFilter '*f*' -OutFilePath .\ -HTMLFileName Test.html
-
-	 New-FlashArrayCapacityReport -EndPoint 10.0.0.1 -Credential (Get-Credential) -OutFilePath .\ -HTMLFileName Test.html
-.INPUTS
-	EndPoint
-	Credential
-	VolumeFilter
-	OutFilePath
-	HTMLFileName
-.OUTPUTS
-	HTML report stored on the local filesystem or share location.
-.NOTES
-	None.
+    .SYNOPSIS
+	Creates graphic pie chart .png image file for use in report.
+    .DESCRIPTION
+	Helper function
+	Supporting function to create a pie chart.
+    .OUTPUTS
+	piechart.png.
 #>
-function New-FlashArrayCapacityReport() {
-	[CmdletBinding()]
     Param (
-		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $EndPoint,
-		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][System.Management.Automation.Credential()] $Credential,
-        [Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $OutFilePath,
-		[Parameter(Mandatory=$True)][ValidateNotNullOrEmpty()][string] $HTMLFileName,
-		[Parameter(Mandatory=$False)][ValidateNotNullOrEmpty()][string] $VolumeFilter="*"
-	)
+        [string]$FileName,
+        [float]$SnapshotSpace,
+        [float]$VolumeSpace,
+        [float]$CapacitySpace
+    )
 
-    $ReportDateTime = Get-Date -Format d
+    [void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+    [void][Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms.DataVisualization")
+
+    $chart = New-Object System.Windows.Forms.DataVisualization.charting.chart
+    $chart.Width = 700
+    $chart.Height = 500
+    $chart.Left = 10
+    $chart.Top = 10
+
+    $chartArea = New-Object System.Windows.Forms.DataVisualization.charting.chartArea
+    $chart.chartAreas.Add($chartArea)
+    [void]$chart.Series.Add("Data")
+
+    $legend = New-Object system.Windows.Forms.DataVisualization.charting.Legend
+    $legend.Name = "Legend"
+    $legend.Font = "Verdana"
+    $legend.Alignment = "Center"
+    $legend.Docking = "top"
+    $legend.Bordercolor = "#FE5000"
+    $legend.Legendstyle = "row"
+    $chart.Legends.Add($legend)
+
+    $datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $SnapshotSpace)
+    $datapoint.AxisLabel = "SnapShots " + "(" + $SnapshotSpace + " MB)"
+    $chart.Series["Data"].Points.Add($datapoint)
+
+    $datapoint = New-Object System.Windows.Forms.DataVisualization.charting.DataPoint(0, $VolumeSpace)
+    $datapoint.AxisLabel = "Volumes " + "(" + $VolumeSpace + " GB)"
+    $chart.Series["Data"].Points.Add($datapoint)
+
+    $chart.Series["Data"].chartType = [System.Windows.Forms.DataVisualization.charting.SerieschartType]::Doughnut
+    $chart.Series["Data"]["DoughnutLabelStyle"] = "Outside"
+    $chart.Series["Data"]["DoughnutLineColor"] = "#FE5000"
+
+    $Title = New-Object System.Windows.Forms.DataVisualization.charting.Title
+    $chart.Titles.Add($Title)
+    $chart.SaveImage($FileName + ".png", "png")
+}
+#endregion
+
+#region Get-Sdk1Module
+function Get-Sdk1Module() {
+<#
+    .SYNOPSIS
+	Confirms that PureStoragePowerShellSDK version 1 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the function will error.
+    .DESCRIPTION
+	Helper function
+	Supporting function to load required module.
+    .OUTPUTS
+	PureStoragePowerShellSDK version 1 module.
+#>
+    $m = "PureStoragePowerShellSDK"
+    # If module is imported, continue
+    if (Get-Module | Where-Object { $_.Name -eq $m }) {
+    }
+    else {
+        # If module is not imported, but available on disk, then import
+        if (Get-InstalledModule | Where-Object { $_.Name -eq $m }) {
+            Import-Module $m -ErrorAction SilentlyContinue
+        }
+        else {
+            # If module is not imported, not available on disk, then install and import
+            if (Find-Module -Name $m | Where-Object { $_.Name -eq $m }) {
+                Write-Warning 'Pure Storage FlashArray PowerShell SDK module does not exist.'
+                Write-Host 'We will attempt to install the module from the PowerShell Gallery.'
+                Install-Module -Name $m -Force -ErrorAction SilentlyContinue -Scope CurrentUser
+                Import-Module $m -ErrorAction SilentlyContinue
+            }
+            else {
+                # If module is not imported, not available on disk, and we cannot access it online, then abort
+                Write-Host "Module $m not imported, not available on disk, and we are not able to download it frome the online gallery... exiting."
+                EXIT 1
+            }
+        }
+    }
+}
+#endregion
+
+#region Get-ElevatedStatus
+function Get-ElevatedStatus() {
+<#
+    .SYNOPSIS
+	Confirms elevated permissions to run cmdlets.
+    .DESCRIPTION
+	Helper function
+	Supporting function to confirm administrator permissions.
+    .OUTPUTS
+	Error on non-administrative permissions.
+#>
+    if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+                [Security.Principal.WindowsBuiltInRole] "Administrator")) {
+        Write-Warning "Insufficient permissions to run this cmdlet. Open the PowerShell console as an administrator and run this cmdlet again."
+        Break
+    }
+}
+#endregion
+
+#region Get-HypervStatus
+function Get-HypervStatus() {
+    <#
+    .SYNOPSIS
+	Confirms that the HyperV role is installed ont he server.
+    .DESCRIPTION
+	Helper function
+	Supporting function to ensure proper role is installed.
+    .OUTPUTS
+	Error on missing HyperV role.
+    #>
+    $hypervStatus = (Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V).State
+    if ($hypervStatus -ne "Enabled") {
+        Write-Host "Hyper-V is not running. This cmdlet must be run on a Hyper-V host."
+        break
+    }
+}
+#endregion
+## END HELPER FUNCTIONS
+
+#### FLASHARRAY FUNCTIONS
+
+#region Get-HostVolumeInfo
+function Get-AllHostVolumeInfo() {
+    <#
+    .SYNOPSIS
+    Retrieves Host Volume information from FlashArray.
+    .DESCRIPTION
+    Retrieves Host Volume information including volumes attributes from a FlashArray.
+    .INPUTS
+    EndPoint IP or FQDN required
+    .OUTPUTS
+    Outputs Host volume information
+    .EXAMPLE
+    Get-HostVolumeinfo -EndPoint myarray.mydomain.com
+
+    Rerieves Host Volume information from the FlashArray myarray.mydomain.com.
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+	[CmdletBinding()]
+	Param (
+        [Parameter(Position=0,Mandatory=$True)][ValidateNotNullOrEmpty()][string] $EndPoint
+	)
+	Get-Sdk1Module
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+	$hostNames = Get-PfaHosts -array $FlashArray | Select-Object -Property name
+	foreach ($hostName in $hostnames) {
+		$hostvols = Get-PfaHostVolumeConnections -Array $FlashArray -Name $hostName.name
+		$hostvols | Format-Table -AutoSize;
+		ForEach-Object -InputObject $hostvols {
+			$vols = $_.vol;
+			$volattribs = @();
+			if ($_.vol.count -gt 1) {
+				for ($i = 0; $i -lt $_.vol.count; $i++) {
+					$volattrib = Get-PfaVolume -Array $FlashArray -Name $vols[$i];
+					$volattribs += $volattrib;
+				}
+				$volattribs |
+				Select-Object name, created, source, serial, @{Name = "Size(GB)"; Expression = { $_.size / 1GB } } |
+				Format-Table -AutoSize;
+			}
+			else {
+				Get-PfaVolume -Array $FlashArray -Name $_.vol |
+				Select-Object name, created, source, serial, @{Name = "Size(GB)"; Expression = { $_.size / 1GB } } |
+				Format-Table -AutoSize;
+			}
+		}
+	}
+}
+#endregion
+
+#region Get-PfaSerialNumbers
+function Get-PfaSerialNumbers() {
+    <#
+    .SYNOPSIS
+    Retrieves FlashArray volume serial numbers connected to the host.
+    .DESCRIPTION
+    Cmdlet queries WMI on the localhost to retrieve the disks that are associated to Pure FlashArrays.
+    .INPUTS
+    EndPoint IP or FQDN required.
+    .OUTPUTS
+    Outputs serial numbers of FlashArrays devices.
+    .EXAMPLE
+    Get-PfaSerialNumbers
+
+    Returns serial number information on Pure FlashArray disk devices connected to the host.
+    #>
+    $AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
+    ForEach ($Device in $AllDevices) {
+        if ($Device.Model -like 'PURE FlashArray*') {
+            @{
+                Name     = $Device.Name;
+                Caption  = $Device.Caption;
+                Index    = $Device.Index;
+                SerialNo = $Device.SerialNumber;
+            }
+        }
+    }
+}
+#endregion
+
+#region New-HypervClusterVolumeReport
+function New-HypervClusterVolumeReport() {
+    <#
+    .SYNOPSIS
+    Creates a Excel report on volumes connected to a Hyper-V cluster.
+    .DESCRIPTION
+    This creates seperate CSV files for VM, Windows Hosts, and FlashArray information that is part of a HyperV cluster. It then takes that output and places it into a an Excel workbook that contains sheets for each CSV file.
+    .PARAMETER VmCsvFileName
+    Optional. Defaults to VMs.csv.
+    .PARAMETER WinCsvFileName
+    Optional. defaults to WindowsHosts.csv.
+    .PARAMETER PfaCsvFileName
+    Optional. defaults to FlashArrays.csv.
+    .PARAMETER ExcelFile
+    Optional. defaults to HypervClusterReport.xlsx.
+    .INPUTS
+    Endpoint is mandatory. VM, Win, and PFA csv file names are optional.
+    .OUTPUTS
+    Outputs individual CSV files and creates an Excel workbook that is built using the required PowerShell module ImportExcel, created by Douglas Finke.
+    .EXAMPLE
+    New-HypervClusterVolumeReport -EndPoint myarray -VmCsvName myVMs.csv -WinCsvName myWinHosts.csv -PfaCsvName myFlashArray.csv -ExcelFile myExcelFile
+
+    This will create three seperate CSV files with HyperV cluster information and incorprate them into a single Excel workbook.
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
+        [Parameter(Mandatory=$False)][string]$VmCsvFileName = "VMs.csv",
+        [Parameter(Mandatory=$False)][string]$WinCsvFileName = "WindowsHosts.csv",
+        [Parameter(Mandatory=$False)][string]$PfaCsvFileName = "FlashArrays.csv",
+        [Parameter(Mandatory=$False)][string]$ExcelFile = "HypervClusterReport.xlxs"
+    )
+    try {
+        Get-ElevatedStatus
+
+        Get-HypervStatus
+
+        ## Check for modules & features
+        Write-Host "Checking, installing, and importing prerequisite modules."
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $modulesArray = @(
+            "PureStoragePowerShellSDK",
+            "ImportExcel"
+        )
+        ForEach ($mod in $modulesArray) {
+            If (Get-Module -ListAvailable $mod) {
+                Continue
+            }
+            Else {
+                Install-Module $mod -Force -ErrorAction 'SilentlyContinue'
+                Import-Module $mod -ErrorAction 'SilentlyContinue'
+            }
+        }
+
+        Write-Host "Checking and installing prerequisite Windows Features."
+        $osVer = (Get-ComputerInfo).WindowsProductName
+        $featuresArray = @(
+            "hyper-v-powershell",
+            "rsat-clustering-powershell"
+        )
+        ForEach ($fea in $featuresArray) {
+            If (Get-WindowsFeature $fea | Select-Object -ExpandProperty installed) {
+                Continue
+            }
+            Else {
+                If ($osVer -le "2008") {
+                    Add-WindowsFeature -Name $fea -Force -ErrorAction 'SilentlyContinue'
+                }
+                Else {
+                    Install-WindowsFeature -Name $fea -Force -ErrorAction 'SilentlyContinue'
+                }
+            }
+        }
+
+        # Connect to FlashArray
+        if (!($Creds)) {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        else {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+
+        ## Get a list of VMs - VM Sheet
+        $vmList = Get-VM -ComputerName (Get-ClusterNode)
+        $vmList | ForEach-Object { $vmState = $_.state; $vmName = $_.name; Write-Output $_; } | ForEach-Object { Get-VHD -ComputerName $_.ComputerName -VMId $_.VMId
+        } | Select-Object -Property path, @{n = 'VMName'; e = { $vmName } }, @{n = 'VMState'; e = { $vmState } }, computername, vhdtype, @{Label = 'Size(GB)'; expression = { [Math]::Round($_.size / 1gb, 2) -as [int] } }, @{label = 'SizeOnDisk(GB)'; expression = { [Math]::Round($_.filesize / 1gb, 2) -as [int] } } | Export-Csv $VmCsvFileName
+        Import-Csv $VmCsvFileName | Export-Excel -Path $ExcelFile -AutoSize -WorkSheetname 'VMs'
+
+        ## Get windows physical disks - Windows Host Sheet
+        Get-ClusterNode | ForEach-Object { Get-WmiObject Win32_Volume -Filter "DriveType='3'" -ComputerName $_ | ForEach-Object {
+                [pscustomobject][ordered]@{
+                    Server        = $_.__Server
+                    Label         = $_.Label
+                    Name          = $_.Name
+                    TotalSize_GB  = ([Math]::Round($_.Capacity / 1GB, 2))
+                    FreeSpace_GB  = ([Math]::Round($_.FreeSpace / 1GB, 2))
+                    SizeOnDisk_GB = ([Math]::Round(($_.Capacity - $_.FreeSpace) / 1GB, 2))
+                }
+            } } | Export-Csv $WinCsvFileName -NoTypeInformation
+        Import-Csv $WinCsvFileName | Export-Excel -Path $ExcelFile -AutoSize -WorkSheetname 'Windows Hosts'
+        ## Get Pure FlashArray volumes and space - FlashArray Sheet
+        Function GetSerial {
+            [Cmdletbinding()]
+            Param(   [Parameter(ValueFromPipeline)]
+                $findserial)
+            $GetVol = Get-Volume -FilePath $findserial | Select-Object -ExpandProperty path
+            $GetDiskNum = Get-Partition | Where-Object -Property accesspaths -CContains $getvol | Select-Object disknumber
+            Get-Disk -Number $getdisknum.disknumber | Select-Object serialnumber
+        }
+        $pathQ = $VmList | ForEach-Object { Get-VHD -ComputerName $_.ComputerName -VMId $_.VMId } | Select-Object -ExpandProperty path
+        $serials = GetSerial { $pathQ } -ErrorAction SilentlyContinue
+
+        ## FlashArray volumes
+        $pureVols = Get-PfaVolumes -Array $FlashArray | Where-Object { $serials.serialnumber -contains $_.serial } | ForEach-Object { Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $_.name } | Select-Object name, size, total, data_reduction
+
+        $pureVols | Select-Object Name, @{Name = "Size(GB)"; Expression = { [math]::round($_.size / 1gb, 2) } }, @{Name = "SizeOnDisk(GB)"; Expression = { [math]::round($_.total / 1gb, 2) } }, @{Name = "DataReduction"; Expression = { [math]::round($_.data_reduction, 2) } } | Export-Csv $PfaCsvFileName -NoTypeInformation
+        Import-Csv $PfaCsvFileName | Export-Excel -Path $ExcelFile -AutoSize -WorkSheetname 'FlashArrays'
+
+    }
+    catch {
+        Write-Host "There was a problem running this cmdlet. Please try again or submit an Issue in the GitHub Repository."
+    }
+}
+#endregion
+
+#region Sync-FlashArrayHosts
+function Sync-FlashArrayHosts() {
+    <#
+    .SYNOPSIS
+    Synchronizes the hosts amd host protocols between two FlashArrays.
+    .DESCRIPTION
+    This cmdlet will retrieve the current hosts from the Source array and create them on the target array. It will also add the FC (WWN) or iSCSI (iqn) settings for each host on the Target array.
+    .PARAMETER SourceArray
+    Required. FQDN or IP address of the source FlashArray.
+    .PARAMETER TargetArray
+    Required. FQDN or IP address of the source FlashArray.
+    .PARAMETER Protocol
+    Required. 'FC' for Fibre Channel WWNs or 'iSCSI' for iSCSI IQNs.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    Sync-FlashArraysHosts -SourceArray mySourceArray -TargetArray myTargetArray -Protocol FC
+
+    Synchrnizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
+    .NOTES
+    This cmdlet cannot utilize the global $Creds variable as it requires two logins to two seperate arrays.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position=0,Mandatory=$True)][ValidateNotNullOrEmpty()][string] $SourceArray,
+        [Parameter(Position=1,Mandatory=$True)][ValidateNotNullOrEmpty()][string]$TargetArray,
+        [Parameter(Mandatory = $True)][ValidateSet("iSCSI", "FC")][string]$Protocol
+    )
+
+    $FlashArray1 = New-PfaArray -EndPoint $SourceArray -Credentials (Get-Credential) -IgnoreCertificateError
+    $FlashArray2 = New-PfaArray -EndPoint $TargetArray -Credentials (Get-Credential) -IgnoreCertificateError
+
+    Get-PfaHosts -Array $FlashArray1 | New-PfaHost -Array $FlashArray2
+    Get-PfaHostGroups -Array $FlashArray1 | New-PfaHostGroup -Array $FlashArray2
+
+    $fa1Hosts = Get-PfaHosts -Array $FlashArray1
+
+    switch ($Procotol) {
+        'iSCSI' {
+            foreach ($fa1Host in $fa1Hosts) {
+                Add-PfaHostIqns -Array $FlashArray2 -AddIqnList $fa1Host.iqn -Name $fa1Host.name
+            }
+        }
+        'FC' {
+            foreach ($fa1Host in $fa1Hosts) {
+                Add-PfaHostWwns -Array $FlashArray2 -AddWwnList $fa1Host.wwn -Name $fa1Host.name
+            }
+        }
+    }
+}
+#endregion
+
+#region Get-FlashArrayStaleSnapshots
+function Get-FlashArrayStaleSnapshots() {
+    <#
+    .SYNOPSIS
+    Retrieves aged snapshots and allows for Deletion and Eradication of such snapshots.
+    .DESCRIPTION
+    This cmdlet will retrieve all snapshots that are beyond the specified SnapAgeThreshold. It allows for the parameters of Delete and Eradicate, and if set to $true, it will delete and eradicate the snashopts returned. It allows for the parameter of Confirm, and if set to $true, it will prompt before deletion and/or eradication of the snapshots.
+    Snapshots must be deleted before they can be eradicated.
+    .PARAMETER EndPoint
+    Required. Endpoiont is the FlashArray IP or FQDN.
+    .PARAMETER SnapAgeThreshold
+    Required. SnapAgeThreshold is the number of days from the current date. Delete. Confirm, and Eradicate are optional.
+    .PARAMETER Delete
+    Optional. If set to $true, delete the snapshots.
+    .PARAMETER Eradicate
+    Optional. If set to $true, eradicate the deleted snapshots (snapshot must be flagged as deleted).
+    .PARAMETER Confirm
+    Optional. If set to $true, provide user confirmation for Deletion or Eradication of the snapshots.
+    .OUTPUTS
+    Returns a listing of snapshots that are beyond the specified threshold and displays final results.
+    .EXAMPLE
+    Get-FlashArrayStaleSnapshots -EndPoint myArray -SnapAgeThreshold 30
+
+    Returns all snapshots that are older than 30 days from the current date.
+
+    .EXAMPLE
+    Get-FlashArrayStaleSnapshots -EndPoint myArray -SnapAgeThreshold 30 -Delete:$true -Eradicate:$true -Confirm:$false
+
+    Returns all snapshots that are older than 30 days from the current date, deletes and eradicates them without confirmation.
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $SnapAgeThreshold,
+        [switch]$Delete,
+        [switch]$Eradicate,
+        [switch]$Confirm
+    )
+    # Establish variables, Pure's time format, and gather current time.
+    $1GB = 1024 * 1024 * 1024
+    $CurrentTime = Get-Date
+    $DateTimeFormat = 'yyyy-MM-ddTHH:mm:ssZ'
 
     # Connect to FlashArray
-	$FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Credential -IgnoreCertificateError
-	if (!$FlashArray) { 
-		Write-Error "Cannot connect to Pure Storage FlashArray at $EndPoint. Please check connectivity."
-		break
-	}
-	
-	$FlashArraySpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
-	$FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray	
-	$FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
 
-	$sysCapacity = Convert-Size -ConvertFrom Bytes -ConvertTo TB $FlashArraySpaceMetrics.capacity -Precision 2
-	$sysSnapshotSpace = Convert-Size -ConvertFrom Bytes -ConvertTo MB $FlashArraySpaceMetrics.snapshots -Precision 4
-	$sysVolumeSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.volumes -Precision 2
-	$sysDRR = [system.Math]::Round($FlashArraySpaceMetrics.data_reduction,1)
-	$sysSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.total -Precision 2
-	$sysSharedSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.shared_space -Precision 0
-	$sysTP = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.thin_provisioning -Precision 2
-	if([system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1) -gt 100) { 
-		$sysTotalDRR = ">100:1" 
-	} else {
-		$sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction,1)).toString()+":1" 
-	}
+    # Establish and reset counter variables.
+    [int]$SpaceConsumedTotal = 0
+    [int]$SnapNumberTotal = 0
+    $Timespan = $null
+    [int]$SpaceConsumed = 0
+    [int]$SnapNumber = 0
+    try {
+        $Snapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
 
-	# Create the chart using our chart function
-	#New-FlashArrayReportPiechart -FileName ($OutFilePath + "\TempPiechart") -CapacitySpace $capacitySpace -SnapshotSpace $snapSpace -VolumeSpace $volumeSpace
-	
+        Write-Output ""
+        Write-Output "========================================================================="
+        Write-Output "      $EndPoint                               "
+        Write-Output "========================================================================="
+    }
+    catch {
+        Write-Host "Error processing $($EndPoint)."
+    }
+    #Get all snapshots and compute the age of them. $DateTimeFormat variable taken from above; this is needed in order to parse Pure's time format.
+    foreach ($Snapshot in $Snapshots) {
+        $SnapshotDateTime = $Snapshot.created
+        $SnapshotDateTime = [datetime]::ParseExact($SnapshotDateTime, $DateTimeFormat, $null)
+        $Timespan = New-TimeSpan -Start $SnapshotDateTime -End $CurrentTime
+        $SnapAge = $($Timespan.Days + $($Timespan.Hours / 24) + $($Timespan.Minutes / 1440))
+        $SnapAge = [math]::Round($SnapAge, 2)
+
+        #Find snaps older than given threshold and output with formatted data.
+        if ($SnapAge -gt $SnapAgeThreshold) {
+            $SnapStats = Get-PfaSnapshotSpaceMetrics -Array $FlashArray -Name $Snapshot.name
+            $SnapSize = [math]::round($($SnapStats.total / $1GB), 2)
+            $SpaceConsumed = $SpaceConsumed + $SnapSize
+            $SnapNumber = $SnapNumber + 1
+
+            #Delete snapshots
+            if ($Delete -eq $true -and $Eradicate -eq $true) {
+                Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $Snapshot.name -Eradicate -Confirm $Confirm
+                Write-Output "Eradicating $($Snapshot.name) - $($SnapSize) GB."
+            }
+            elseif ($Delete -eq $true) {
+                Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $Snapshot.name -Confirm $Confirm
+                Write-Output "Deleting $($Snapshot.name) - $($SnapSize) GB."
+            }
+            else {
+                Write-Output $Snapshot.name
+                Write-Output "          $SnapSize GB"
+                Write-Output "          $SnapAge days"
+            }
+        }
+
+    }
+    #Display final message for array results.
+    Write-Output "There are $($SnapNumber) snapshot(s) older than $($SnapAgeThreshold) days consuming a total of $($SpaceConsumed) GB on the array."
+
+    $SnapNumberTotal = $SnapNumberTotal + $SnapNumber
+    $SpaceConsumedTotal = $SpaceConsumedTotal + $SpaceConsumed
+}
+Write-Output "There are $($SnapNumberTotal) snapshot(s) older than $($SnapAgeThreshold) days consuming a total of $($SpaceConsumedTotal) GB."
+#endregion
+
+#region Get-FlashArrayDisconnectedVolumes
+Function Get-FlashArrayDisconnectedVolumes() {
+    <#
+    .SYNOPSIS
+    Retrieves disconnected volume information for a FlashArray.
+    .DESCRIPTION
+    This cmndlet will retrieve information for volumes that are ina disconnected state for a FlashArray.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of the FlashArray.
+    .INPUTS
+    None
+    .OUTPUTS
+    Disconnected volume information is displayed.
+    .EXAMPLE
+    Get-FlashArrayDisconnectedVolumes -EndPoint myArray
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+    #Math values
+    $1GB = 1024 * 1024 * 1024
+    $1TB = 1024 * 1024 * 1024 * 1024
+    Get-Sdk1Module
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+    $faSpace = Get-PfaArraySpaceMetrics -Array $FlashArray
+
+    $Hosts = Get-PfaHosts -Array $FlashArray
+    ForEach ($HostVol in $Hosts) {
+        $ConnectedVolumes += @(Get-PfaHostVolumeConnections -Array $FlashArray -Name $HostVol.name | Select-Object vol)
+    }
+
+    #Get all volumes
+    $AllVolumes = @(Get-PfaVolumes -Array $FlashArray | Select-Object name)
+    $hash = @{}
+    foreach ($i in $ConnectedVolumes) {
+        $Vol = $i.vol
+        $hash.Add($z, $Vol)
+        $z++
+    }
+    foreach ($j in $AllVolumes) {
+        if (!$hash.ContainsValue($j.name)) {
+            $DisconnectedVolumes += $j.name
+        }
+        else {
+            $hash.Remove($j.name)
+        }
+    }
+    Write-Output ""
+    Write-Output "`t$($FlashArray) - $([math]::Round((($faSpace.total)/$1TB),2)) TB/$([math]::Round($(($faSpace.capacity)/$1TB),2)) TB ($([math]::Round((($faSpace.total)*100)/$($faSpace.capacity),2))% Full)`n"
+    Write-Output "==================================================="
+    Write-Output "`t`t Disconnected Volumes ($($DisconnectedVolumes.Count-1) of $($hash.Count))"
+    Write-Output "==================================================="
+
+    #If the array has a disconnected volume, gather volume space metrics
+    if (($DisconnectedVolumes.Count) -gt 1 ) {
+        foreach ($DisconnectedVolume in $DisconnectedVolumes) {
+            if ($null -ne $DisconnectedVolume) {
+                $VolDetails = Get-PfaVolumeSpaceMetrics -array $FlashArray -VolumeName $DisconnectedVolume
+                $GetVol = Get-PfaVolume -Array $FlashArray -Name $DisconnectedVolume
+                $VolSerial = $GetVol.serial
+                $Space = ($($VolDetails.volumes / $1GB))
+                $Space = [math]::Round($Space, 3)
+                $Total = [math]::Round(($($VolDetails.size / $1TB)), 3)
+                $Reduction = $VolDetails.data_reduction
+                $Reduction = [math]::Round($Reduction, 0)
+                Write-Output "$($DisconnectedVolume) `n`t $($VolSerial) `n`t $($Space) GB Consumed `n`t $($Total) TB Provisioned `n`t $($Reduction):1 Reduction `n" | Format-List
+                $PotentialSpaceSavings = $PotentialSpaceSavings + $($VolDetails.volumes / $1GB)
+            }
+        }
+        Write-Output "Potential space savings for $($faEndPoint) is $([math]::Round($PotentialSpaceSavings,3)) GB."
+    }
+    else {
+        Write-Output "No Disconnected Volumes found."
+    }
+}
+#endregion
+
+#region Get-FlashArraySpace
+Function Get-FlashArraySpace() {
+    <#
+    .SYNOPSIS
+    Retrives the space used and available for a FlashArray.
+    .DESCRIPTION
+    This cmdlet will return various array space metrics for the given FlashArray.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of the FlashArray.
+    .INPUTS
+    None
+    .OUTPUTS
+    Various FlashArray space used and available information.
+    .EXAMPLE
+    Get-FlashArraySpace -EndPoint myArray
+
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+    Get-Sdk1Module
+    #Math values
+    #	[double]$1GB = 1024 * 1024 * 1024
+    [double]$1TB = 1024 * 1024 * 1024 * 1024
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+    $ArraySpace = @()
+    $faSpace = Get-PfaArraySpaceMetrics -Array $FlashArray
+    $faSpace | Select-Object @{name = 'Hostname'; expr = { $_.Hostname } },
+    @{name = 'Percent Used'; expr = { ($faSpace.total / $faSpace.capacity).ToString("P") } },
+    @{name = 'Capacity Used (TB)'; expr = { ([math]::Round([double]($_.Total / $1TB), 2)) } },
+    @{name = 'Capacity Free (TB)'; expr = { ([math]::Round((($faSpace.capacity - $faSpace.total) / $1TB), 2)) } },
+    @{name = 'Volume Space (TB)'; expr = { ([math]::Round([double]($_.Volumes / $1TB), 2)) } },
+    @{name = 'Shared Space (TB)'; expr = { ([math]::Round([double]($_.Shared_Space / $1TB), 2)) } },
+    @{name = 'Snapshot Space (TB)'; expr = { ([math]::Round([double]($_.Snapshots / $1TB), 2)) } },
+    @{name = 'System Space (TB)'; expr = { ([math]::Round([double]($_.System / $1TB), 2)) } },
+    @{name = 'Total Storage (TB)'; expr = { ([math]::Round([double]($_.Capacity / $1TB), 2)) } },
+    @{name = 'Data Reduction'; expr = { [math]::Round($_.Data_Reduction, 2) } },
+    @{name = 'Thin Provisioning'; expr = { [math]::Round($_.Thin_Provisioning * 10, 2) } }
+    $ArraySpace | Format-Table -AutoSize
+}
+#endregion
+
+#region Show-FlashArrayPgroupsConfig
+Function Show-FlashArrayPgroupsConfig() {
+    <#
+    .SYNOPSIS
+    Retrieves Protection Group (PGroup) infromation for the FlashArray.
+    .DESCRIPTION
+    Retrieves Protection Group (PGroup) infromation for the FlashArray.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of the FlashArray.
+    .INPUTS
+    None
+    .OUTPUTS
+    Protection Group information is displayed.
+    .EXAMPLE
+    Show-FlashArraypGroupsConfig -EndPoint myArray
+
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+    Get-Sdk1Module
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+    $ProtectionGroups = Get-PfaProtectionGroups -Array $FlashArray
+    $ErrorActionPreference = "Continue"
+
+    foreach ($ProtectionGroup in $ProtectionGroups) {
+        $RetentionDetails = Get-PfaProtectionGroupRetention -Array $FlashArray -ProtectionGroupName $ProtectionGroup.name
+        $ScheduleDetails = Get-PfaProtectionGroupSchedule -Array $FlashArray -ProtectionGroupName $ProtectionGroup.name
+
+        if ($ScheduleDetails.replicate_enabled -eq "True") {
+            Write-Host "========================================================================================"
+            Write-Host "                 $($ProtectionGroup.name)                               " -ForegroundColor Green
+            Write-Host "========================================================================================"
+            Write-Host "Host Groups: $($ProtectionGroup.hgroups)"
+            Write-Host "Hosts: $($ProtectionGroup.hosts)"
+            Write-Host "Volumes: $($ProtectionGroup.volumes)"
+            Write-Host ""
+            Write-Host "A snapshot is taken and replicated every $($ScheduleDetails.replicate_frequency/60) minutes."
+            Write-Host "$(($RetentionDetails.target_all_for/60)/($ScheduleDetails.replicate_frequency/60)) snapshot(s) are kept on the target for $($RetentionDetails.target_all_for/60) minutes."
+            Write-Host "$($RetentionDetails.target_per_day) additional snapshot(s) are kept for $($RetentionDetails.target_days) more days."
+        }
+        else {
+            Write-Host "=========================================================================================="
+            Write-Host "                $($ProtectionGroup.name)                               " -ForegroundColor Yellow
+            Write-Host "=========================================================================================="
+            Write-Host "Host Groups: $($ProtectionGroup.hgroups)"
+            Write-Host "Hosts: $($ProtectionGroup.hosts)"
+            Write-Host "Volumes: $($ProtectionGroup.volumes)"
+            Write-Host ""
+            Write-Host "$($ProtectionGroup.name) is disabled." -ForegroundColor Yellow
+            Write-Host ""
+        }
+    }
+}
+#endregion
+
+#region Remove-FlashArrayPendingDeletes
+Function Remove-FlashArrayPendingDeletes() {
+    <#
+    .SYNOPSIS
+    Reports on pending FlashArray Volume and Snashots deletions and optionally Eradicates them.
+    .DESCRIPTION
+    This cmdlet will retrun information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of the FlashArray.
+    .INPUTS
+    None
+    .OUTPUTS
+    Volume and volume snapshots awaiting eradication.
+    .EXAMPLE
+    Remove-FlashArrayPendingDelete -EndPoint myArray
+
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+
+    Get-Sdk1Module
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+    $pendingvolumelist = Get-PfaPendingDeleteVolumes -Array $FlashArray
+    $pendingsnaplist = Get-PfaPendingDeleteVolumeSnapshots -Array $FlashArray
+    if (!pendingvolumelist) {
+        Write-Host "No volumes are pending delete."
+    }
+    else {
+    Write-Host "Listing PENDING volumes and snapshots that exist on the array."
+    Write-Host "======================================================================================================================`n"
+    Write-Host "Volumes in PENDING state"
+    foreach ($volume in $pendingvolumelist) {
+        Write-Host " -" $volume.name
+    }
+    }
+    if (!pendingsnaplist) {
+        Write-Host "No snapshots are pending delete."
+        break
+    }
+    else {
+    Write-Host "Snapshots in PENDING state"
+    foreach ($volumesnap in $pendingsnaplist) {
+        Write-Host " -" $volumesnap.name
+    }
+    }
+    $confirmstring = "proceed"
+    Write-Host "Please confirm that you wish to perform an unreversable operation."
+    Write-Host "======================================================================================================================`n"
+    Write-Host "Please type the word $confirmstring to eradicate the pending deleted volumes and snapshots."
+    Write-Host "The action will initiate immediately upon inputting $confirmstring . This operation CANNOT be undone." -fore yellow
+    $user_response = Read-Host "`t"
+    if (($user_response.ToLower() -ne $confirmstring.ToLower())) {
+        Write-Host "Your input was [$user_response]. It was not the word $confirmstring. Exiting."
+        exit
+    }
+    Write-Host "Eradicating PENDING volumes and snapshots."
+    Write-Host "======================================================================================================================`n"
+
+    foreach ($volume in $pendingvolumelist) {
+        Write-Host " -" $volume.name " eradicated."
+        Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $volume.name -Eradicate
+    }
+
+    foreach ($volumesnap in $pendingsnaplist) {
+        Write-Host " -" $volumesnap.name " eradicated"
+        Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $volumesnap.name -Eradicate
+    }
+    Write-Host "Volume and Snapshot pending deletes have been eradicated."
+}
+#endregion
+
+#region Get-FlashArrayConfig
+Function Get-FlashArrayConfig() {
+    <#
+    .SYNOPSIS
+    Retrieves and outputs to a file the configuration of the FlashArray.
+    .DESCRIPTION
+    This cmdlet will run Purity CLI commands to retrive the base configuration of a FlashArray and output it to a file. This file is formatted for the CLI, not necessarily human-readable.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of the FlashArray.
+    .PARAMETER OutFile
+    Optional. The file path and filename that will contain the output. if not specified, the default is the current folder\Array_Config.txt.
+    .PARAMETER ArrayName
+    Optional. The FlashArray name to use in the output. Defaults to $EndPoint.
+    .INPUTS
+    None
+    .OUTPUTS
+    Configuration file.
+    .EXAMPLE
+    Get-FlashArray -EndPoint myArray -ArrayName Array100
+
+    Rerieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.
+
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
+        [Parameter(Mandatory = $False)][string] $OutFile = "Array_Config.txt",
+        [Parameter(Mandatory = $False)][string] $ArrayName
+    )
+    Get-Sdk1Module
+    $GetDate = Get-Date
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $Creds = Get-Credential
+    }
+
+    If (!$ArrayName) {
+        $ArrayName = $EndPoint
+    }
+
+    "==================================================================================" | Out-File -FilePath $OutFile -Append
+    "FlashArray Configuration Export for: $($ArrayName)" | Out-File -FilePath $OutFile -Append
+    "Date: $($GetDate)" | Out-File -FilePath $OutFile -Append
+    "==================================================================================`n" | Out-File -FilePath $OutFile -Append
+    $InvokeCommand_pureconfig_list_object = "pureconfig list --object"
+    $InvokeCommand_pureconfig_list_system = "pureconfig list --system"
+    Write-Host "Retrieving FlashArray OBJECT configuration export (host-pod-volume-hgroup-connection)..."
+    "FlashArray OBJECT configuration export (host-pod-volume-hgroup-connection)..." | Out-File -FilePath $OutFile -Append
+    " " | Out-File -FilePath $OutFile -Append
+    New-PfaCLICommand -EndPoint $EndPoint -Credentials $Creds -CommandText $InvokeCommand_pureconfig_list_object | Out-File -FilePath $OutFile -Append
+    Write-Host "Retrieving FlashArray SYSTEM configuration export (array-network-alert-support)..."
+    "FlashArray SYSTEM configuration export (array-network-alert-support):" | Out-File -FilePath $OutFile -Append
+    " " | Out-File -FilePath $OutFile -Append
+    New-PfaCLICommand -EndPoint $EndPoint -Credentials $Creds -CommandText $InvokeCommand_pureconfig_list_system | Out-File -FilePath $OutFile -Append
+    Write-Host "FlashArray configuration file located in $Outfile." -ForegroundColor Green
+}
+#endregion
+
+#region Get-FlashArrayHierarchy
+Function Get-FlashArrayHierarchy() {
+    <#
+    .SYNOPSIS
+    Displays array hierarchy in relation to hosts and/or volumes.
+    .DESCRIPTION
+    This cmdlet will display the heirachy from a FlashArray of hosts and volumes. The output is to the console in text.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of the FlashArray.
+    .INPUTS
+    None
+    .OUTPUTS
+    FlashArray host and/or volume hierachy.
+    .EXAMPLE
+    Get-FlashArrayHierarchy -EndPoint myArray
+
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+
+    Get-Sdk1Module
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+    $Initiators = Get-PfaHosts -Array $FlashArray
+    $Volumes = Get-PfaVolumes -Array $FlashArray
+    $1GB = 1024 * 1024 * 1024
+    Write-Host ""
+    Write-Host "Please indicate if you would like to see the hierarchy by host." -ForegroundColor Cyan
+    Write-Host "This process will take a couple minutes, but is useful to find disconnected hosts or hosts with no replication group." -ForegroundColor Cyan
+    Write-Host "Otherwise, the hierarchy will be shown at the volume level." -ForegroundColor Cyan
+    Write-Host ""
+    $ByHost = Read-Host -Prompt "Do you want to view hierarchy by individual hosts? (Y/N)"
+
+    Write-Host ""
+    Write-Host "================================================================"
+    Write-Host "                    $EndPoint Hierarchy"
+    Write-Host "================================================================"
+    #If else statement to control hierarchy displayed by host or by volume
+    If ($ByHost -eq "Y" -or $ByHost -eq "y") {
+
+        #Start at host level
+        ForEach ($Initiator in $Initiators) {
+            Write-Host "  [H] $($Initiator.name)"
+            $Volumes = Get-PfaHostVolumeConnections -Array $FlashArray -Name $Initiator.name
+            If (!$Volumes) {
+                Write-Host ' [No volumes connected]' -ForegroundColor Yellow
+            }
+            Else {
+
+                #Start at volume level
+                ForEach ($Volume in $Volumes) {
+
+                    #Reset variables
+                    $Snapshots = Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $Volume.vol
+                    $SnapshotDetails = Get-PfaSnapshotSpaceMetrics -Array $FlashArray -name $Volume.vol
+                    $SpaceConsumed = 0
+
+                    #Change value for snapshot count threshold
+                    If ($Snapshots.Count -eq 0) {
+                        Write-Host " [V]$($Volume.vol)" -ForegroundColor Yellow
+                        Write-Host " There are no associated snapshots with this volume." -ForegroundColor Red
+                    }
+                    Else {
+                        Write-Host " [V]$($Volume.vol)" -ForegroundColor Green
+                    }
+
+                    #Space consumed computation for each volume
+                    ForEach ($SnapshotDetail in $SnapshotDetails) {
+                        $SpaceConsumed = $SpaceConsumed + $SnapshotDetail.total
+                    }
+
+                    #Change value for snapshot count threshold
+                    ForEach ($Snapshot in $Snapshots) {
+                        If ($Snapshots.Count -gt 1) {
+                            Write-Host " [S] $($Snapshot.name)" -ForegroundColor Yellow
+                        }
+                        Else {
+                            Write-Host " [S] $($Snapshot.name)" -ForegroundColor Green
+                        }
+                    }
+
+                    #Display space consumed if snapshot count exceeds threshold
+                    If ($Snapshots.Count -gt 1) {
+                        Write-Host  " There are $($Snapshots.Count) snapshots associated with this volume consuming a total of $([math]::Round($SpaceConsumed/$1GB,2)) GB on the array."
+                    }
+                }
+            }
+        }
+    }
+    #If user does not want hierarchy at host level
+    Else {
+
+        #Start volume level
+        ForEach ($Volume in $Volumes) {
+
+            #Reset variables
+            $Snapshots = Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $Volume.name
+            $SnapshotDetails = Get-PfaSnapshotSpaceMetrics -Array $FlashArray -name $Volume.name
+            $SpaceConsumed = 0
+
+            #Change value for snapshot count threshold
+            If ($Snapshots.Count -eq 0) {
+                Write-Host " [V]$($Volume.name)" -ForegroundColor Yellow
+                Write-Host " There are no associated snapshots with this volume." -ForegroundColor Red
+            }
+            Else {
+                Write-Host " [V]$($Volume.name)" -ForegroundColor Green
+            }
+
+            #Space Consumed computation for each volume
+            ForEach ($SnapshotDetail in $SnapshotDetails) {
+                $SpaceConsumed = $SpaceConsumed + $SnapshotDetail.total
+            }
+
+            #Change value for snapshot count threshold
+            ForEach ($Snapshot in $Snapshots) {
+                If ($Snapshots.Count -gt 1) {
+                    Write-Host " [S] $($Snapshot.name)" -ForegroundColor Yellow
+                }
+                Else {
+                    Write-Host " [S] $($Snapshot.name)" -ForegroundColor Green
+                }
+            }
+
+            #Display space consumed if snapshot count threshold is exceeded
+            If ($Snapshots.Count -gt 1) {
+                Write-Host  "There are $($Snapshots.Count) snapshots associated with this volume consuming a total of $([math]::Round($SpaceConsumed/$1GB,2)) GB on the array."
+            }
+        }
+    }
+}
+#endregion
+
+#region New-FlashArrayCapacityReport
+function New-FlashArrayCapacityReport() {
+    <#
+    .SYNOPSIS
+    Create a formatted report that conatins FlashArray Capatiry Information
+    .DESCRIPTION
+    This cmdlet will retrieve volume and snapshot capacity information from the FlashArray and output it to a formatted report.
+    .PARAMETER EndPoint
+    Required. FQDN or IP address of FlashArray.
+    .PARAMETER OutFile
+    Optional. Full folder path for output report. Default is the current %TEMP% folder.
+    .PARAMETER HTMLFileName
+    Optional. File name of output report. Default is Array_Capacity_Report.html.
+    .PARAMETER VolumeFilter
+    Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).
+    .INPUTS
+    None
+    .OUTPUTS
+    Formatted HTML report containing retrieved data and specified options.
+    .EXAMPLE
+    New-FlashArrayCapacityReport -EndPoint myArray
+
+    Creates a capacity report named myArray_Capacity_Report.html in the current folder.
+
+    .EXAMPLE
+    New-FlashArrayCapacityReport -EndPoint myArray -OutFile C:\temp -HTMLFileName MyArrayReport.html -VolumeFilter 'Volume1*'.
+
+    Creates a capacity report c:\temp\myArrayReport.html that includes volumes that contain the name 'Volume1*'.
+
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint,
+        [Parameter(Mandatory = $False)][string] $OutFile = "$env:Temp",
+        [Parameter(Mandatory = $False)][string] $HTMLFileName = "Array_Capacity_Report.html",
+        [Parameter(Mandatory = $False)][string] $VolumeFilter = "*"
+    )
+
+    # define variables
+    $ReportDateTime = Get-Date -Format d
+    $metadata = [PSCustomObject]@{
+        ReportDate = Get-Date -Format g
+        Source = $env:COMPUTERNAME
+        ScriptPath = $($myInvocation.mycommand).path
+        ScriptVersion = "2.0.0.0"
+        CreatedBy = "$env:USERNAME"
+    }
+
+    Get-Sdk1Module
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+    }
+    else {
+        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+    }
+
+    # populate variables
+    $FlashArraySpaceMetrics = Get-PfaArraySpaceMetrics -Array $FlashArray
+    $FlashArrayConfig = Get-PfaArrayAttributes -Array $FlashArray
+    $FlashArraySnapshots = Get-PfaAllVolumeSnapshots -Array $FlashArray
+
+    $sysCapacity = Convert-Size -ConvertFrom Bytes -ConvertTo TB $FlashArraySpaceMetrics.capacity -Precision 2
+    $sysSnapshotSpace = Convert-Size -ConvertFrom Bytes -ConvertTo MB $FlashArraySpaceMetrics.snapshots -Precision 4
+    $sysVolumeSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.volumes -Precision 2
+    $sysDRR = [system.Math]::Round($FlashArraySpaceMetrics.data_reduction, 1)
+    $sysSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.total -Precision 2
+    $sysSharedSpace = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.shared_space -Precision 0
+    $sysTP = Convert-Size -ConvertFrom Bytes -ConvertTo GB $FlashArraySpaceMetrics.thin_provisioning -Precision 2
+    if ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1) -gt 100) {
+        $sysTotalDRR = ">100:1"
+    }
+    else {
+        $sysTotalDRR = ([system.Math]::Round($FlashArraySpaceMetrics.total_reduction, 1)).toString() + ":1"
+    }
+
+    # zero out varables
     $volumeInfo = $null
-	$provisioned = 0
-	
-	$volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
+    $provisioned = 0
+
+    $volumes = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
     $volumeInfo += "<th>Volume Name</th><th>Volume Size (GB)</th><th>Connection</th><th><center>Protected</center></th><th>DR</th><th>SS</th><th>TP</th><th>WS (GB)</th>"
-	
-	ForEach ($volume in $volumes)
-	{
-		$printVol = $volume.name
-		$volSize = ($volume.size)/1GB
-		$provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $volSize -Precision 4) + $provisioned
-		$dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
-		$datardx = "{0:N2}" -f $dr.data_reduction
-		$dataTP = "{0:N3}" -f $dr.thin_provisioning
-		$WrittenSpace = "{0:N2}" -f (((1-$dr.thin_provisioning)*$dr.total)/1024/1024/1024)
-		if ($dr.shared_space) {
-			$dataSS = "{0:N2}" -f $dr.shared_space
-		} else {
-			$dataSS = "None"
-		}
-		
-		# Does the volume have any snapshots?
-		if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name)) {
-			$protected = "No"
-		} else {
-			$protected = "Yes"
-		}
-        
+
+    ForEach ($volume in $volumes) {
+        $printVol = $volume.name
+        $volSize = ($volume.size) / 1GB
+        $provisioned = (Convert-Size -ConvertFrom GB -ConvertTo TB $volSize -Precision 4) + $provisioned
+        $dr = Get-PfaVolumeSpaceMetrics -Array $FlashArray -VolumeName $volume.name
+        $datardx = "{0:N2}" -f $dr.data_reduction
+        $dataTP = "{0:N3}" -f $dr.thin_provisioning
+        $WrittenSpace = "{0:N2}" -f (((1 - $dr.thin_provisioning) * $dr.total) / 1024 / 1024 / 1024)
+        if ($dr.shared_space) {
+            $dataSS = "{0:N2}" -f $dr.shared_space
+        }
+        else {
+            $dataSS = "None"
+        }
+
+        # Does the volume have any snapshots?
+        if (!(Get-PfaVolumeSnapshots -Array $FlashArray -VolumeName $volume.name)) {
+            $protected = "No"
+        }
+        else {
+            $protected = "Yes"
+        }
+
         if (!(Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host) {
             if (!(Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup) {
                 $hostconnname = "Not Connected"
-            } else {
+            }
+            else {
                 if (((Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup).Count -gt 1) {
                     $hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup[0]
-                } else {
+                }
+                else {
                     $hostconnname = (Get-PfaVolumeHostGroupConnections -Array $FlashArray -VolumeName $volume.name).hgroup
                 }
             }
-        } else {
+        }
+        else {
             $hostconnname = (Get-PfaVolumeHostConnections -Array $FlashArray -VolumeName $volume.name).host
         }
         $volumeInfo += "<tr><td>$("{0:N0}" -f $printVol)</td> <td>$("{0:N0}" -f $volSize)</td><td>$($hostconnname)</td><td><center>$protected</center></td><td>$($datardx)</td><td>$($dataSS)</td><td>$($dataTP)</td><td>$($WrittenSpace)</td></tr>"
-	}
-	
-	$snapshotInfo = $null
-    $snapshots = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
-    $snapshotInfo += "<th>Snapshot Name</th><th>Snapshot Size (GB)</th>"				
-    ForEach ($snapshot in $snapshots) {
-    	$printSnapshot = $snapshot.name 
-		$snapshotSize = ($snapshot.size)/1GB
-		$snapshotInfo += "<tr><td>$("{0:N0}" -f $printSnapshot)</td> <td>$("{0:N0}" -f $snapshotSize)</td></tr>"
     }
 
-# Create HTML/CSS report format
-#region HTML
-$HTMLHeader = @"
+    $snapshotInfo = $null
+    $snapshots = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.name -like $VolumeFilter }
+    $snapshotInfo += "<th>Snapshot Name</th><th>Snapshot Size (GB)</th>"
+    ForEach ($snapshot in $snapshots) {
+        $printSnapshot = $snapshot.name
+        $snapshotSize = ($snapshot.size) / 1GB
+        $snapshotInfo += "<tr><td>$("{0:N0}" -f $printSnapshot)</td> <td>$("{0:N0}" -f $snapshotSize)</td></tr>"
+    }
+
+    # Create HTML/CSS report format
+    #region HTML
+    $HTMLHeader = @"
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
-<html><head><title>Pure Storage FlashArray Capacity Report</title>
+<html>
+<head>
+<!--
+$(($metadata | Out-String).Trim())
+-->
+<title>Pure Storage FlashArray Capacity Report</title>
 <style type="text/css">
 <!--
 body {
-    font-family: Verdana, Geneva, Arial, Helvetica, Sans-Serif;
+    font-family: Proxima Nova, Verdana, Geneva, Arial, Helvetica, Sans-Serif;
 }
 table {
 	border-collapse: collapse;
@@ -226,15 +1275,15 @@ table {
     border-bottom: 1px grey solid;
     border-left: 1px grey solid;
 	text-align: left;
-	font: 14pt Verdana, Geneva, Arial, Helvetica, Sans-Serif;
+	font: 12pt Proxima Nova, Verdana, Geneva, Arial, Helvetica, Sans-Serif;
 	color: black;
 	margin-bottom: 10px;
-    margin-left: 20px; 
+    margin-left: 20px;
 }
 
 table td {
     vertical-align: top;
-	font-size: 14px;
+	font-size: 12px;
 	padding-left: 2px;
 	padding-right: 2px;
 	text-align: left;
@@ -257,8 +1306,8 @@ table th {
 }
 
 h2 {
-    clear: both; 
-    font-size: 130%; 
+    clear: both;
+    font-size: 130%;
 }
 
 h3 {
@@ -269,17 +1318,17 @@ h3 {
 }
 
 protected {
- 	font-weight: bold;
+    font-weight: bold;
 	text-align: left;
 }
 
-p { 
-    margin-left: 20px; 
-    font-size: 12px; 
+p {
+    margin-left: 20px;
+    font-size: 12px;
 }
 
-hr { 
-    background-color: #FE5000 
+hr {
+    background-color: #FE5000
 }
 
 table.list {
@@ -298,45 +1347,45 @@ table.list td:nth-child(1) {
 	text-align: left;
 }
 
-table.list td:nth-child(2) { 
-    padding-left: 2px; 
+table.list td:nth-child(2) {
+    padding-left: 2px;
 	border-right: 1px grey solid;
 	text-align: left;
 }
 
-table tr:nth-child(even) td:nth-child(even) { 
-    background: #F8D2CD; 
+table tr:nth-child(even) td:nth-child(even) {
+    background: #F8D2CD;
 }
 
 table tr:nth-child(odd) td:nth-child(odd) {
-    background: #FCEAE8; 
+    background: #FCEAE8;
 }
 
-table tr:nth-child(even) td:nth-child(odd) { 
-    background: #F8D2CD; 
+table tr:nth-child(even) td:nth-child(odd) {
+    background: #F8D2CD;
 }
 
-table tr:nth-child(odd) td:nth-child(even) { 
-    background: #FCEAE8; 
+table tr:nth-child(odd) td:nth-child(even) {
+    background: #FCEAE8;
 }
 
-div.column { 
-    width: 400px; 
-    float: left; 
+div.column {
+    width: 400px;
+    float: left;
 }
 
-div.first { 
-    padding-right: 2px; 
-    border-right: 1px grey solid; 
+div.first {
+    padding-right: 2px;
+    border-right: 1px grey solid;
 }
 
-div.second { 
-    margin-left: 30px; 
+div.second {
+    margin-left: 30px;
 }
 
 div.relative {
     position: relative;
-} 
+}
 
 div.absolute {
     position: absolute;
@@ -344,7 +1393,7 @@ div.absolute {
     left: 350px;
     width: 200px;
     height: 75px;
-	font-size: 20px;
+	font-size: 14px;
 	font-weight: bold;
 }
 
@@ -354,7 +1403,7 @@ div.time {
     left: 0px;
     width: 600px;
     height: 75px;
-	font-size: 18px;
+	font-size: 12px;
 	font-weight: normal;
 }
 
@@ -970,7 +2019,7 @@ UQAAAAAAAAAAgB6YCMEIDvIqfa634/qPF6LBgeVk5BNhAAAAAAAAAAAA6Lb/X4ABALB1eFG6MQyjAAAA
 AElFTkSuQmCC">
 
 <div id="report">
-<p><div class='absolute'>Capacity Report<br><div class='time'>$(Get-Date -Format U)</div></div>
+<p><div class='absolute'>FlashArray Capacity Report<br><div class='time'>$(Get-Date -Format U)</div></div>
 <h3>FlashArray Information</h3>
 <table class="list">
 <tr>
@@ -1022,169 +2071,189 @@ AElFTkSuQmCC">
 <td> $("{0:N2}" -f $provisioned) T</td>
 </tr>
 </table>
-<!--<img style="max-width: 1300px; max-height: 740px;" src="data:image/png;base64,$Script:PiechartImgSrc">-->
 <h3>Volume Information</h3>
 <p>Volumes(s), Sizes (GB) and Data Reduction columes include DR (Data Reduction), SS (Shared Space)<br>and TP (Thin Provisioning) and WS (Written Space) for $($FlashArrayConfig.array_name) listed below.</p>
 <table class="list">$volumeInfo</table>
 <h3>FlashRecover SnapShot Information</h3>
 <p>Snapshot(s) and Sizes (GB) for $($FlashArrayConfig.array_name) listed below.</p>
 <table class="list">$snapshotInfo</table>
-<br></br>	
+<br></br>
 "@
-	# Add the current System HTML Report into the final HTML Report body
-	$HTMLMiddle += $CurrentSystemHTML
+    # Add the current System HTML Report into the final HTML Report body
+    $HTMLMiddle += $CurrentSystemHTML
 
-	# Assemble the closing HTML for our report.
-	$HTMLEnd = @"
+    # Assemble the closing HTML for our report.
+    $HTMLEnd = @"
 </div>
 <hr noshade size=3 width="100%">
+$ReportDateTime
 </body>
 </html>
 "@
-	# Assemble the final report from all our HTML sections
-	$HTMLmessage = $HTMLHeader + $HTMLMiddle + $HTMLEnd
-	# Save the report out to a file in the current path$
-	$HTMLmessage | Out-File ($OutFilePath + "\" + $HTMLFileName)
+    # Assemble the final report from all our HTML sections
+    $HTMLmessage = $HTMLHeader + $HTMLMiddle + $HTMLEnd
+    # Save the report out to a file in the current path$
+    $HTMLmessage | Out-File ($OutFile + "\" + $HTMLFileName)
+
+    Write-Host " "
+    Write-Host "The report file is located in the $OutFile folder." -ForegroundColor Green
 }
 #endregion
 
-#region TEST-WINDOWSBESTPRACTICES
-<#
-.SYNOPSIS
-	Test-WindowsBestPractices is a cmdlet that checks for all of Pure Storages Best Practices for Windows Server 2012, 2012 R2, 2016 and 2019.
-.DESCRIPTION
-	Pure Storage requires specific values to be configured for high availability of connectivity to the Pure Storage FlashArray.
-.EXAMPLE
-	PS C:\> Test-WindowsBestPractices
-	Screen output will show enabled, passes, fails. 
-	(UNDER DEVELOPMENT) Output to a file. 
-.INPUTS
-	None
-.OUTPUTS
-	Windows PowerShell Console.
-#>
+#### END FLASHARRAY FUNCTIONS
+
+#### WINDOWS FUNCTIONS
+
+#region Test-WindowsBestPractices
 function Test-WindowsBestPractices() {
-	<#[CmdletBinding()]
-	Param (
-		[Parameter(Mandatory = $True)]
-		[ValidateNotNullOrEmpty()]
-		[string]$OutputReportPath
-	)
-	#>
-    $Report = @()
+    <#
+    .SYNOPSIS
+    Cmdlet used to retrieve hosts information, test and optionally configure MPIO (FC) and/or iSCSI settings in a Windows OS against FlashArray Best Practices.
+    .DESCRIPTION
+    This cmdlet will retrieve the curretn host infromation, and iterate through several tests around MPIO (FC) and iSCSI OS settings and hardware, indicate whether they are adhearing to Pure Storage FlashArray Best Practices, and offer to alter the settings if applicable.
+    All tests can be bypassed with a negative user response when prompted, or simply by using Ctrl-C to break the process.
+    .PARAMETER EnableIscsiTests
+    Optional. If this parameter is present, the cmdlet will run tests for iSCSI settings.
+    .PARAMETER OutFile
+    Optional. Specify the full filepath (ex. c:\mylog.log) for logging. If not specified, the default file of %TMP%\Test-WindowsBestPractices.log will be used.
+    .INPUTS
+    Optional parameter for iSCSI testing.
+    .OUTPUTS
+    Output status and best practice options for every test.
+    .EXAMPLE
+    Test-WindowsBestPractices
 
-	Clear-Host
-	Write-Host '============================================================'
-	Write-Host 'Pure Storage Windows Server Best Practice Analyzer'
-	Write-Host '============================================================'
-    <#Write-Host ''
+    Run the cmdlet against the local machine running the MPIO tests and the log is located in the %TMP%\Test-WindowsBestPractices.log file.
+
+    .EXAMPLE
+    Test-WindowsZBestPractices -EnableIscsiTests -OutFile "c:\temp\mylog.log"
+
+    Run the cmdlet against the local machine, run the additional iSCSI tests, and create the log file at c:\temp\mylog.log.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $false)] [string] $OutFile = "$env:Temp\Test-WindowsBestPractices.log",
+        [Switch]$EnableIscsiTests
+    )
+    function Write-Log {
+        [CmdletBinding()]
+        param(
+            [Parameter()][ValidateNotNullOrEmpty()][string]$Message,
+            [Parameter()][ValidateNotNullOrEmpty()][ValidateSet("Information", "Passed", "Warning", "Failed")][string]$Severity = "Information"
+        )
+        [pscustomobject]@{
+            Time     = (Get-Date -f g)
+            Message  = $Message
+            Severity = $Severity
+        } | Out-File -FilePath $OutFile -Append
+    }
+    Write-Log -Message 'Pure Storage FlashArray Windows Server Best Practices Analyzer v2.0.0.0' -Severity Information
+    Clear-Host
+    Write-Host '             __________________________'
+    Write-Host '            /++++++++++++++++++++++++++\'
+    Write-Host '           /++++++++++++++++++++++++++++\'
+    Write-Host '          /++++++++++++++++++++++++++++++\'
+    Write-Host '         /++++++++++++++++++++++++++++++++\'
+    Write-Host '        /++++++++++++++++++++++++++++++++++\'
+    Write-Host '       /++++++++++++/----------\++++++++++++\'
+    Write-Host '      /++++++++++++/            \++++++++++++\'
+    Write-Host '     /++++++++++++/              \++++++++++++\'
+    Write-Host '    /++++++++++++/                \++++++++++++\'
+    Write-Host '   /++++++++++++/                  \++++++++++++\'
+    Write-Host '   \++++++++++++\                  /++++++++++++/'
+    Write-Host '    \++++++++++++\                /++++++++++++/'
+    Write-Host '     \++++++++++++\              /++++++++++++/'
+    Write-Host '      \++++++++++++\            /++++++++++++/'
+    Write-Host '       \++++++++++++\          /++++++++++++/'
+    Write-Host '        \++++++++++++\'
+    Write-Host '         \++++++++++++\'
+    Write-Host '          \++++++++++++\'
+    Write-Host '           \++++++++++++\'
+    Write-Host '            \------------\'
+    Write-Host 'Pure Storage FlashArray Windows Server Best Practices Analyzer v2.0.0.0'
+    Write-Host '------------------------------------------------------------------------'
+    Write-Host ''
+    Write-Host ''
     Write-Host '========================================='
-    Write-Host 'Report Generation'
+    Write-Host 'Host Information'
     Write-Host '========================================='
-
-    if ($OutputReportPath -ne $null) {
-
-        if (!(Test-Path $OutputReportPath)) {
-            Write-Host "WARNING" -ForegroundColor Yellow -NoNewline 
-            Write-Host ": OutputReportPath path does not exist."
-            $resp = Read-Host "Would you like to create the path? Y/N"
-            if ($resp.ToUpper() -eq 'Y') {
-                New-Item -Path $OutputReportPath -ItemType Directory
-                "This is a test." | Out-File -FilePath "$OutputReportPath\PureStorage-BestPracticesReport.txt"  
-                Write-Host "Pure Storage Best Practices Report will be created at $OutputReportPath."
-            } else {
-                Write-Host "Pure Storage Best Practices Report will be created at $OutputReportPath."
-            }
-        } else {
-            Write-Host "Pure Storage Best Practices Report will be created at $OutputReportPath."
-            $test = "This is a test." | Out-File -FilePath "$OutputReportPath\PureStorage-BestPracticesReport.txt"  
+    $compinfo = Get-SilComputer | Out-String -Stream
+    $compinfo | Out-File -FilePath $OutFile -Append
+    $compinfo
+    Write-Log -Message "Successfully retrieved computer properties. Continuing..." -Severity Information
+    Write-Host ''
+    Write-Host '========================================='
+    Write-Host 'Multipath-IO Verificaton'
+    Write-Host '========================================='
+    # Multipath-IO
+    if ((Get-WindowsFeature -Name 'Multipath-IO').InstallState -eq 'Available') {
+        Write-Host "FAILED" -ForegroundColor Red -NoNewline
+        Write-Host ": Multipath-IO Windows feature is not installed. This feature can be installed by this cmdlet, but a reboot of the server will be required, and the you must re-run the cmdlet again."
+        Write-Log -Message 'Multipath-IO Windows feature is not installed.' -Severity Failed
+        $resp = Read-Host "Would you like to install this feature? (***Reboot Required) Y/N"
+        if ($resp.ToUpper() -eq 'Y') {
+            Add-WindowsFeature -Name Multipath-IO
+            Write-Log -Message 'Multipath-IO Windows feature was installed per user request. Continuing...' -Severity Passed
+        }
+        else {
+            Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+            Write-Host ": You have chosen not to install the Multipath-IO feature via this cmdlet. Please add this feature manually and re-run this cmdlet."
+            Write-Log -Message 'Multipath-IO Windows feature not installed per user request. Exiting.' -Severity Warning
+            exit
         }
     }
-    #>
-    
-    Write-Host ''
-    Write-Host '========================================='
-	Write-Host 'Host Information'
-    Write-Host '========================================='
-	Get-SilComputer	
-	Write-Host ''
-    Write-Host '========================================='
-	Write-Host 'Multipath-IO Verificaton'
-    Write-Host '========================================='
-	if (!(Get-WindowsFeature -Name 'Multipath-IO').InstalledStatus -eq 'Installed') {
-	    Write-Host "PASS" -ForegroundColor Green -NoNewline
-	    Write-Host ": Multipath-IO is installed."
-	} else {
-        Write-Host "FAIL" -ForegroundColor Red -NoNewline
-        Write-Host ": Multipath-IO Windows feature not installed."
-		$resp = Read-Host "Would you like to install this feature? Y/N"
-		if ($resp.ToUpper() -eq 'Y') {
-			Add-WindowsFeature -Name Multipath-IO
-		} else {
-            Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-			Write-Host ": You have chosen not to install the Multipath-IO Windows feature. Please add this feature manually using Add-WindowsFeature -Name Mulitpath-IO and re-run Test-WindowsBestPractices."
-			break
-		}
-	}
-	
-    Write-Host ''
-    Write-Host '========================================='
-    Write-Host 'Mulitpath-IO Hardware Verification'
-    Write-Host '========================================='
-    Get-MPIOAvailableHW
+    else {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": The Multipath-IO feature is installed."
+        Write-Log -Message 'Multipath-IO Windows feature is installed. Continuing...' -Severity Passed
+    }
 
-	$DSMs = Get-MPIOAvailableHW
-	ForEach ($DSM in $DSMs) {
-		if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
+    Write-Host ''
+    Write-Host '========================================='
+    Write-Host 'Multipath-IO Hardware Verification'
+    Write-Host '========================================='
+    $MPIOHardware = Get-MPIOAvailableHW
+    $MPIOHardware | Out-File -FilePath $OutFile -Append
+    Write-Log -Message "Successfully retrieved MPIO Hardware. Continuing..." -Severity Information
+    $MPIOHardware
+    $DSMs = Get-MPIOAvailableHW
+    ForEach ($DSM in $DSMs) {
+        if ((($DSM).VendorId.Trim()) -eq 'PURE' -and (($DSM).ProductId.Trim()) -eq 'FlashArray') {
             Write-Host "PASSED" -ForegroundColor Green -NoNewline
-            Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.`n`r"
-		} else {
-	        Write-Host "FAILED" -ForegroundColor Red -NoNewline
-            Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for Pure Storage FlashArray.`n`r"
+            Write-Host ": Microsoft Device Specific Module (MSDSM) is configured for $($DSM.ProductID).`n`r"
+            Write-Log -Message "Microsoft Device Specific Module (MSDSM) is configured for $($DSM.ProductID).`n`r. Continuing..." -Severity Passed
         }
-	}
+        else {
+            Write-Host "FAILED" -ForegroundColor Red -NoNewline
+            Write-Host ": Microsoft Device Specific Module (MSDSM) is not configured for $($DSM.ProductID).`n`r"
+            Write-Log -Message "Microsoft Device Specific Module (MSDSM) is not configured for $($DSM.ProductID).`n`r. Continuing anyway..." -Severity Failed
+        }
+    }
 
     Write-Host ''
     Write-Host '-----------------------------------------'
     Write-Host 'Current MPIO Settings'
     Write-Host '-----------------------------------------'
 
-	<# Get-MPIOSetting Output with Best Practices
-	PS C:\> Get-MPIOSetting
-
-	PathVerificationState     : Disabled
-	PathVerificationPeriod    : 30
-	PDORemovePeriod           : 30
-	RetryCount                : 3
-	RetryInterval             : 1
-	UseCustomPathRecoveryTime : Enabled
-	CustomPathRecoveryTime    : 20
-	DiskTimeoutValue          : 60
-	#>
-    $MPIOSettings = $null			
+    $MPIOSettings = $null
     $MPIOSetting = $null
+    Write-Log -Message "Retrieving MPIO settings. Continuing..." -Severity Information
     $MPIOSettings = Get-MPIOSetting | Out-String -Stream
-    $MPIOSettings = $MPIOSettings.Replace(" ","") 
+    $MPIOSettings = $MPIOSettings.Replace(" ", "")
     $MPIOSettings | Out-Null
+    $MPIOSettings | Out-File -FilePath $OutFile -Append
+    Write-Log -Message "Successfully retrieved MPIO Settings. Continuing..." -Severity Information
 
     ForEach ($MPIOSetting in $MPIOSettings) {
         $MPIOSetting.Split(':')[0]
         $MPIOSetting.Split(':')[1]
         switch ( $($MPIOSetting.Split(':')[0])) {
-            'PathVerificationState'     { $PathVerificationState = $($MPIOSetting.Split(':')[1]) }
-            'PDORemovePeriod'           { $PDORemovePeriod = $($MPIOSetting.Split(':')[1]) }
+            'PathVerificationState' { $PathVerificationState = $($MPIOSetting.Split(':')[1]) }
+            'PDORemovePeriod' { $PDORemovePeriod = $($MPIOSetting.Split(':')[1]) }
             'UseCustomPathRecoveryTime' { $UseCustomPathRecoveryTime = $($MPIOSetting.Split(':')[1]) }
-            'CustomPathRecoveryTime'    { $CustomPathRecoveryTime = $($MPIOSetting.Split(':')[1]) }
-            'DiskTimeoutValue'          { $DiskTimeOutValue = $($MPIOSetting.Split(':')[1]) }
+            'CustomPathRecoveryTime' { $CustomPathRecoveryTime = $($MPIOSetting.Split(':')[1]) }
+            'DiskTimeoutValue' { $DiskTimeOutValue = $($MPIOSetting.Split(':')[1]) }
         }
-    <#
-        # --- DEBUG ---
-        "PathVerificationState: $PathVerificationState"
-        "PDORemovePeriod: $PDORemovePeriod"
-        "UseCustomPathRecoveryTime: $UseCustomPathRecoveryTime"
-        "CustomPathRecoveryTime: $CustomPathRecoveryTime"
-        "DiskTimeoutValue: $DiskTimeOutValue`n`r"
-    #>
     }
 
     Write-Host ''
@@ -1192,281 +2261,432 @@ function Test-WindowsBestPractices() {
     Write-Host 'MPIO Settings Verification'
     Write-Host '========================================='
 
-    if($PathVerificationState -eq 'Disabled') {
-	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
-	    Write-Host ": PathVerificationState is $($PathVerificationState)."
-	    $resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled? Y/N"
-	    if ($resp.ToUpper() -eq 'Y') {
-		    Set-MPIOSetting -NewPathVerificationState Enabled
-	    } else {
-		    Write-Host "WARNING" -ForegroundColor Yellow
-            Write-Host ": Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues." 
-	    }
-    } else {
-	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
-	    Write-Host ": PathVerificationState is Enabled. No action required."
+    # PathVerificationState
+    if ($PathVerificationState -eq 'Disabled') {
+        Write-Host "FAILED" -ForegroundColor Red -NoNewline
+        Write-Host ": PathVerificationState is $($PathVerificationState)."
+        Write-Log -Message "PathVerificationState is $($PathVerificationState)." -Severity Failed
+        $resp = Read-Host "REQUIRED ACTION: Set the PathVerificationState to Enabled? Y/N"
+        if ($resp.ToUpper() -eq 'Y') {
+            Set-MPIOSetting -NewPathVerificationState Enabled
+            Write-Log -Message "PathVerificationState is now $($PathVerificationState) per to user request." -Severity Information
+        }
+        else {
+            Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues."
+            Write-Log -Message "PathVerificationState $($PathVerificationState) was not altered due to user request." -Severity Warning
+        }
+    }
+    else {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": PathVerificationState has a value of Enabled. No action required."
+        Write-Log -Message "PathVerificationState has a value of Enabled. No action required." -Severity Passed
     }
 
-    if($PDORemovePeriod -ne '30') {
-	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
-	    Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
-	    $resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to 30? Y/N"
-	    if ($resp.ToUpper() -eq 'Y') {
-		    Set-MPIOSetting -NewPDORemovePeriod 30
-	    } else {
-	        Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
-	        Write-Host ": Not changing the PathVerificationState to Enabled could cause unexpected path recovery issues"
-	    }
-    } else {
-	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
-	    Write-Host ": PDORemovePeriod is set to 30. No action required."
+    # PDORemovalPeriod
+    # Need to test for Azure VM. If Azure VM, use PDORemovalPeriod=120. If not Azure VM, use PDORemovePeriod=30.
+    try {
+        $StatusCode = wget -TimeoutSec 3 -Headers @{"Metadata" = "true" } -Uri "http://169.254.169.254/metadata/instance/compute?api-version=2021-01-01" | ForEach-Object { $_.StatusCode }
     }
-
-    if($UseCustomPathRecoveryTime -eq 'Disabled') {
-	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
-	    Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
-	    $resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled? Y/N"
-	    if ($resp.ToUpper() -eq 'Y') {
-		    Set-MPIOSetting -CustomPathRecovery Enabled
-	    } else {
-		    Write-Host "WARNING" -ForegroundColor Yellow
+    catch {}
+    if ($StatusCode -eq '200') {
+        $b = Invoke-RestMethod -Headers @{"Metadata" = "true" } -Method GET -Proxy $Null -Uri "http://169.254.169.254/metadata/instance/compute?api-version=2021-01-01&format=json" | Select-Object azEnvironment
+        if ($b.azEnvironment -like "Azure*") {
+            Write-Log -Message "This is an Azure Vitual Machine. The PDORemovalPeriod is set differently than others." -Severity Information
+            if ($PDORemovePeriod -ne '120') {
+                Write-Host "FAILED" -ForegroundColor Red -NoNewline
+                Write-Host ": PDORemovePeriod for this Azure VM is set to $($PDORemovePeriod)."
+                Write-Log -Message "PDORemovePeriod for this Azure VM is set to $($PDORemovePeriod)." -Severity Failed
+                $resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to a value of 120? Y/N"
+                if ($resp.ToUpper() -eq 'Y') {
+                    Set-MPIOSetting -NewPDORemovePeriod 120
+                    Write-Log -Message ": PDORemovePeriod for this Azure VM is set to $($PDORemovePeriod) per user request." -Severity Information
+                }
+                else {
+                    Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+                    Write-Host ": Not changing the PDORemovePeriod to 120 for an Azure VM could cause unexpected path recovery issues."
+                    Write-Log -Message "Not changing the PDORemovePeriod to 120 for an Azure VM could cause unexpected path recovery issues." -Severity Warning
+                }
+                else {
+                    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+                    Write-Host ": PDORemovePeriod is set to a value of 120 for this Azure VM. No action required."
+                    Write-Log -Message "PDORemovePeriod is set to a value of 120 for this Azure VM. No action required." -Severity Passed
+                }
+            }
+        }
+        else {
+            if ($PDORemovePeriod -ne '30') {
+                Write-Host "FAILED" -ForegroundColor Red -NoNewline
+                Write-Host ": PDORemovePeriod is set to $($PDORemovePeriod)."
+                Write-Log -Message "PDORemovePeriod is set to $($PDORemovePeriod)." -Severity Failed
+                $resp = Read-Host "REQUIRED ACTION: Set the PDORemovePeriod to a value of 30? Y/N"
+                if ($resp.ToUpper() -eq 'Y') {
+                    Set-MPIOSetting -NewPDORemovePeriod 30
+                    Write-Log -Message "PDORemovePeriod is set to $($PDORemovePeriod) per user request." -Severity Information
+                }
+                else {
+                    Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+                    Write-Host ": Not changing the PDORemovePeriod to 30 could cause unexpected path recovery issues."
+                    Write-Log -Message "Not changing the PDORemovePeriod to 30 could cause unexpected path recovery issues." -Severity Warning
+                }
+                else {
+                    Write-Host "PASSED" -ForegroundColor Green -NoNewline
+                    Write-Host ": PDORemovePeriod is set to a value of 30. No action required."
+                    Write-Log -Message "PDORemovePeriod is set to a value of 30. No action required." -Severity Passed
+                }
+            }
+        }
+    }
+    # PathRecoveryTime
+    if ($UseCustomPathRecoveryTime -eq 'Disabled') {
+        Write-Host "FAILED" -ForegroundColor Red -NoNewline
+        Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)."
+        Write-Log -Message "UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime)." -Severity Failed
+        $resp = Read-Host "REQUIRED ACTION: Set the UseCustomPathRecoveryTime to Enabled? Y/N"
+        if ($resp.ToUpper() -eq 'Y') {
+            Set-MPIOSetting -CustomPathRecovery Enabled
+            Write-Log -Message "UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime) per user request." -Severity Information
+        }
+        else {
+            Write-Host "WARNING" -ForegroundColor Yellow
             Write-Host ": Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues."
-	    }
-    } else {
-	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
-	    #Write-Host ": UseCustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime). No action required."
-	    Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
+            Write-Log -Message "Not changing the UseCustomPathRecoveryTime to Enabled could cause unexpected path recovery issues." -Severity Warning
+        }
+    }
+    else {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": UseCustomPathRecoveryTime is set to Enabled. No action required."
+        Write-Log -Message "UseCustomPathRecoveryTime is set to Enabled. No action required." -Severity Passed
     }
 
-    if($CustomPathRecoveryTime -ne '20') {
-	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
-	    Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
-	    $resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to 20? Y/N"
-	    if ($resp.ToUpper() -eq 'Y') {
-		    Set-MPIOSetting -NewPathRecoveryInterval 20
-	    } else {
-		    Write-Host "WARNING" -ForegroundColor Yellow
-            Write-Host ": Not changing the CustomPathRecoveryTime to 20 could cause unexpected path recovery issues."
-	    }
-    } else {
-	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
-	    Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
+    if ($CustomPathRecoveryTime -ne '20') {
+        Write-Host "FAILED" -ForegroundColor Red -NoNewline
+        Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)."
+        Write-Log -Message "CustomPathRecoveryTime is set to $($CustomPathRecoveryTime)." -Severity Failed
+        $resp = Read-Host "REQUIRED ACTION: Set the CustomPathRecoveryTime to a value of 20? Y/N"
+        if ($resp.ToUpper() -eq 'Y') {
+            Set-MPIOSetting -NewPathRecoveryInterval 20
+            Write-Log -Message "CustomPathRecoveryTime is set to $($UseCustomPathRecoveryTime) per user request." -Severity Information
+        }
+        else {
+            Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the CustomPathRecoveryTime to a value of 20 could cause unexpected path recovery issues."
+            Write-Log -Message "Not changing the CustomPathRecoveryTime to a value of 20 could cause unexpected path recovery issues." -Severity Warning
+        }
+    }
+    else {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required."
+        Write-Log -Message "CustomPathRecoveryTime is set to $($CustomPathRecoveryTime). No action required." -Severity Passed
     }
 
-    if($DiskTimeOutValue -ne '60') {
-	    Write-Host "FAILED" -ForegroundColor Red -NoNewline
-	    Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
-	    $resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to 60? Y/N"
-	    if ($resp.ToUpper() -eq 'Y') {
-		    Set-MPIOSetting -NewDiskTimeout 60
-	    } else {
-		    Write-Host "WARNING" -ForegroundColor Yellow
-            Write-Host ": Not changing the DiskTimeOutValue to 60 could cause unexpected path recovery issues."
-	    }
-    } else {
-	    Write-Host "PASSED" -ForegroundColor Green -NoNewline
-	    Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
+    # DiskTimeOutValue
+    if ($DiskTimeOutValue -ne '60') {
+        Write-Host "FAILED" -ForegroundColor Red -NoNewline
+        Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue)."
+        Write-Log -Message "DiskTimeOutValue is set to $($DiskTimeOutValue)." -Severity Failed
+        $resp = Read-Host "REQUIRED ACTION: Set the DiskTimeOutValue to a value of 60? Y/N"
+        if ($resp.ToUpper() -eq 'Y') {
+            Set-MPIOSetting -NewDiskTimeout 60
+            Write-Log -Message "DiskTimeOutValue is set to $($DiskTimeOutValue) per user request." -Severity Information
+        }
+        else {
+            Write-Host "WARNING" -ForegroundColor Yellow
+            Write-Host ": Not changing the DiskTimeOutValue to a value of 60 could cause unexpected path recovery issues."
+            Write-Log -Message "Not changing the DiskTimeOutValue to a value of 60 could cause unexpected path recovery issues." -Severity Warning
+        }
+    }
+    else {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": DiskTimeOutValue is set to $($DiskTimeOutValue). No action required."
+        Write-Log -Message "DiskTimeOutValue is set to $($DiskTimeOutValue). No action required." -Severity Passed
     }
 
     Write-Host ''
     Write-Host '========================================='
     Write-Host 'TRIM/UNMAP Verification'
     Write-Host '========================================='
-	$DisableDeleteNotification = (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification')
-	if ($DisableDeleteNotification.DisableDeleteNotification -eq 0) {
-	   Write-Host "PASSED" -ForegroundColor Green -NoNewline
-	   Write-Host ": Delete Notification Enabled"
-	} else {
-		Write-Host "WARNING" -ForegroundColor Yellow -NoNewline 
-		Write-Host ": Delete Notification Disabled. Pure Storage Best Practice is to enable delete notifications."
-	}
-}
-
-<# CUSTOMER SUGGESTION - QUAD GRAPHICS
-Set-MPIOSetting -NewPDORemovePeriod 30 -NewDiskTimeout 60 -CustomPathRecovery Enabled -NewPathRecoveryInterval 20 -NewPathVerificationState Enabled
-
-Set-MSDSMGlobalDefaultLoadBalancePolicy -Policy LQD
-$puredisks = Get-PhysicalDisk | where FriendlyName -match "PURE"
-foreach ($puredisk in $puredisks) {
-	$subtract = "0"    # set to 0 if numbers match in the test above.
-	$id = (($ssd.DeviceId) -$subtract).ToString()
-	# Set Policy to Least Queue Depth = 4
-	start-process "c:\windows\system32\mpclaim.exe" -ArgumentList "-l -d $id 4" -Wait
-}
-#>
-#endregion
-
-#region GET-WINDOWSPOWERSCHEME
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-WindowsPowerScheme() {
-	[CmdletBinding()]
-	Param (
-		[Parameter(Mandatory = $True)]
-		[ValidateNotNullOrEmpty()]
-		[string]$ComputerName
-	)
-	
-	try
-	{
-		$PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
-		Write-Warning $ComputerName 'is set to' $PowerScheme.ElementName
-	}
-	catch
-	{
-		
-	}
-}
-#endregion
-
-#region OPEN-CODEPURESTORAGE
-<#
-.SYNOPSIS
-	Short description
-.DESCRIPTION
-	Long description
-.EXAMPLE
-	PS C:\> <example usage>
-	Explanation of what the example does
-.INPUTS
-	Inputs (if any)
-.OUTPUTS
-	Output (if any)
-.NOTES
-	General notes
-#>
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Open-CodePureStorage {
-    try
-    {
-        $link = 'http://code.purestorage.com'
-        [System.Diagnostics.Process]::Start($link)
+    # DisableDeleteNotification
+    $DisableDeleteNotification = (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\FileSystem' -Name 'DisableDeleteNotification')
+    if ($DisableDeleteNotification.DisableDeleteNotification -eq 0) {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": Delete Notification is Enabled"
+        Write-Log -Message "Delete Notification is Enabled. No action required." -Severity Passed
     }
-    catch
-    {
-	
+    else {
+        Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+        Write-Host ": Delete Notification is Disabled. Pure Storage Best Practice is to enable delete notifications."
+        Write-Log -Message "Delete Notification is Disabled. Pure Storage Best Practice is to enable delete notifications." -Severity Warning
+    }
+    Write-Host " "
+    Write-Host "MPIO settings tests complete. Continuing..." -ForegroundColor Green
+    Write-Log -Message "MPIO settings tests complete. Continuing..." -Severity Information
+    # iSCSI tests
+    if ($EnableIscsiTests) {
+        Write-Host ''
+        Write-Host '========================================='
+        Write-Host 'iSCSI Settings Verification'
+        Write-Host '========================================='
+        Write-Log -Message "iSCSI testing enabled. Continuing..." -Severity Information
+        $AdapterNames = @()
+        Write-Host "All available adapters: "
+        Write-Host " "
+        $adapters = Get-NetAdapter | Sort-Object Name | Format-Table -Property "Name", "InterfaceDescription", "MacAddress", "Status"
+        $adapters | Out-File -FilePath $OutFile -Append
+        $adapters
+        Write-Host " "
+        $AdapterNames = Read-Host "Please enter all iSCSI adapter names to be tested. Use a comma to seperate the names - ie. NIC1,NIC2,NIC3"
+        $AdapterNames = $AdapterNames.Split(',')
+        Write-Host " "
+        Write-Host "Adapter names being configured: "
+        $AdapterNames
+        Write-Host "==============================="
+        foreach ($adapter in $AdapterNames) {
+            $adapterGuid = (Get-NetAdapterAdvancedProperty -Name $adapter -RegistryKeyword "NetCfgInstanceId" -AllProperties).RegistryValue
+            $RegKeyPath = "HKLM:\system\currentcontrolset\services\tcpip\parameters\interfaces\$adapterGuid\"
+            $TAFRegKey = "TcpAckFrequency"
+            $TNDRegKey = "TcpNoDelay"
+            ## TcpAckFrequency
+            if ((Get-ItemProperty $RegkeyPath).$TAFRegKey -eq "1") {
+                Write-Host "PASSED" -ForegroundColor Green -NoNewline
+                Write-Host ": TcpAckFrequency is set to disabled (1). No action required."
+                Write-Log -Message "TcpAckFrequency is set to disabled (1). No action required." -Severity Passed
+            }
+            if (-not (Get-ItemProperty $RegkeyPath $TAFRegKey -ErrorAction SilentlyContinue)) {
+                Write-Host "FAILED" -ForegroundColor Red -NoNewline
+                Write-Host ": TcpAckFrequency key does not exist."
+                Write-Log -Message "TcpAckFrequency key does not exist." -Severity Failed
+                Write-Host "REQUIRED ACTION: Set the TcpAckFrequency registry value to 1 for $adapter ?" -NoNewline
+                $resp = Read-Host -Prompt "Y/N?"
+                if ($resp.ToUpper() -eq 'Y') {
+                    Write-Host "Creating Registry key and setting to disabled..."
+                    New-ItemProperty -Path $RegKeyPath -Name 'TcpAckFrequency' -Value '1' -PropertyType DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "Creating Registry key and setting to disabled per user request." -Severity Information
+                }
+                else {
+                    Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+                    Write-Host ": TcpAckFrequency registry key exists but is enabled. Changing to disabled."
+                    Set-ItemProperty -Path $RegKeyPath -Name 'TcpAckFrequency' -Value '1' -Type DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "TcpAckFrequency registry key exists but is enabled. Changing to disabled." -Severity Warning
+                }
+            }
+            if ($resp.ToUpper() -eq 'N') {
+                Write-Host "ABORTED" -ForegroundColor Yellow -NoNewline
+                Write-Host ": Registry key not created or altered by request of user."
+                Write-Log -Message "Registry key not created or altered by request of user." -Severity Warning
+
+            }
+            ## TcpNoDelay
+            if ((Get-ItemProperty $RegkeyPath).$TNDRegKey -eq "1") {
+                Write-Host "PASSED" -ForegroundColor Green -NoNewline
+                Write-Host ": TcpNoDelay (Nagle) is set to disabled (1). No action required."
+                Write-Log -Message "TcpNoDelay (Nagle) is set to disabled (1). No action required." -Severity Passed
+            }
+            if (-not (Get-ItemProperty $RegkeyPath $TNDRegKey -ErrorAction SilentlyContinue)) {
+                Write-Host "REQUIRED ACTION: Set the TcpNodelay (Nagle) registry value to 1 for $adapter ?" -NoNewline
+                $resp = Read-Host -Prompt "Y/N?"
+                if ($resp.ToUpper() -eq 'Y') {
+                    Write-Host "TcpNoDelay registry key does not exist. Creating..."
+                    New-ItemProperty -Path $RegKeyPath -Name 'TcpNoDelay' -Value '1' -PropertyType DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "TcpNoDelay registry key does not exist. Creating per user request." -Severity Information
+                }
+                else {
+                    Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+                    Write-Host ": TcpNoDelay registry key exists. Setting value to 1."
+                    Set-ItemProperty -Path $RegKeyPath -Name 'TcpNoDelay' -Value '1' -Type DWORD -Force -ErrorAction SilentlyContinue
+                    Write-Log -Message "TcpNoDelay registry key exists. Setting value to 1." -Severity Warning
+                }
+            }
+            if ($resp.ToUpper() -eq 'N') {
+                Write-Host "ABORTED" -ForegroundColor Yellow -NoNewline
+                Write-Host ": TcpNoDelay registry key not created or altered by request of user."
+                Write-Log -Message "TcpNoDelay registry key not created or altered by request of user." -Severity Warning
+            }
+        }
+    }
+    else {
+        Write-host " "
+        Write-Host "The -EnableIscsiTests parameter not present. No iSCSI tests will be run." -ForegroundColor Yellow
+        Write-Host " "
+        Write-Log -Message "The -EnableIscsiTests parameter not present. No iSCSI tests will be run." -Severity Information
+    }
+    Write-Host ''
+    Write-Host "The Test-WindowsBestPractices cmdlet has completed. The log file has been created for reference." -ForegroundColor Green
+    Write-Host ''
+    Write-Log -Message "The Test-WindowsBestPractices cmdlet has completed." -Severity Information
+}
+#endregion
+
+#region Set-WindowsPowerScheme
+function Set-WindowsPowerScheme() {
+    <#
+    .SYNOPSIS
+    Cmdlet to set the Power scheme for the Windows OS to High Performance.
+    .DESCRIPTION
+    Cmdlet to set the Power scheme for the Windows OS to High Performance.
+    .PARAMETER ComputerName
+    Optional. The computer name to run the cmdlet against. It defaults to the local computer name.
+    .INPUTS
+    None
+    .OUTPUTS
+    Current power scheme and optional confirmation to alter the setting in the Windows registry.
+    .EXAMPLE
+    Set-WindowsPowerScheme
+
+    Retrieves the current Power Scheme setting, and if not set to High Performance, asks for confirmation to set it.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $False)] [string] $ComputerName = "$env:COMPUTERNAME"
+    )
+    $PowerScheme = Get-WmiObject -Class WIN32_PowerPlan -Namespace 'root\cimv2\power' -ComputerName $ComputerName -Filter "isActive='true'"
+    if ($PowerScheme.ElementName -ne "High performance") {
+        Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+        Write-Host ": Computer Power Scheme is not set to High Performance. Pure Storage best practice is to set this power plan as default."
+        Write-Host " "
+        Write-Host "REQUIRED ACTION: Set the Power Plan to High Performance?"
+        $resp = Read-Host -Prompt "Y/N?"
+        if ($resp.ToUpper() -eq 'Y') {
+            $planId = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
+            powercfg -setactive "$planId"
+        }
+    }
+    else {
+        Write-Host "PASSED" -ForegroundColor Green -NoNewline
+        Write-Host ": Computer Power Scheme is already set to High Performance. Exiting."
     }
 }
 #endregion
 
-#region GET-PFASERIALNUMBERS
-<#
-.SYNOPSIS
-	Short description
-.DESCRIPTION
-	Long description
-.EXAMPLE
-	PS C:\> <example usage>
-	Explanation of what the example does
-.INPUTS
-	Inputs (if any)
-.OUTPUTS
-	Output (if any)
-.NOTES
-	General notes
-#>
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-PfaSerialNumbers () {
-	$AllDevices = Get-WmiObject -Class Win32_DiskDrive -Namespace 'root\CIMV2'
-	ForEach ($Device in $AllDevices) {
-		if($Device.Model -like 'PURE FlashArray*') {
-			@{
-				Name=$Device.Name;
-				Caption=$Device.Caption;
-				Index=$Device.Index;
-				SerialNo=$Device.SerialNumber;
-			}
-		} else {
-			Write-Error "No Pure Storage FlashArray volumes are connected to system $env:COMPUTERNAME."
-		}
-	}
-}
-#endregion
-
-#region GET-QUICKFIXENGINEERING
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Get-QuickFixEngineering {
+#region Get-QuickFixEngineering
+function Get-QuickFixEngineering() {
+    <#
+    .SYNOPSIS
+    Retrieves all the Windows OS QFE patches applied.
+    .DESCRIPTION
+    Retrieves all the Windows OS QFE patches applied.
+    .INPUTS
+    None
+    .OUTPUTS
+    Outputs a listing of QFE patches applied.
+    .EXAMPLE
+    Get-QuickFixEngineering
+    #>
     Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap
 }
 #endregion
 
-#region GET-HOSTBUSADAPTER
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#region Get-HostBusAdapter
 function Get-HostBusAdapter() {
-	[CmdletBinding()]
-	Param (
-		[Parameter(Mandatory = $true)]
-		[string] $ComputerName
-	)
-	
-	try
-	{
-		$port = Get-WmiObject -Class MSFC_FibrePortHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
-		$hbas = Get-WmiObject -Class MSFC_FCAdapterHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
-		$hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
-		$hbas = $hbas | Select-Object -ExpandProperty $hbaProp
-		$hbas | ForEach-Object{ $_.NodeWWN = ((($_.NodeWWN) | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() }
-		
-		ForEach ($hba in $hbas)
-		{
-			Add-Member -MemberType NoteProperty -InputObject $hba -Name FabricName -Value (($port | Where-Object { $_.instancename -eq $hba.instancename }).attributes | Select-Object @{ Name = 'Fabric Name'; Expression = { (($_.fabricname | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() } }, @{ Name = 'Port WWN'; Expression = { (($_.PortWWN | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() } }) -passThru
-		}
-	}
-	catch
-	{
-		
-	}
+    <#
+    .SYNOPSIS
+    Retrieves host Bus Adapater (HBA) information.
+    .DESCRIPTION
+    Retrieves host Bus Adapater (HBA) information for the host.
+    .PARAMETER ComputerName
+    Optional. The computer name to run the cmdlet against. It defaults to the local computer name.
+    .INPUTS
+    Computer name is optional.
+    .OUTPUTS
+    Host Bus Adapter information.
+    .EXAMPLE
+    Get-HostBusAdapter -ComputerName myComputer
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $False)] [string] $ComputerName  = "$env:COMPUTERNAME"
+    )
+
+    try {
+        $port = Get-WmiObject -Class MSFC_FibrePortHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
+        $hbas = Get-WmiObject -Class MSFC_FCAdapterHBAAttributes -Namespace 'root\WMI' -ComputerName $ComputerName
+        $hbaProp = $hbas | Get-Member -MemberType Property, AliasProperty | Select-Object -ExpandProperty name | Where-Object { $_ -notlike '__*' }
+        $hbas = $hbas | Select-Object -ExpandProperty $hbaProp
+        $hbas | ForEach-Object { $_.NodeWWN = ((($_.NodeWWN) | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() }
+
+        ForEach ($hba in $hbas) {
+            Add-Member -MemberType NoteProperty -InputObject $hba -Name FabricName -Value (($port | Where-Object { $_.instancename -eq $hba.instancename }).attributes | Select-Object @{ Name = 'Fabric Name'; Expression = { (($_.fabricname | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() } }, @{ Name = 'Port WWN'; Expression = { (($_.PortWWN | ForEach-Object { '{0:x2}' -f $_ }) -join ':').ToUpper() } }) -PassThru
+        }
+    }
+    catch {
+
+    }
 }
 #endregion
 
-#region REGISTER-HOSTVOLUMES
-#.ExternalHelp PureStoragePowerShellToolkitpsm1-help.xml
-function Register-HostVolumes () {
+#region Register-HostVolumes
+function Register-HostVolumes() {
+    <#
+    .SYNOPSIS
+    Sets Pure FlashArray connected disks to online.
+    .DESCRIPTION
+    This cmdlet will set any FlashArray volumes (disks) to online in Windows using the diskpart command.
+    .PARAMETER ComputerName
+    Optional. The computer name to run the cmdlet against. It defaults to the local computer name.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    Register-HostVolumes -ComputerName myComputer
+
+    Sets all FlashArray disks for myComputer to online.
+    #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $True)]
-        [string]$Computername
+        [Parameter(Mandatory = $False)] [string]$ComputerName = "$env:COMPUTERNAME"
     )
-	
+
     $cmds = "`"RESCAN`""
     $scriptblock = [string]::Join(',', $cmds)
     $diskpart = $ExecutionContext.InvokeCommand.NewScriptBlock("$scriptblock | DISKPART")
-    $result = Invoke-Command -ComputerName $Computername -ScriptBlock $diskpart
-	
-    $disks = Invoke-Command -Computername $Computername { Get-Disk }
-    $i = 0
-    ForEach ($disk in $disks)
-    {
-        If ($disk.FriendlyName -like 'PURE FlashArray*')
-        {
-            If ($disk.OperationalStatus -ne 1)
-            {
+    $result = Invoke-Command -ComputerName $ComputerName -ScriptBlock $diskpart
+    $disks = Invoke-Command -ComputerName $ComputerName { Get-Disk }
+#    $i = 0
+    ForEach ($disk in $disks) {
+        If ($disk.FriendlyName -like 'PURE FlashArray*') {
+            If ($disk.OperationalStatus -ne 1) {
                 $disknumber = $disk.Number
                 $cmds = "`"SELECT DISK $disknumber`"",
                 "`"ATTRIBUTES DISK CLEAR READONLY`"",
                 "`"ONLINE DISK`""
                 $scriptblock = [string]::Join(',', $cmds)
                 $diskpart = $ExecutionContext.InvokeCommand.NewScriptBlock("$scriptblock | DISKPART")
-                $result = Invoke-Command -ComputerName $Computername -ScriptBlock $diskpart -ErrorAction Stop
+                $result = Invoke-Command -ComputerName $ComputerName -ScriptBlock $diskpart -ErrorAction Stop
             }
         }
     }
 }
 #endregion
 
-#region UNREGISTER-HOSTVOLUMES
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Unregister-HostVolumes () {
+#region Unregister-HostVolumes
+function Unregister-HostVolumes() {
+    <#
+    .SYNOPSIS
+    Sets Pure FlashArray connected disks to offline.
+    .DESCRIPTION
+    This cmdlet will set any FlashArray volumes (disks) to offline in Windows using the diskpart command.
+    .PARAMETER ComputerName
+    Optional. The computer name to run the cmdlet against. It defaults to the local computer name.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    Unregister-HostVolumes -ComputerName myComputer
+
+    Offlines all FlashArray disks from myComputer.
+    #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $True)]
-        [string]$Computername
+        [Parameter(Mandatory = $False)] [string]$Computername = "$env:COMPUTERNAME"
     )
-	
+
     $cmds = "`"RESCAN`""
     $scriptblock = [string]::Join(',', $cmds)
     $diskpart = $ExecutionContext.InvokeCommand.NewScriptBlock("$scriptblock | DISKPART")
     $result = Invoke-Command -ComputerName $Computername -ScriptBlock $diskpart
-    $disks = Invoke-Command -Computername $Computername { Get-Disk }
+    $disks = Invoke-Command -ComputerName $Computername { Get-Disk }
     ForEach ($disk in $disks) {
         If ($disk.FriendlyName -like 'PURE FlashArray*') {
             If ($disk.OperationalStatus -ne 1) {
@@ -1482,18 +2702,140 @@ function Unregister-HostVolumes () {
 }
 #endregion
 
-#region GET-VOLUMESHADOWCOPY
-#.ExternalHelp PureStoragePowerShellToolkitt.psm1-help.xml
-function Get-VolumeShadowCopy() {
+#region Get-MPIODiskLBPolicy
+function Get-MPIODiskLBPolicy() {
+    <#
+    .SYNOPSIS
+    Retrieves the current MPIO Load Balancing policy for Pure FlashArray disk(s).
+    .DESCRIPTION
+    This cmdlet will retrieve the current MPIO Load Balancing policy for connected Pure FlashArrays disk(s) using the mpclaim.exe utlity.
+    .PARAMETER DiskID
+    Optional. If specified, retrieves only the policy for the that disk ID. Otherwise, returns all disks.
+    DiskID is the 'Number' identifier of the disk from the cmdlet 'Get-Disk'.
+    .PARAMETER OutFile
+    Optional. File name to output results to. Defaults to %TEMP%\MPIOLBPolicy.txt
+    .INPUTS
+    None
+    .OUTPUTS
+    Outputs $OutFile contents.
+    .EXAMPLE
+    Get-MPIODiskLBPolicy -DiskID 1
+
+    Returns the current MPIO LB policy for disk ID 1.
+    #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $True)][string]$ScriptName = 'PUREVSS-SNAP',
+        [Parameter(Mandatory = $False)][string]$DiskId,
+        [Parameter(Mandatory = $False)][string]$OutFile = "$env:Temp\output.txt"
+    )
+    if ($DiskId) {
+        Write-Host "Getting MPIO Load Balancing Policy for" + $DiskId
+        Start-Process "$env:WINDIR\system32\mpclaim.exe" -ArgumentList "-s -d $DiskId" -NoNewWindow -Wait -RedirectStandardOutput $OutFile
+    }
+    else {
+        Write-Host "Getting MPIO Load Balancing Policy for all MPIO disks."
+        Start-Process "$env:WINDIR\system32\mpclaim.exe" -ArgumentList "-s -d" -NoNewWindow -Wait -RedirectStandardOutput $OutFile
+        Get-Content -Path $OutFile
+    }
+}
+#endregion
+
+#region Set-MPIODiskLBPolicy
+function Set-MPIODiskLBPolicy() {
+    <#
+    .SYNOPSIS
+    Sets the MPIO Load Balancing policy for FlashArray disks.
+    .DESCRIPTION
+    This cmdlet will set the MPIO Load Balancing policy for all connected Pure FlashArrays disks to the desired setting using the mpclaim.exe utlity.
+    The default Windows OS setting is RR.
+    .PARAMETER Policy
+    Required. No default. The Policy type must be specified by the letter acronym for the policy name (ex. "RR" for Round Robin). Available options are:
+        LQD = Least Queue Depth
+        RR = Round Robin
+        FO = Fail Over Only
+        RRWS = Round Robin with Subset
+        WP = Weighted Paths
+        LB = Least Blocks
+        clear = clears current policy and sets to Windows OS default of RR
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    Set-MPIODiskLBPolicy -Policy LQD
+
+    Sets the MPIO load balancing policy for all Pure disks to Least Queue Depth.
+
+    .EXAMPLE
+    Set-MPIODiskLBPolicy -Policy clear
+
+    Clears the current MPIO policy for all Pure disks and sets to the default of RR.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory)][ValidateSet('LQD','RR','clear','FO','RRWS','WP','LB',ErrorMessage="Invalid LB Type specified")][string]$Policy
+    )
+    If ($Policy -eq "LQD") { $pn = "4" }
+    elseif ($Policy -eq "RR") { $pn = "2" }
+    elseif ($Policy -like "clear") { $pn = "0" }
+    elseif ($Policy -eq "FO") { $pn = "1" }
+    elseif ($Policy -eq "RRWS") { $pn = "3" }
+    elseif ($Policy -eq "WP") { $pn = "5" }
+    elseif ($Policy -eq "LB") { $pn = "6" }
+    else {
+        Write-Host "Required policy type parameter not supplied. Exiting."
+        break
+    }
+    Write-Host "Setting MPIO Load Balancing Policy to" + $pn + " for all Pure FlashArray disks."
+    $puredisks = Get-PhysicalDisk | Where-Object FriendlyName -Match "PURE"
+    foreach ($puredisk in $puredisks) {
+        $subtract = "0"    # set to 0 if numbers match in the test above.
+        $id = (($ssd.DeviceId) - $subtract).ToString()
+        Start-Process "%WINDIR%\system32\mpclaim.exe" -ArgumentList "-l -d $id $pn" -NoNewWindow -Wait -RedirectStandardOutput $env:tmp\output.txt
+        Get-Content -Path $env:tmp\output.txt
+    }
+}
+#endregion
+
+#region Get-VolumeShadowCopy
+function Get-VolumeShadowCopy() {
+    <#
+    .SYNOPSIS
+    Retrieves the volume shadow copy informaion using the Diskhadow command.
+    .DESCRIPTION
+
+    .PARAMETER ExposeAs
+    Required. Drive letter, share, or mount point to expose the shadow copy.
+    .PARAMETER ScriptName
+    Optional. Script text file name created to pass to the Diskshadow command. defaults to 'PUREVSS-SNAP'.
+    .PARAMETER ShadowCopyAlias
+    Required. Name of the shadow copy alias.
+    .PARAMETER MetadataFile
+    Required. Full filename for the metadata .cab file. It must exist in the current working folder.
+    .PARAMETER VerboseMode
+    Optional. "On" or "Off". If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'On'.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    Get-VolumeShadowCopy -MetadataFile myFile.cab -ShadowCopyAlias MyAlias -ExposeAs MyShadowCopy
+
+    Exposes the MyAias shadow copy as drive latter G: using the myFie.cab metadata file.
+
+    .NOTES
+    See https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow for more information on the Diskshadow utility.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $False)][string]$ScriptName = "PUREVSS-SNAP",
         [Parameter(Mandatory = $True)][string]$MetadataFile,
         [Parameter(Mandatory = $True)][string]$ShadowCopyAlias,
-        [Parameter(Mandatory = $True)][string]$ExposeAs
+        [Parameter(Mandatory = $True)][string]$ExposeAs,
+        [ValidateSet("On", "Off")][string]$VerboseMode = "On"
     )
-	
     $dsh = "./$ScriptName.PFA"
+    "SET VERBOSE $VerboseMode",
     'RESET',
     "LOAD METADATA $MetadataFile.cab",
     'IMPORT',
@@ -1504,27 +2846,49 @@ function Get-VolumeShadowCopy() {
 }
 #endregion
 
-#region NEW-VOLUMESHADOWCOPY
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
+#region New-VolumeShadowCopy
 function New-VolumeShadowCopy() {
+    <#
+    .SYNOPSIS
+    Creates a new volume shadow copy using Diskshadow.
+    .DESCRIPTION
+    This cmdlet will create a new volume shadow copy using the Diskshadow command, passing the variables specified.
+    .PARAMETER Volume
+    Required.
+    .PARAMETER Scriptname
+    Optional. Script text file name created to pass to the Diskshadow command. Pre-defined as 'PUREVSS-SNAP'.
+    .PARAMETER ShadowCopyAlias
+    Required. Name of the shadow copy alias.
+    .PARAMETER VerboseMode
+    Optional. "On" or "Off". If set to 'off', verbose mode for the Diskshadow command is disabled. Default is 'on'.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    New-VolumeShadowCopy -Volume Volume01 -ShadowCopyAlias MyAlias
+
+    Adds a new volume shadow copy of Volume01 using Diskshadow with an alias of 'MyAlias'.
+
+    .NOTES
+    See https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow for more information on the Diskshadow utility.
+    #>
     [CmdletBinding()]
     Param (
         [Parameter(Mandatory = $True)][string[]]$Volume,
-        [Parameter(Mandatory = $True)][string]$ScriptName = 'PUREVSS-SNAP',
-        [Parameter(Mandatory = $True)][string]$MetadataFile,
+        [Parameter(Mandatory = $False)][string]$ScriptName = "PUREVSS-SNAP",
         [Parameter(Mandatory = $True)][string]$ShadowCopyAlias,
-        [ValidateSet('On', 'Off')][string]$VerboseMode = 'On'
+        [ValidateSet("On", "Off")][string]$VerboseMode = "On"
     )
+
     $dsh = "./$ScriptName.PFA"
-	
-    foreach ($Vol in $Volume)
-    {
+
+    foreach ($Vol in $Volume) {
         "ADD VOLUME $Vol ALIAS $ShadowCopyAlias PROVIDER {781c006a-5829-4a25-81e3-d5e43bd005ab}"
     }
     'RESET',
     'SET CONTEXT PERSISTENT',
     'SET OPTION TRANSPORTABLE',
-    "SET METADATA $MetadataFile.cab",
     "SET VERBOSE $VerboseMode",
     'BEGIN BACKUP',
     "ADD VOLUME $Volume ALIAS $ShadowCopyAlias PROVIDER {781c006a-5829-4a25-81e3-d5e43bd005ab}",
@@ -1535,171 +2899,156 @@ function New-VolumeShadowCopy() {
 }
 #endregion
 
-#region UPDATE-DRIVEINFORMATION
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Update-DriveInformation () {
-  [CmdletBinding()]
+#region Update-DriveInformation
+function Update-DriveInformation() {
+    <#
+    .SYNOPSIS
+    Updates drive letters and assigns a label.
+    .DESCRIPTION
+    Thsi cmdlet will update the current drive letter to the new drive letter, and assign a new drive label if specified.
+    .PARAMETER NewDriveLetter
+    Required. Drive lettwre without the colon.
+    .PARAMETER CurrentDriveLetter
+    Required. Drive lettwre without the colon.
+    .PARAMETER NewDriveLabel
+    Optional. Drive label text. Defaults to "NewDrive".
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    Update-DriveInformation -NewDriveLetter S -CurrentDriveLetter M
+
+    Updates the drive letter from M: to S: and labels S: to NewDrive.
+    #>
+    [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $True)]
-        [string]$NewDriveLetter,
-		    [Parameter(Mandatory = $True)]
-        [string]$CurrentDriveLetter,
-        [Parameter][string]$NewDriveLabel
-    )
-	
-  $Drive = Get-WmiObject -Class Win32_Volume | Where-Object { $_.DriveLetter -eq "$($CurrentDriveLetter):" }
-  if (!($NewDriveLabel))
-  {
-    Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):" } | Out-Null
-  }
-  else
-  {
-    Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):"; Label = "$($NewDriveLabel)" } | Out-Null
-  }
-}
-#endregion
+        [Parameter(Mandatory = $True)][string]$NewDriveLetter,
+        [Parameter(Mandatory = $True)][string]$CurrentDriveLetter,
+        [Parameter(Mandatory = $False)][string]$NewDriveLabel = "NewDrive"
+        )
 
-#region UNDER DEVELOPMENT
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-<# 
-# DEV
-# Get connected volumes to host
-$UniqueIds = Get-WMIObject -Class MSFT_Disk -Namespace 'ROOT\Microsoft\Windows\Storage' | Select-Object ProvisioningType,UniqueId,Number
-
-# Connect to FlashArray
-$FlashArray = New-PfaArray -EndPoint 10.21.201.57 -Credentials (Get-Credential) -IgnoreCertificateError
-
-# Retrieved Volumes
-$Volumes = Get-PfaVolumes -Array $FlashArray | Select-Object Name,Serial
-
-# Inspect Volumes and compare to UniqueId
-ForEach ($UniqueId in $UniqueIds) {
-    ForEach ($Volume in $Volumes) {
-        If (($UniqueId.UniqueId).Substring($UniqueId.UniqueId.Length-24) -eq $Volume.Serial) {
-            Write-Host "Volume: $($Volume.Name)"
-            Write-Host "Serial: $($Volume.serial)"
-            Switch ($UniqueId.ProvisioningType) {
-                0 { Write-Host "Type: Unknown" }
-                1 { Write-Host "Type: Thin" }
-                2 { Write-Host "Type: Fixed" }
-            }
-        }
+    $Drive = Get-WmiObject -Class Win32_Volume | Where-Object { $_.DriveLetter -eq "$($CurrentDriveLetter):" }
+    if (!($NewDriveLabel)) {
+        Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):" } | Out-Null
+    }
+    else {
+        Set-WmiInstance -Input $Drive -Arguments @{ DriveLetter = "$($NewDriveLetter):"; Label = "$($NewDriveLabel)" } | Out-Null
     }
 }
-
-function Create-HyperVReport() {
-	try
-	{	
-		Write-Host "Creating the Virtual Machine worksheet..." -ForegroundColor Green
-		
-		# Adding worksheet 
-		#$workbook.Worksheets.Add() 
-		
-		# Creating the "Virtual Machine" worksheet and naming it 
-		$VirtualMachineWorksheet = $workbook.Worksheets.Item(1)
-		$VirtualMachineWorksheet.Name = 'VirtualMachine'
-		
-		# Headers for the worksheet 
-		$VirtualMachineWorksheet.Cells.Item(1, 1) = 'Resource Group Name'
-		$VirtualMachineWorksheet.Cells.Item(1, 2) = 'VM Name'
-		$VirtualMachineWorksheet.Cells.Item(1, 3) = 'Location'
-		$VirtualMachineWorksheet.Cells.Item(1, 4) = 'VM Size'
-		$VirtualMachineWorksheet.Cells.Item(1, 5) = 'OS Type'
-		$VirtualMachineWorksheet.Cells.Item(1, 6) = 'Image Type'
-		$VirtualMachineWorksheet.Cells.Item(1, 7) = 'OS Version'
-		$VirtualMachineWorksheet.Cells.Item(1, 8) = 'OS Disk'
-		$VirtualMachineWorksheet.Cells.Item(1, 9) = 'Data Disk'
-		$VirtualMachineWorksheet.Cells.Item(1, 10) = 'Public IP Name'
-		
-		# Cell Counter 
-		$row_counter = 3
-		$column_counter = 1
-		
-		# Iterating over the Virtual Machines under the subscription 
-		for ($vm_iterator = 0; $vm_iterator -lt $azureVMDetails.Count; $vm_iterator++)
-		{
-			
-			# Populating the cells 
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].ResourceGroupName.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].Name.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].Location.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].HardwareProfile.VmSize.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.OsDisk.OsType.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.ImageReference.Offer.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.ImageReference.Sku.ToString()
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.OsDisk.Vhd.Uri
-			$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter++) = $azureVMDetails[$vm_iterator].StorageProfile.DataDisks.vhd.uri -join "**"
-			for ($i = 0; $i -lt $PublicIPList.Count; $i++)
-			{
-				if ($azureVMDetails[$vm_iterator].NetworkInterfaceIDs -eq $azureNICDetails[$i].Id)
-				{
-					$VirtualMachineWorksheet.Cells.Item($row_counter, $column_counter) = $azureNICDetails[$i].Name
-				}
-				
-			}
-			# Setting the pointer to the next row and first column 
-			$row_counter = $row_counter + 1
-			$column_counter = 1
-		}
-		
-	}
-	catch
-	{
-		Write-Host "We ran into problem while creating Cirtual Machchine Worksheet. `n" -ForegroundColor Red
-		break
-	}
-}
-#>
 #endregion
 
-#region SYNC-FLASHARRAYHOSTS
-#.ExternalHelp PureStoragePowerShellToolkit.psm1-help.xml
-function Sync-FlashArrayHosts () {
-	[CmdletBinding()]
-	Param (
-		[Parameter(Mandatory = $True)]
-		[string]$EndPointA,
-		[Parameter(Mandatory = $True)]
-		[string]$EndPointB,
-		[Parameter(Mandatory = $True)]
-		[ValidateSet('iSCSI', 'Fibre Channel')]
-		[string]$Protocol
-	)
-	
-	$FlashArray1 = New-PfaArray -EndPoint $EndPointA -Credentials (Get-Credential) -IgnoreCertificateError
-	$FlashArray2 = New-PfaArray -EndPoint $EndPointB -Credentials (Get-Credential) -IgnoreCertificateError
-	
-	Get-PfaHosts -Array $FlashArray1 | New-PfaHost -Array $FlashArray2
-	Get-PfaHostGroups -Array $FlashArray1 | New-PfaHostGroup -Array $FlashArray1
-	
-	$FlashArray1Hosts = Get-PfaHosts-Array $FlashArray1
-	
-	switch ($Procotol) {
-		'iSCSI'{
-			foreach ($FlashArray1Host in $FlashArray1Hosts) {
-				Add-PfaHostIqns -Array $FlashArray2 -AddIqnList $FlashArray1Host.iqn -Name $FlashArray1Host.name
-			}
-		}
-		'Fibre Channel' {
-			foreach ($FlashArray1Host in $FlashArray1Hosts) {
-				Add-PfaHostWwns -Array $FlashArray2 -AddWwnList $FlashArray1Host.wwn -Name $FlashArray1Host.name
-			}
-		}
-	}
+#region Set-TlsVersions
+function Set-TlsVersions() {
+    <#
+    .SYNOPSIS
+    Sets the TLS Version in the local registry.
+    .DESCRIPTION
+    This cmdlet disables TLS version 1.0 and enables TLS Versions 1.1, 1.2, and 1.3 in the local registry. It will prompt for creating a backup of the registry before execution for recovery purposes.
+    .INPUTS
+    None
+    .OUTPUTS
+    Backup of the registry before the changes are implemented.
+    .EXAMPLE
+    Set-TlsVersions
+
+    Prompts for creation of a registry backup, disables TLS version 1.0, and enables TLS versions 1.1, 1.2, and 1.3.
+    #>
+    [CmdletBinding()]
+    Param (
+    )
+    Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+    Write-Host ": This cmdlet will change TLS protocol settings in the Registry. It is ***highly*** recommended to make a backup of your registry before executing this cmdlet."
+    Write-Host " "
+    Write-Host ": Would you like to create a complete registry backup file before proceeding?"
+    $resp = Read-Host -Prompt "Y/N?"
+    if ($resp.ToUpper() -eq 'Y') {
+        Write-Host "A registry backup is being generated. It will be located in your $env:temp folder as registrybackup.reg."
+        cmd /c regedit /E $env:temp\registrybackup.reg
+        if (!(Test-Path $env:temp\registrybackup.reg -PathType leaf)) {
+            Write-Host "WARNING" -ForegroundColor Yellow -NoNewline
+            Write-Host ": Registry backup failed. Please proceed with caution or manually backup the registry."
+        }
+        else {
+            Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+            Write-Host ": The registry backup was successful."
+        }
+    }
+    Write-Host " "
+    Write-Host "REQUIRED ACTION: Disable TLS 1.0 and enable TLS versions 1.1, 1.2, and 1.3 on this computer?"
+    $resp = Read-Host -Prompt "Y/N?"
+    if ($resp.ToUpper() -eq 'Y') {
+        # Disable TLS v1.0
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Force | Out-Null
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Force | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name 'Enabled' -Value '0' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Server' -Name 'DisabledByDefault' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Name 'Enabled' -Value '0' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.0\Client' -Name 'DisabledByDefault' -Value '1' –PropertyType 'DWORD' | Out-Null
+        Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+        Write-Host ": TLS version 1.0 disabled."
+        # Enable TLS v1.1
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server' -Force | Out-Null
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client' -Force | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Server' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.1\Client' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+        Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+        Write-Host ": TLS version 1.1 enabled."
+        # Enable TLS v1.2
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Force | Out-Null
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Force | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+        Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+        Write-Host ": TLS version 1.2 enabled."
+        # Enable TLS v1.3
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server' -Force | Out-Null
+        New-Item 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client' -Force | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Server' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client' -Name 'Enabled' -Value '1' –PropertyType 'DWORD' | Out-Null
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.3\Client' -Name 'DisabledByDefault' -Value '0' –PropertyType 'DWORD' | Out-Null
+        Write-Host "SUCCESS" -ForegroundColor Green -NoNewline
+        Write-Host ": TLS version 1.3 enabled."
+    }
+    else {
+        Write-Host "CANCELLED" -ForegroundColor Yellow -NoNewline
+        Write-Host ": Action cancelled at user request."
+    }
 }
-#endregion 
-Export-ModuleMember -function Get-WindowsPowerScheme
-Export-ModuleMember -function Get-HostBusAdapter 
-Export-ModuleMember -function Register-HostVolumes
-Export-ModuleMember -function Unregister-HostVolumes 
-Export-ModuleMember -function Get-QuickFixEngineering
-Export-ModuleMember -function Test-WindowsBestPractices
-Export-ModuleMember -function Set-QueueDepth
-Export-ModuleMember -function Get-QueueDepth
-Export-ModuleMember -function New-VolumeShadowCopy 
-Export-ModuleMember -function Get-VolumeShadowCopy
-Export-ModuleMember -function New-FlashArrayCapacityReport
-Export-ModuleMember -function Update-DriveInformation
-Export-ModuleMember -function Open-CodePureStorage
-Export-ModuleMember -function Sync-FlashArrayHosts
-Export-ModuleMember -function Get-PfaSerialNumbers
+#endregion
+
+#### End Exported Functions
+
+# Declare Exports
+Export-ModuleMember -Function Get-AllHostVolumeInfo
+Export-ModuleMember -Function Set-WindowsPowerScheme
+Export-ModuleMember -Function Get-HostBusAdapter
+Export-ModuleMember -Function Register-HostVolumes
+Export-ModuleMember -Function Unregister-HostVolumes
+Export-ModuleMember -Function Get-QuickFixEngineering
+Export-ModuleMember -Function Test-WindowsBestPractices
+Export-ModuleMember -Function New-VolumeShadowCopy
+Export-ModuleMember -Function Get-VolumeShadowCopy
+Export-ModuleMember -Function New-FlashArrayCapacityReport
+Export-ModuleMember -Function Update-DriveInformation
+Export-ModuleMember -Function Sync-FlashArrayHosts
+Export-ModuleMember -Function Get-FlashArraySerialNumbers
+Export-ModuleMember -Function New-HypervClusterVolumeReport
+Export-ModuleMember -Function Set-TlsVersions
+Export-ModuleMember -Function Get-MPIODiskLBPolicy
+Export-ModuleMember -Function Set-MPIODiskLBPolicy
+Export-ModuleMember -Function Get-FlashArrayStaleSnapshots
+Export-ModuleMember -Function Get-FlashArrayDisconnectedVolumes
+Export-ModuleMember -Function Get-FlashArraySpace
+Export-ModuleMember -Function Show-FlashArrayPgroupsConfig
+Export-ModuleMember -Function Remove-FlashArrayPendingDeletes
+Export-ModuleMember -Function Get-FlashArrayConfig
+Export-ModuleMember -Function Get-FlashArrayHierarchy
+Export-ModuleMember -Function Get-PfaSerialNumbers
+
+# END
