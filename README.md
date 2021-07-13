@@ -26,15 +26,20 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 
 ### Install and Uninstall
 
+
 The Pure Storage PowerShell Toolkit is distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
 The tookit requires the PowerShell SDK. A built-in global function will attempt to download and install it if it is not present.
 
-* [Pure Storage PowerShell Toolkit PSGallery Link](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/)
-* [Pure Storage PowerShell SDK PSGallery Link](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) (Required)
+The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery (https://www.powershellgallery.com). 
+* [Ensure that the proper TLS version is set for PSGallery](https://devblogs.microsoft.com/powershell/powershell-gallery-tls-support/)
+* [Pure Storage PowerShell Toolkit](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/)
+* [Pure Storage PowerShell SDK](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) (Required)
+
 
 To install the Pure Storage PowerShell Toolkit open up an elevated Windows PowerShell session and type:
 
 ```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Install-Module -Name PureStoragePowerShellToolkit
 ```
 
