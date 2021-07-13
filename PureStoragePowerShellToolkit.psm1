@@ -1,6 +1,6 @@
 <#
 	===========================================================================
-	Maintained by: 	fa-soln@purestorage.com
+	Maintained by: 	fa-solutions@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psm1
 	Copyright:		(c) 2021 Pure Storage, Inc.
@@ -22,7 +22,7 @@
 	===========================================================================
 
 	Revision information:
-	: version 2.0.1.0	GA release
+	: version 2.0.0.0	GA release
 
 
 	Contributors and many thanks go out to:
@@ -34,8 +34,7 @@
 	Craig Dayton - https://github.com/cadayton
 	Jake Daniels - https://github.com/JakeDennis
 	Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
-	.. and all of the Pure Code community.
-
+	.. and all of the Pure Code community who provide excellent advice, feedback, & scripts, and for those that will in the future.
 	#>
 
 #Requires -Version 3
@@ -368,7 +367,7 @@ function New-HypervClusterVolumeReport() {
 
         Get-HypervStatus
 
-                ## Check for modules
+        ## Check for modules & features
         Write-Host "Checking, installing, and importing prerequisite modules."
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $modulesArray = @(
@@ -865,36 +864,47 @@ Function Remove-FlashArrayPendingDeletes() {
 
     $pendingvolumelist = Get-PfaPendingDeleteVolumes -Array $FlashArray
     $pendingsnaplist = Get-PfaPendingDeleteVolumeSnapshots -Array $FlashArray
+    if (!pendingvolumelist) {
+        Write-Host "No volumes are pending delete."
+    }
+    else {
     Write-Host "Listing PENDING volumes and snapshots that exist on the array."
     Write-Host "======================================================================================================================`n"
     Write-Host "Volumes in PENDING state"
     foreach ($volume in $pendingvolumelist) {
         Write-Host " -" $volume.name
     }
+    }
+    if (!pendingsnaplist) {
+        Write-Host "No snapshots are pending delete."
+        break
+    }
+    else {
     Write-Host "Snapshots in PENDING state"
     foreach ($volumesnap in $pendingsnaplist) {
         Write-Host " -" $volumesnap.name
     }
+    }
     $confirmstring = "proceed"
     Write-Host "Please confirm that you wish to perform an unreversable operation."
     Write-Host "======================================================================================================================`n"
-    Write-Host "Please type $confirmstring to eradicate the pending deleted volumes and snapshots."
+    Write-Host "Please type the word $confirmstring to eradicate the pending deleted volumes and snapshots."
     Write-Host "The action will initiate immediately upon inputting $confirmstring . This operation CANNOT be undone." -fore yellow
     $user_response = Read-Host "`t"
     if (($user_response.ToLower() -ne $confirmstring.ToLower())) {
-        Write-Host "Your input was [$user_response]. Exiting."
+        Write-Host "Your input was [$user_response]. It was not the word $confirmstring. Exiting."
         exit
     }
     Write-Host "Eradicating PENDING volumes and snapshots."
     Write-Host "======================================================================================================================`n"
-    Write-Host "VOLUMES IN PENDING STATE"
+
     foreach ($volume in $pendingvolumelist) {
-        Write-Host " -" $volume.name
+        Write-Host " -" $volume.name " eradicated."
         Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $volume.name -Eradicate
     }
-    Write-Host "SNAPSHOTS IN PENDING STATE"
+
     foreach ($volumesnap in $pendingsnaplist) {
-        Write-Host " -" $volumesnap.name
+        Write-Host " -" $volumesnap.name " eradicated"
         Remove-PfaVolumeOrSnapshot -Array $FlashArray -Name $volumesnap.name -Eradicate
     }
     Write-Host "Volume and Snapshot pending deletes have been eradicated."
@@ -907,7 +917,7 @@ Function Get-FlashArrayConfig() {
     .SYNOPSIS
     Retrieves and outputs to a file the configuration of the FlashArray.
     .DESCRIPTION
-    This cmdlet will run Purity CLI commands to retrive the base configuration of a FlashArray and output it to a file.
+    This cmdlet will run Purity CLI commands to retrive the base configuration of a FlashArray and output it to a file. This file is formatted for the CLI, not necessarily human-readable.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .PARAMETER OutFile
@@ -936,10 +946,7 @@ Function Get-FlashArrayConfig() {
     $GetDate = Get-Date
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
-    }
-    else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        $Creds = Get-Credential
     }
 
     If (!$ArrayName) {
@@ -952,12 +959,15 @@ Function Get-FlashArrayConfig() {
     "==================================================================================`n" | Out-File -FilePath $OutFile -Append
     $InvokeCommand_pureconfig_list_object = "pureconfig list --object"
     $InvokeCommand_pureconfig_list_system = "pureconfig list --system"
-    "FlashArray OBJECT configuration export (host-pod-volume-hgroup-connection):" | Out-File -FilePath $OutFile -Append
+    Write-Host "Retrieving FlashArray OBJECT configuration export (host-pod-volume-hgroup-connection)..."
+    "FlashArray OBJECT configuration export (host-pod-volume-hgroup-connection)..." | Out-File -FilePath $OutFile -Append
     " " | Out-File -FilePath $OutFile -Append
-    New-PfaCLICommand -EndPoint $FlashArray -Credential $Creds -IgnoreCertificateError -CommandText $InvokeCommand_pureconfig_list_object | Out-File -FilePath $OutFile -Append
+    New-PfaCLICommand -EndPoint $EndPoint -Credentials $Creds -CommandText $InvokeCommand_pureconfig_list_object | Out-File -FilePath $OutFile -Append
+    Write-Host "Retrieving FlashArray SYSTEM configuration export (array-network-alert-support)..."
     "FlashArray SYSTEM configuration export (array-network-alert-support):" | Out-File -FilePath $OutFile -Append
     " " | Out-File -FilePath $OutFile -Append
-    New-PfaCLICommand -EndPoint $FlashArray -Credential $Creds -IgnoreCertificateError -CommandText $InvokeCommand_pureconfig_list_system | Out-File -FilePath $OutFile -Append
+    New-PfaCLICommand -EndPoint $EndPoint -Credentials $Creds -CommandText $InvokeCommand_pureconfig_list_system | Out-File -FilePath $OutFile -Append
+    Write-Host "FlashArray configuration file located in $Outfile." -ForegroundColor Green
 }
 #endregion
 
@@ -2763,7 +2773,7 @@ function Set-MPIODiskLBPolicy() {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $True)][ValidateSet(“LQD”, ”RR”, ”clear”, "FO", "RRWS", "WP", "LB")][string]$Policy
+        [Parameter(Mandatory)][ValidateSet('LQD','RR','clear','FO','RRWS','WP','LB',ErrorMessage="Invalid LB Type specified")][string]$Policy
     )
     If ($Policy -eq "LQD") { $pn = "4" }
     elseif ($Policy -eq "RR") { $pn = "2" }
