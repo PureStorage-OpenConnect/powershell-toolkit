@@ -1,5 +1,7 @@
 # Pure Storage PowerShell Toolkit
 
+![GitHub all releases](https://img.shields.io/github/downloads/PureStorage-Connect/PowerShellSDK/total?color=orange&label=GitHub%20downloads&logo=powershell&style=plastic)  ![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PureStoragePowerShellSDK?color=orange&label=PSGallery%20downloads&logo=powershell&style=plastic)
+
 ## Version: 2.0.0.0
 
 ### Pure Storage PowerShell Toolkit Release Notes
@@ -11,7 +13,7 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 ### Release History
 
 * v2.0.0.0 - Latest release
-* v1.1911 - Latest GitHub repository release - located in the \v1.1911 folder.
+* v1.1911 - Latest version 1 GitHub repository release - located in the \v1.1911 folder.
 * v1.1903.7 - Last PSGallery v1 release [PSGallery Link](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/1903.7)
 
 ### Release Compatibility
@@ -23,14 +25,6 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 * This release requires a 64-bit operating system.
 
 ### Install and Uninstall
-
-* This release is compatible with the Pure Storage PowerShell SDK 1.7.4.0 and greater.
-* This release requires a 64-bit operating system.
-
-### Install and Uninstall
-
-The Pure Storage PowerShell Toolkit is distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
-
 
 The Pure Storage PowerShell Toolkit is distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
 The tookit requires the PowerShell SDK. A built-in global function will attempt to download and install it if it is not present.
@@ -64,9 +58,8 @@ Uninstall-Module -Module PureStoragePowerShellToolkit
 
 ### Please contribute!!
 
-We welcome PRs, Issues, and open discussions around the toolkit. Help make the toolkit an invaluable tool!
+We welcome Pull Requests, issues, and open discussions around the toolkit. Help make the toolkit an invaluable tool!
 
 ### Pure Storage Code
 
 [Join the Pure Storage Code Slack team](https://codeinvite.purestorage.com)
-

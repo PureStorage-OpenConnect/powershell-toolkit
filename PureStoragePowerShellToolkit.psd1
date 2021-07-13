@@ -1,6 +1,6 @@
 <#
 	===========================================================================
-	Created by:   	opensource@purestorage.com
+	Created by:   	fa-solutions@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
 	Copyright:		(c) 2021 Pure Storage, Inc.
@@ -82,7 +82,7 @@ TypesToProcess = @()
 FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-NestedModules = @()
+#NestedModules = @('Show-ModuleLoadBanner.ps1')
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = @(
@@ -139,16 +139,16 @@ PrivateData = @{
         Tags = @('PureStorage', 'PowerShell', 'FlashArray')
 
         # A URL to the license for this module.
-        LicenseUri = "https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/LICENSE"
+        LicenseUri = "https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/dev/LICENSE"
 
         # A URL to the main website for this project.
         ProjectUri = "https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit"
 
         # A URL to an icon representing this module.
-        IconUri = "https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/master/Installer/icon.ico"
+        IconUri = "https://github.com/PureStorage-OpenConnect/PowerShell-Toolkit/blob/dev/Installer/icon.ico"
 
         # ReleaseNotes of this module
-        ReleaseNotes = "Pure Storage PowerShell Toolkit."
+        ReleaseNotes = "https://github.com/PureStorage-OpenConnect/powershell-toolkit/dev/main/CHANGELOG.md"
 
         # External dependent modules of this module
         # ExternalModuleDependencies = ''
