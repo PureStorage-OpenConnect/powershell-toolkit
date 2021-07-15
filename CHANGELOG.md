@@ -19,7 +19,7 @@ Release date: 7.13.2021
 
 Cmdlet Get-FlashArraySpace - Code is returning a "ParseExact" error message for each object returned, but it does return valid data. Under investigation.
 
-Cmdlet Get-FlashArrayDisconnectedVolumes - Code returning errro for 'hash.Add' function. These can be ignored. Under investigation.
+Cmdlet Get-FlashArrayDisconnectedVolumes - Code returning error for 'hash.Add' function. These can be ignored. Under investigation.
 
 ## Cmdlets included
 
