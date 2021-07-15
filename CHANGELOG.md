@@ -7,7 +7,7 @@ Release date: 7.13.2021
 
 ## Release Information
 
-* Refactoring and cleanup of version 1.1911 coding.
+* Refactoring and cleanup of version 1911.0 coding.
 * Additional helper functions added for SDK module check/load, admin-level check, Hyper-V checks, and FlashArray login.
 * Adding of the global $Creds variable to make single array authentication easier.
 ** Create the $Creds variable by issuing a $Creds = Get-Credential command.
