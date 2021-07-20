@@ -4055,6 +4055,7 @@ modules which are installed as part of this module.
         , [parameter(mandatory = $true)] [System.Management.Automation.PSCredential] $Creds
     )
 
+    Get-Sdk1Module
     Get-DbaToolsModule
 
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
