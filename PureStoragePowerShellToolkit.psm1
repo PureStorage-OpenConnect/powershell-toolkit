@@ -3189,15 +3189,14 @@ function Set-TlsVersions() {
 }
 #endregion
 
-### DBA TOOLS FUNCTIONS
-### migrated from the Pure Storage DBS Tools module in July 2021
+### DBA TOOLKIT FUNCTIONS
+### migrated from the Pure Storage DBA Toolkit module in July 2021
 
 #region Invoke-PfaDbRefresh
 function Invoke-PfaDbRefresh {
     <#
 .SYNOPSIS
-A PowerShell function to refresh one or more SQL Server databases (the destination) from either a snapshot or
-database.
+A PowerShell function to refresh one or more SQL Server databases (the destination) from either a snapshot or database.
 
 .DESCRIPTION
 A PowerShell function to refresh one or more SQL Server databases either from:
@@ -3208,197 +3207,139 @@ A PowerShell function to refresh one or more SQL Server databases either from:
 This  function will detect and repair orpaned users in refreshed databases and optionally
 apply data masking, based on either:
 - the dynamic data masking functionality available in SQL Server version 2016 onwards,
-- static data masking built into dbatooils from version 0.9.725, refer to https://dbatools.io/mask/
+- static data masking built into dbatools from version 0.9.725, refer to https://dbatools.io/mask/
 
 .PARAMETER RefreshDatabase
-The name of the database to refresh, note that it is assumed that source and target database(s) are named the same.
-This parameter is MANDATORY.
+Required. The name of the database to refresh, note that it is assumed that source and target database(s) are named the same.
 
 .PARAMETER RefreshSource
-If the RefreshFromSnapshot flag is specified, this parameter takes the name of a snapshot, otherwise this takes the
-name of the source SQL Server instance. This parameter is MANDATORY.
+Required. If the RefreshFromSnapshot flag is specified, this parameter takes the name of a snapshot, otherwise this takes the
+name of the source SQL Server instance.
 
 .PARAMETER DestSqlInstance
-This can be one or multiple SQL Server instance(s) that host the database(s) to be refreshed, in the case that the
-function is invoked  to refresh databases  across more than one  instance, the list  of target instances should be
-spedcified as an array of strings, otherwise a single string representing the target  instance will suffice.  This
-parameter is MANDATORY.
+Required. This can be one or multiple SQL Server instance(s) that host the database(s) to be refreshed, in the case that the
+function is invoked  to refresh databases across more than one instance, the list of target instances should be
+spedcified as an array of strings, otherwise a single string representing the target instance will suffice.
 
 .PARAMETER Endpoint
-The ip address representing the FlashArray that the volumes for the source and refresh target databases reside on.
-This parameter is MANDATORY.
-
-.PARAMETER Creds
-A PSCredential object containing the username and password of the FlashArray to connect to. A global variable $Creds
-may be used as described in the release notes for this module. For instruction on how to store and retrieve these from
-an encrypted file, refer to this article https://www.purepowershellguy.com/?p=8431
+Required. The IP address representing the FlashArray that the volumes for the source and refresh target databases reside on.
 
 .PARAMETER PollJobInterval
-Interval at which background job status is poll, if this is ommited polling will not take place. Note that this parameter
+Optional. Interval at which background job status is poll, if this is ommited polling will not take place. Note that this parameter
 is not applicable is the PromptForSnapshot switch is specified.
 
 .PARAMETER PromptForSnapshot
-This is an optional flag that if specified will result in a list of snapshots being displayed for the database volume on
+Optional. This is an optional flag that if specified will result in a list of snapshots being displayed for the database volume on
 the FlashArray that the user can select one from. Despite the source of the refresh operation being an existing snapshot,
  the source instance still has to be specified by the RefreshSource parameter in order that the function can determine
 which FlashArray volume to list existing snapshots for.
 
 .PARAMETER RefreshFromSnapshot
-This is an optional flag that if specified causes the function to expect the RefreshSource parameter to be supplied with
+Optional. This is an optional flag that if specified causes the function to expect the RefreshSource parameter to be supplied with
 the name of an existing snapshot.
 
 .PARAMETER NoPsRemoting
-The commands that off and online the windows volumes associated with the refresh target databases will use Invoke-Command
+Optional. The commands that off and online the windows volumes associated with the refresh target databases will use Invoke-Command
 with powershell remoting unless this flag is specified. Certain tools that can invoke PowerShell, Ansible for example, do
 not permit double-hop authentication unless CredSSP authentication is used. For security purposes Kerberos is recommended
 over CredSSP, however this does not support double-hop authentication, in which case this flag should be specified.
 
 .PARAMETER ApplyDataMasks
-Specifying this optional masks will cause data masks to be applied , as per the dynamic data masking feature first
+Optional. Specifying this optional masks will cause data masks to be applied , as per the dynamic data masking feature first
 introduced with SQL Server 2016, this results in this function invoking the Invoke-DynamicDataMasking function to be invoked.
 For documentation on Invoke-DynamicDataMasking, use the command Get-Help Invoke-DynamicDataMasking -Detailed.
 
 .PARAMETER ForceDestDbOffline
-Specifying this switch will cause refresh target databases for be forced offline via WITH ROLLBACK IMMEDIATE.
+Optional. Specifying this switch will cause refresh target databases for be forced offline via WITH ROLLBACK IMMEDIATE.
 
 .PARAMETER StaticDataMaskFile
-If this parameter is present and has a file path associated with it, the data masking available in version 0.9.725 of the
+Optional. If this parameter is present and has a file path associated with it, the data masking available in version 0.9.725 of the
 dbatools module onwards will be applied  to the refreshed database. The use of this is contigent on the data mask file
 being created and populated in the first place as per this blog post: https://dbatools.io/mask/ .
 
 .EXAMPLE
-Invoke-PfaDbRefresh -RefreshDatabase   tpch-no-compression  `
-                    -RefreshSource     z-sql2016-devops-prd `
-                    -DestSqlInstance   z-sql2016-devops-tst `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds               `
-                    -PromptForSnapshot
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
+-PromptForSnapshot
 
 Refresh a single database from a snapshot selected from a list of snapshots associated with the volume specified by the RefreshSource parameter.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -RefreshDatabase   tpch-no-compression  `
-                    -RefreshSource     z-sql2016-devops-prd `
-                    -DestSqlInstance   $Targets             `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds               `
-                    -PromptForSnapshot
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-PromptForSnapshot
 
 Refresh multiple databases from a snapshot selected from a list of snapshots associated with the volume specified by the RefreshSource parameter.
 .EXAMPLE
-Invoke-PfaDbRefresh -RefreshDatabase    tpch-no-compression  `
-                    -RefreshSource      source-snap          `
-                    -DestSqlInstance    z-sql2016-devops-tst `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds               `
-                    -RefreshFromSnapshot
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
+-RefreshFromSnapshot
 
 Refresh a single database using the snapshot specified by the RefreshSource parameter.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -RefreshDatabase    tpch-no-compression `
-                    -RefreshSource      source-snap         `
-                    -DestSqlInstance    $Targets            `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds              `
-                    -RefreshFromSnapshot
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-RefreshFromSnapshot
 
 Refresh multiple databases using the snapshot specified by the RefreshSource parameter.
 .EXAMPLE
-Invoke-PfaDbRefresh -$RefreshDatabase   tpch-no-compression  `
-                    -RefreshSource      z-sql-prd            `
-                    -DestSqlInstance    z-sql2016-devops-tst `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10
 
 Refresh a single database from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase   tpch-no-compression `
-                    -RefreshSource      z-sql-prd           `
-                    -DestSqlInstance    $Targets            `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase   tpch-no-compression `
-                    -RefreshSource      z-sql-prd           `
-                    -DestSqlInstance    $Targets            `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds              `
-                    -ApplyDataMasks
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-ApplyDataMasks
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
 .EXAMPLE
 $StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
-$Targets              = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase   tpch-no-compression `
-                    -RefreshSource      z-sql-prd           `
-                    -DestSqlInstance    $Targets            `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds              `
-                    -StaticDataMaskFile $StaticDataMaskFile
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-StaticDataMaskFile $StaticDataMaskFile
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
 .EXAMPLE
 $StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
-$Targets              = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase   tpch-no-compression `
-                    -RefreshSource      z-sql-prd           `
-                    -DestSqlInstance    $Targets            `
-                    -Endpoint          10.225.112.10       `
-                    -Creds              $Creds             `
-                    -ForceDestDbOffline                     `
-                    -StaticDataMaskFile $StaticDataMaskFile
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-ForceDestDbOffline -StaticDataMaskFile $StaticDataMaskFile
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
 All databases to be refreshed are forced offline prior to their underlying FlashArray volumes being overwritten.
 .EXAMPLE
 $StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
-$Targets              = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase   tpch-no-compression `
-                    -RefreshSource      z-sql-prd           `
-                    -DestSqlInstance    $Targets            `
-                    -Endpoint           10.225.112.10       `
-                    -Creds              $Creds
-                    -PollJobInterval    10              `
-                    -ForceDestDbOffline                     `
-                    -StaticDataMaskFile $StaticDataMaskFile
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-PollJobInterval 10 -ForceDestDbOffline -StaticDataMaskFile $StaticDataMaskFile
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
 All databases to be refreshed are forced offline prior to their underlying FlashArray volumes being overwritten. Poll the status of the refresh jobs once every 10 seconds.
 .NOTES
-                               Known Restrictions
-                               ------------------
+FlashArray Credentials - A global variable $Creds may be used as described in the release notes for this module. If neither is specified, the module will prompt for credentials.
 
-1. This function does not currently work for databases associated with
-   failover cluster instances.
+Known Restrictions
+------------------
+1. This function does not work for databases associated with failover cluster instances.
+2. This function cannot be used to seed secondary replicas in availability groups using databases in the primary replica.
+3. The function assumes that all database files and the transaction log reside on a single FlashArray volume.
 
-2. This function cannot be used to seed secondary replicas in availability
-   groups using databases in the primary replica.
-
-3. The function assumes that all database files and the transaction log
-   reside on a single FlashArray volume.
-
-Note that it has dependencies on the dbatools and PureStoragePowerShellSDK
-modules which are installed when needed by this module.
-
+Note that it has dependencies on the dbatools and PureStoragePowerShellSDK modules which are installed by this module.
 #>
     param(
-        [parameter(mandatory = $true)]  [string]                                    $RefreshDatabase
-        , [parameter(mandatory = $true)]  [string]                                    $RefreshSource
-        , [parameter(mandatory = $true)]  [string[]]                                  $DestSqlInstances
-        , [parameter(mandatory = $true)]  [string]                                    $Endpoint
-        , [parameter(mandatory = $true)]  [System.Management.Automation.PSCredential] $Creds
-        , [parameter(mandatory = $false)] [int]                                       $PollJobInterval
-        , [parameter(mandatory = $false)] [switch]                                    $PromptForSnapshot
-        , [parameter(mandatory = $false)] [switch]                                    $RefreshFromSnapshot
-        , [parameter(mandatory = $false)] [switch]                                    $NoPsRemoting
-        , [parameter(mandatory = $false)] [switch]                                    $ApplyDataMasks
-        , [parameter(mandatory = $false)] [switch]                                    $ForceDestDbOffline
-        , [parameter(mandatory = $false)] [string]                                    $StaticDataMaskFile
+        [parameter(mandatory = $true)][string]$RefreshDatabase,
+        [parameter(mandatory = $true)][string]$RefreshSource,
+        [parameter(mandatory = $true)][string[]]$DestSqlInstances,
+        [parameter(mandatory = $true)][string]$Endpoint,
+        [parameter(mandatory = $false)][int]$PollJobInterval,
+        [parameter(mandatory = $false)][switch]$PromptForSnapshot,
+        [parameter(mandatory = $false)][switch]$RefreshFromSnapshot,
+        [parameter(mandatory = $false)][switch]$NoPsRemoting,
+        [parameter(mandatory = $false)][switch]$ApplyDataMasks,
+        [parameter(mandatory = $false)][switch]$ForceDestDbOffline,
+        [parameter(mandatory = $false)][string]$StaticDataMaskFile
     )
 
     $StartMs = Get-Date
@@ -3564,16 +3505,15 @@ modules which are installed when needed by this module.
 }
 function DbRefresh {
     param(
-        [parameter(mandatory = $true)]  [string] $DestSqlInstance
-        , [parameter(mandatory = $true)]  [string] $RefreshDatabase
-        , [parameter(mandatory = $true)]  [string] $Endpoint
-        , [parameter(mandatory = $true)]  [System.Management.Automation.PSCredential] $Creds
-        , [parameter(mandatory = $true)]  [string] $SourceVolume
-        , [parameter(mandatory = $false)] [string] $StaticDataMaskFile
-        , [parameter(mandatory = $false)] [bool]   $ForceDestDbOffline
-        , [parameter(mandatory = $false)] [bool]   $NoPsRemoting
-        , [parameter(mandatory = $false)] [bool]   $PromptForSnapshot
-        , [parameter(mandatory = $false)] [bool]   $ApplyDataMasks
+        [parameter(mandatory = $true)][string]$DestSqlInstance,
+        [parameter(mandatory = $true)][string]$RefreshDatabase,
+        [parameter(mandatory = $true)][string]$Endpoint,
+        [parameter(mandatory = $true)][string]$SourceVolume,
+        [parameter(mandatory = $false)][string]$StaticDataMaskFile,
+        [parameter(mandatory = $false)][bool]$ForceDestDbOffline,
+        [parameter(mandatory = $false)][bool]$NoPsRemoting,
+        [parameter(mandatory = $false)][bool]$PromptForSnapshot,
+        [parameter(mandatory = $false)][bool]$ApplyDataMasks
     )
 
     # Connect to FlashArray
@@ -3787,7 +3727,7 @@ function DbRefresh {
 
 #region Invoke-StaticDataMasking
 function Invoke-StaticDataMasking {
-    <#
+<#
 .SYNOPSIS
 A PowerShell function to statically mask data in char, varchar and/or nvarchar columns using a MD5 hashing function.
 
@@ -3797,28 +3737,25 @@ Data in the columns specified in this file which are of the type char, varchar o
 hash.
 
 .PARAMETER SqlInstance
-The SQL Server instance of the database that static data masking is to be applied to
+Required. The SQL Server instance of the database that static data masking is to be applied to.
 
 .PARAMETER Database
-The database that static data masking is to be applied to
+Required. The database that static data masking is to be applied to.
 
 .PARAMETER DataMaskFile
-Absolute path to the JSON file generated by invoking New-DbaDbMaskingConfig. The file can be subsequently editted by
-hand  to  suit the  data masking  requirements of  this  function's  user. Currently, static data  masking  is  only
-supported for columns with char, varchar, nvarchar, int and bigint data types.
+Required. Absolute path to the JSON file generated by invoking New-DbaDbMaskingConfig. The file can be subsequently editted by
+hand to suit the data masking requirements of this function's user. Currently, static data masking is only supported for columns with char, varchar, nvarchar, int and bigint data types.
 
 .EXAMPLE
-Invoke-StaticDataMasking -SqlInstance  Z-STN-WIN2016-A\DEVOPSDEV `
-                         -Database     tpch-no-compression `
-                         -DataMaskFile 'C:\Users\devops\Documents\tpch-no-compression.tables.json'
-.NOTES
+Invoke-StaticDataMasking -SqlInstance  Z-STN-WIN2016-A\DEVOPSDEV -Database tpch-no-compression -DataMaskFile 'C:\Users\devops\Documents\tpch-no-compression.tables.json'
 
-Note that it has dependencies on the dbatools modules which are installed when needed.
+.NOTES
+Note that it has dependencies on the dbatools module which are installed with this module.
 #>
     param(
-        [parameter(mandatory = $true)]  [string] $SqlInstance
-        , [parameter(mandatory = $true)]  [string] $Database
-        , [parameter(mandatory = $true)]  [string] $DataMaskFile
+        [parameter(mandatory = $true)] [string] $SqlInstance,
+        [parameter(mandatory = $true)] [string] $Database,
+        [parameter(mandatory = $true)] [string] $DataMaskFile
     )
 
     Get-DbaToolsModule
@@ -3918,24 +3855,20 @@ exec sp_addextendedproperty
 GO
 
 .PARAMETER SqlInstance
-The SQL Server instance of the database that data masking is to be applied to
+Required. The SQL Server instance of the database that data masking is to be applied to.
 
 .PARAMETER Database
-The database that data masking is to be applied to
+Required. The database that data masking is to be applied to.
 
 .EXAMPLE
-Invoke-DynamicDataMasking -SqlInstance Z-STN-WIN2016-A\DEVOPSDEV `
-                          -Database    tpch-no-compression
+Invoke-DynamicDataMasking -SqlInstance Z-STN-WIN2016-A\DEVOPSDEV -Database tpch-no-compression
 
 .NOTES
-
-Note that it has dependencies on the dbatools and PureStoragePowerShellSDK
-modules which are installed as part of the installation of this module.
-
+Note that it has dependencies on the dbatools and PureStoragePowerShellSDK  modules which are installed as part of this module.
 #>
     param(
-        [parameter(mandatory = $true)]  [string] $SqlInstance
-        , [parameter(mandatory = $true)]  [string] $Database
+        [parameter(mandatory = $true)][string] $SqlInstance,
+        [parameter(mandatory = $true)][string] $Database
     )
 
     Get-DbaToolsModule
@@ -4004,55 +3937,37 @@ A PowerShell function to create a FlashArray snapshot of the volume that a datab
 values of the following parameters:
 
 .PARAMETER Database
-The name of the database to refresh, note that it is assumed that source and target database(s) are named the same.
-This parameter is MANDATORY.
+Required. The name of the database to refresh, note that it is assumed that source and target database(s) are named the same.
 
 .PARAMETER SqlInstance
-This can be one or multiple SQL Server instance(s) that host the database(s) to be refreshed, in the case that the
-function is invoked  to refresh databases  across more than one  instance, the list  of target instances should be
-spedcified as an array of strings, otherwise a single string representing the target  instance will suffice.  This
-parameter is MANDATORY.
+Required. This can be one or multiple SQL Server instance(s) that host the database(s) to be refreshed, in the case that the
+function is invoked  to refresh databases  across more than one instance, the list of target instances should be
+spedcified as an array of strings, otherwise a single string representing the target instance will suffice.
 
 .PARAMETER Endpoint
-The IP address representing the FlashArray that the volumes for the source and refresh target databases reside on.
-This parameter is MANDATORY.
-
-.PARAMETER Creds
-A PSCredential object containing the username and password of the FlashArray to connect to. A global variable $Creds
-may be used as described in the release notes for this module.For instruction on how to store and retrieve these from
- an encrypted file, refer to this article https://www.purepowershellguy.com/?p=8431
+Required. The IP address representing the FlashArray that the volumes for the source and refresh target databases reside on.
 
 .EXAMPLE
-New-PfaDbSnapshot -Database       tpch-no-compression
-                  -SqlInstance    z-sql2016-devops-prd
-                  -Endpoint       10.225.112.10
-                  -Creds          $Cred
+New-PfaDbSnapshot -Database tpch-no-compression -SqlInstance z-sql2016-devops-prd -Endpoint 10.225.112.10 -Creds $Creds
 
 Create a snapshot of FlashArray volume that stores the tpch-no-compression database on the z-sql2016-devops-prd instance
--RefreshSource parameter.
+
 .NOTES
-                               Known Restrictions
-                               ------------------
 
-1. This function does not currently work for databases associated with
-   failover cluster instances.
+FlashArray Credentials - A global variable $Creds may be used as described in the release notes for this module. If neither is specified, the module will prompt for credentials.
 
-2. This function cannot be used to seed secondary replicas in availability
-   groups using databases in the primary replica.
+Known Restrictions
+------------------
+1. This function does not work for databases associated with failover cluster instances.
+2. This function cannot be used to seed secondary replicas in availability groups using databases in the primary replica.
+3. The function assumes that all database files and the transaction log reside on a single FlashArray volume.
 
-3. The function assumes that all database files and the transaction log
-   reside on a single FlashArray volume.
-
-
-Note that it has dependencies on the dbatools and PureStoragePowerShellSDK
-modules which are installed as part of this module.
-
+Note that it has dependencies on the dbatools and PureStoragePowerShellSDK modules which are installed as part of this module.
 #>
     param(
-        [parameter(mandatory = $true)] [string]                                    $Database
-        , [parameter(mandatory = $true)] [string]                                    $SqlInstance
-        , [parameter(mandatory = $true)] [string]                                    $Endpoint
-        , [parameter(mandatory = $true)] [System.Management.Automation.PSCredential] $Creds
+        [parameter(mandatory = $true)] [string] $Database,
+        [parameter(mandatory = $true)] [string] $SqlInstance,
+        [parameter(mandatory = $true)] [string] $Endpoint
     )
 
     Get-Sdk1Module
