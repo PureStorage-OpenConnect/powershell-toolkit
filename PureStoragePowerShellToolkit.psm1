@@ -2940,7 +2940,7 @@ function Set-MPIODiskLBPolicy() {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory)][ValidateSet('LQD','RR','clear','FO','RRWS','WP','LB',ErrorMessage="Invalid LB Type specified")][string]$Policy
+        [Parameter(Mandatory)][ValidateSet('LQD','RR','clear','FO','RRWS','WP','LB',IgnoreCase = $true)][string]$Policy
     )
     If ($Policy -eq "LQD") { $pn = "4" }
     elseif ($Policy -eq "RR") { $pn = "2" }
@@ -2950,7 +2950,7 @@ function Set-MPIODiskLBPolicy() {
     elseif ($Policy -eq "WP") { $pn = "5" }
     elseif ($Policy -eq "LB") { $pn = "6" }
     else {
-        Write-Host "Required policy type parameter not supplied. Exiting."
+        Write-Host "Required policy type parameter of LQD, RR, FO, RRWS, WP LB, or clear not supplied. Exiting."
         break
     }
     Write-Host "Setting MPIO Load Balancing Policy to" + $pn + " for all Pure FlashArray disks."
