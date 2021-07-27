@@ -195,7 +195,7 @@ function Get-Sdk1Module() {
             }
             else {
                 # If module is not imported, not available on disk, and we cannot access it online, then abort
-                Write-Host "Module $m not imported, not available on disk, and we are not able to download it frome the online gallery... Exiting."
+                Write-Host "Module $m not imported, not available on disk, and we are not able to download it from the online gallery... Exiting."
                 EXIT 1
             }
         }
@@ -233,7 +233,7 @@ function Get-DbaToolsModule() {
             }
             else {
                 # If module is not imported, not available on disk, and we cannot access it online, then abort
-                Write-Host "Module $m not imported, not available on disk, and we are not able to download it frome the online gallery... Exiting."
+                Write-Host "Module $m not imported, not available on disk, and we are not able to download it from the online gallery... Exiting."
                 EXIT 1
             }
         }
@@ -296,7 +296,7 @@ function Get-AllHostVolumeInfo() {
     .EXAMPLE
     Get-HostVolumeinfo -EndPoint myarray.mydomain.com
 
-    Rerieves Host Volume information from the FlashArray myarray.mydomain.com.
+    Retrieves Host Volume information from the FlashArray myarray.mydomain.com.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
     #>
@@ -389,7 +389,7 @@ function New-HypervClusterVolumeReport() {
     .SYNOPSIS
     Creates a Excel report on volumes connected to a Hyper-V cluster.
     .DESCRIPTION
-    This creates seperate CSV files for VM, Windows Hosts, and FlashArray information that is part of a HyperV cluster. It then takes that output and places it into a an Excel workbook that contains sheets for each CSV file.
+    This creates separate CSV files for VM, Windows Hosts, and FlashArray information that is part of a HyperV cluster. It then takes that output and places it into a an Excel workbook that contains sheets for each CSV file.
     .PARAMETER VmCsvFileName
     Optional. Defaults to VMs.csv.
     .PARAMETER WinCsvFileName
@@ -405,7 +405,7 @@ function New-HypervClusterVolumeReport() {
     .EXAMPLE
     New-HypervClusterVolumeReport -EndPoint myarray -VmCsvName myVMs.csv -WinCsvName myWinHosts.csv -PfaCsvName myFlashArray.csv -ExcelFile myExcelFile
 
-    This will create three seperate CSV files with HyperV cluster information and incorprate them into a single Excel workbook.
+    This will create three separate CSV files with HyperV cluster information and incorporate them into a single Excel workbook.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
     #>
@@ -544,9 +544,9 @@ function Sync-FlashArrayHosts() {
     .EXAMPLE
     Sync-FlashArraysHosts -SourceArray mySourceArray -TargetArray myTargetArray -Protocol FC
 
-    Synchrnizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
+    Synchronizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
     .NOTES
-    This cmdlet cannot utilize the global $Creds variable as it requires two logins to two seperate arrays.
+    This cmdlet cannot utilize the global $Creds variable as it requires two logins to two separate arrays.
     #>
     [CmdletBinding()]
     Param (
@@ -584,10 +584,10 @@ function Get-FlashArrayStaleSnapshots() {
     .SYNOPSIS
     Retrieves aged snapshots and allows for Deletion and Eradication of such snapshots.
     .DESCRIPTION
-    This cmdlet will retrieve all snapshots that are beyond the specified SnapAgeThreshold. It allows for the parameters of Delete and Eradicate, and if set to $true, it will delete and eradicate the snashopts returned. It allows for the parameter of Confirm, and if set to $true, it will prompt before deletion and/or eradication of the snapshots.
+    This cmdlet will retrieve all snapshots that are beyond the specified SnapAgeThreshold. It allows for the parameters of Delete and Eradicate, and if set to $true, it will delete and eradicate the snapshots returned. It allows for the parameter of Confirm, and if set to $true, it will prompt before deletion and/or eradication of the snapshots.
     Snapshots must be deleted before they can be eradicated.
     .PARAMETER EndPoint
-    Required. Endpoiont is the FlashArray IP or FQDN.
+    Required. Endpoint is the FlashArray IP or FQDN.
     .PARAMETER SnapAgeThreshold
     Required. SnapAgeThreshold is the number of days from the current date. Delete. Confirm, and Eradicate are optional.
     .PARAMETER Delete
@@ -618,7 +618,7 @@ function Get-FlashArrayStaleSnapshots() {
         [switch]$Eradicate,
         [switch]$Confirm
     )
-    # Establish variables, Pure's time format, and gather current time.
+    # Establish variables, Pure time format, and gather current time.
     $1GB = 1024 * 1024 * 1024
     $CurrentTime = Get-Date
     $DateTimeFormat = 'yyyy-MM-ddTHH:mm:ssZ'
@@ -662,7 +662,7 @@ function Get-FlashArrayStaleSnapshots() {
     catch {
         Write-Host "Error processing $($EndPoint)."
     }
-    #Get all snapshots and compute the age of them. $DateTimeFormat variable taken from above; this is needed in order to parse Pure's time format.
+    #Get all snapshots and compute the age of them. $DateTimeFormat variable taken from above; this is needed in order to parse Pure time format.
     foreach ($Snapshot in $Snapshots) {
         $SnapshotDateTime = $Snapshot.created
         $SnapshotDateTime = [datetime]::ParseExact($SnapshotDateTime, $DateTimeFormat, $null)
@@ -709,7 +709,7 @@ Function Get-FlashArrayDisconnectedVolumes() {
     .SYNOPSIS
     Retrieves disconnected volume information for a FlashArray.
     .DESCRIPTION
-    This cmndlet will retrieve information for volumes that are ina disconnected state for a FlashArray.
+    This cmdlet will retrieve information for volumes that are ina disconnected state for a FlashArray.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
@@ -809,7 +809,7 @@ Function Get-FlashArrayDisconnectedVolumes() {
 Function Get-FlashArraySpace() {
     <#
     .SYNOPSIS
-    Retrives the space used and available for a FlashArray.
+    Retrieves the space used and available for a FlashArray.
     .DESCRIPTION
     This cmdlet will return various array space metrics for the given FlashArray.
     .PARAMETER EndPoint
@@ -876,9 +876,9 @@ Function Get-FlashArraySpace() {
 Function Show-FlashArrayPgroupsConfig() {
     <#
     .SYNOPSIS
-    Retrieves Protection Group (PGroup) infromation for the FlashArray.
+    Retrieves Protection Group (PGroup) information for the FlashArray.
     .DESCRIPTION
-    Retrieves Protection Group (PGroup) infromation for the FlashArray.
+    Retrieves Protection Group (PGroup) information for the FlashArray.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
@@ -886,7 +886,7 @@ Function Show-FlashArrayPgroupsConfig() {
     .OUTPUTS
     Protection Group information is displayed.
     .EXAMPLE
-    Show-FlashArraypGroupsConfig -EndPoint myArray
+    Show-FlashArrayPgroupsConfig -EndPoint myArrayg
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
@@ -957,9 +957,9 @@ Function Show-FlashArrayPgroupsConfig() {
 Function Remove-FlashArrayPendingDeletes() {
     <#
     .SYNOPSIS
-    Reports on pending FlashArray Volume and Snashots deletions and optionally Eradicates them.
+    Reports on pending FlashArray Volume and Snapshots deletions and optionally Eradicates them.
     .DESCRIPTION
-    This cmdlet will retrun information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.
+    This cmdlet will return information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
@@ -1025,7 +1025,7 @@ Function Remove-FlashArrayPendingDeletes() {
     }
     }
     $confirmstring = "proceed"
-    Write-Host "Please confirm that you wish to perform an unreversable operation."
+    Write-Host "Please confirm that you wish to perform an unrecoverable operation."
     Write-Host "======================================================================================================================`n"
     Write-Host "Please type the word $confirmstring to eradicate the pending deleted volumes and snapshots."
     Write-Host "The action will initiate immediately upon inputting $confirmstring . This operation CANNOT be undone." -fore yellow
@@ -1056,7 +1056,7 @@ Function Get-FlashArrayConfig() {
     .SYNOPSIS
     Retrieves and outputs to a file the configuration of the FlashArray.
     .DESCRIPTION
-    This cmdlet will run Purity CLI commands to retrive the base configuration of a FlashArray and output it to a file. This file is formatted for the CLI, not necessarily human-readable.
+    This cmdlet will run Purity CLI commands to retrieve the base configuration of a FlashArray and output it to a file. This file is formatted for the CLI, not necessarily human-readable.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .PARAMETER OutFile
@@ -1070,7 +1070,7 @@ Function Get-FlashArrayConfig() {
     .EXAMPLE
     Get-FlashArray -EndPoint myArray -ArrayName Array100
 
-    Rerieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.
+    Retrieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
@@ -1116,13 +1116,13 @@ Function Get-FlashArrayHierarchy() {
     .SYNOPSIS
     Displays array hierarchy in relation to hosts and/or volumes.
     .DESCRIPTION
-    This cmdlet will display the heirachy from a FlashArray of hosts and volumes. The output is to the console in text.
+    This cmdlet will display the hierarchy from a FlashArray of hosts and volumes. The output is to the console in text.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
     .OUTPUTS
-    FlashArray host and/or volume hierachy.
+    FlashArray host and/or volume hierarchy.
     .EXAMPLE
     Get-FlashArrayHierarchy -EndPoint myArray
 
@@ -1272,7 +1272,7 @@ Function Get-FlashArrayHierarchy() {
 function New-FlashArrayCapacityReport() {
     <#
     .SYNOPSIS
-    Create a formatted report that conatins FlashArray Capatiry Information
+    Create a formatted report that contains FlashArray Capacity Information
     .DESCRIPTION
     This cmdlet will retrieve volume and snapshot capacity information from the FlashArray and output it to a formatted report.
     .PARAMETER EndPoint
@@ -1282,7 +1282,7 @@ function New-FlashArrayCapacityReport() {
     .PARAMETER HTMLFileName
     Optional. File name of output report. Default is Array_Capacity_Report.html.
     .PARAMETER VolumeFilter
-    Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).
+    Optional. Specific volumes to filter output on. Wildcards are accepted. By default, this is "*" (all).
     .INPUTS
     None
     .OUTPUTS
@@ -3194,7 +3194,7 @@ function Set-TlsVersions() {
 
 #region Invoke-PfaDbRefresh
 function Invoke-PfaDbRefresh {
-    <#
+<#
 .SYNOPSIS
 A PowerShell function to refresh one or more SQL Server databases (the destination) from either a snapshot or database.
 
