@@ -22,7 +22,10 @@
 	===========================================================================
 
 	Revision information:
-	: version 2.0.0.0	GA release
+	: version 2.0.1.0   Added SQL DBATooolkit functions New-PfaDbSnapshot, Invoke-DynamicDataMasking,
+                        Invoke-StaticDataMasking, Invoke-PfaDbRefresh
+                        Cleaned up Array login logic, misc typos.
+    : version 2.0.0.0	GA release
 
 
 	Contributors and many thanks go out to:
@@ -185,14 +188,52 @@ function Get-Sdk1Module() {
         else {
             # If module is not imported, not available on disk, then install and import
             if (Find-Module -Name $m | Where-Object { $_.Name -eq $m }) {
-                Write-Warning 'Pure Storage FlashArray PowerShell SDK module does not exist.'
-                Write-Host 'We will attempt to install the module from the PowerShell Gallery.'
+                Write-Warning "The $m module does not exist."
+                Write-Host "We will attempt to install the module from the PowerShell Gallery. Please wait..."
                 Install-Module -Name $m -Force -ErrorAction SilentlyContinue -Scope CurrentUser
                 Import-Module $m -ErrorAction SilentlyContinue
             }
             else {
                 # If module is not imported, not available on disk, and we cannot access it online, then abort
-                Write-Host "Module $m not imported, not available on disk, and we are not able to download it frome the online gallery... exiting."
+                Write-Host "Module $m not imported, not available on disk, and we are not able to download it from the online gallery... Exiting."
+                EXIT 1
+            }
+        }
+    }
+}
+#endregion
+
+#region Get-DbaToolsModule
+function Get-DbaToolsModule() {
+    <#
+    .SYNOPSIS
+	Confirms that dbatools PowerShell module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the function will error.
+    .DESCRIPTION
+	Helper function
+	Supporting function to load required module.
+    .OUTPUTS
+	dbatools module - https://dbatools.io.
+#>
+    $m = "dbatools"
+    # If module is imported, continue
+    if (Get-Module | Where-Object { $_.Name -eq $m }) {
+    }
+    else {
+        # If module is not imported, but available on disk, then import
+        if (Get-InstalledModule | Where-Object { $_.Name -eq $m }) {
+            Import-Module $m -ErrorAction SilentlyContinue
+        }
+        else {
+            # If module is not imported, not available on disk, then install and import
+            if (Find-Module -Name $m | Where-Object { $_.Name -eq $m }) {
+                Write-Warning "$m module does not exist."
+                Write-Host "We will attempt to install the module from the PowerShell Gallery. Please wait..."
+                Install-Module -Name $m -Force -ErrorAction SilentlyContinue -Scope CurrentUser
+                Import-Module $m -ErrorAction SilentlyContinue
+            }
+            else {
+                # If module is not imported, not available on disk, and we cannot access it online, then abort
+                Write-Host "Module $m not imported, not available on disk, and we are not able to download it from the online gallery... Exiting."
                 EXIT 1
             }
         }
@@ -255,7 +296,7 @@ function Get-AllHostVolumeInfo() {
     .EXAMPLE
     Get-HostVolumeinfo -EndPoint myarray.mydomain.com
 
-    Rerieves Host Volume information from the FlashArray myarray.mydomain.com.
+    Retrieves Host Volume information from the FlashArray myarray.mydomain.com.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
     #>
@@ -266,10 +307,24 @@ function Get-AllHostVolumeInfo() {
 	Get-Sdk1Module
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
 	$hostNames = Get-PfaHosts -array $FlashArray | Select-Object -Property name
@@ -334,7 +389,7 @@ function New-HypervClusterVolumeReport() {
     .SYNOPSIS
     Creates a Excel report on volumes connected to a Hyper-V cluster.
     .DESCRIPTION
-    This creates seperate CSV files for VM, Windows Hosts, and FlashArray information that is part of a HyperV cluster. It then takes that output and places it into a an Excel workbook that contains sheets for each CSV file.
+    This creates separate CSV files for VM, Windows Hosts, and FlashArray information that is part of a HyperV cluster. It then takes that output and places it into a an Excel workbook that contains sheets for each CSV file.
     .PARAMETER VmCsvFileName
     Optional. Defaults to VMs.csv.
     .PARAMETER WinCsvFileName
@@ -350,7 +405,7 @@ function New-HypervClusterVolumeReport() {
     .EXAMPLE
     New-HypervClusterVolumeReport -EndPoint myarray -VmCsvName myVMs.csv -WinCsvName myWinHosts.csv -PfaCsvName myFlashArray.csv -ExcelFile myExcelFile
 
-    This will create three seperate CSV files with HyperV cluster information and incorprate them into a single Excel workbook.
+    This will create three separate CSV files with HyperV cluster information and incorporate them into a single Excel workbook.
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
     #>
@@ -406,10 +461,24 @@ function New-HypervClusterVolumeReport() {
 
         # Connect to FlashArray
         if (!($Creds)) {
-            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+            try {
+                $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+            }
+            catch {
+                $ExceptionMessage = $_.Exception.Message
+                Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+                Return
+            }
         }
         else {
-            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+            try {
+                $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+            }
+            catch {
+                $ExceptionMessage = $_.Exception.Message
+                Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+                Return
+            }
         }
 
         ## Get a list of VMs - VM Sheet
@@ -475,9 +544,9 @@ function Sync-FlashArrayHosts() {
     .EXAMPLE
     Sync-FlashArraysHosts -SourceArray mySourceArray -TargetArray myTargetArray -Protocol FC
 
-    Synchrnizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
+    Synchronizes the hosts and hosts FC WWNs from the mySourceArray to the myTargetArray.
     .NOTES
-    This cmdlet cannot utilize the global $Creds variable as it requires two logins to two seperate arrays.
+    This cmdlet cannot utilize the global $Creds variable as it requires two logins to two separate arrays.
     #>
     [CmdletBinding()]
     Param (
@@ -515,10 +584,10 @@ function Get-FlashArrayStaleSnapshots() {
     .SYNOPSIS
     Retrieves aged snapshots and allows for Deletion and Eradication of such snapshots.
     .DESCRIPTION
-    This cmdlet will retrieve all snapshots that are beyond the specified SnapAgeThreshold. It allows for the parameters of Delete and Eradicate, and if set to $true, it will delete and eradicate the snashopts returned. It allows for the parameter of Confirm, and if set to $true, it will prompt before deletion and/or eradication of the snapshots.
+    This cmdlet will retrieve all snapshots that are beyond the specified SnapAgeThreshold. It allows for the parameters of Delete and Eradicate, and if set to $true, it will delete and eradicate the snapshots returned. It allows for the parameter of Confirm, and if set to $true, it will prompt before deletion and/or eradication of the snapshots.
     Snapshots must be deleted before they can be eradicated.
     .PARAMETER EndPoint
-    Required. Endpoiont is the FlashArray IP or FQDN.
+    Required. Endpoint is the FlashArray IP or FQDN.
     .PARAMETER SnapAgeThreshold
     Required. SnapAgeThreshold is the number of days from the current date. Delete. Confirm, and Eradicate are optional.
     .PARAMETER Delete
@@ -549,17 +618,31 @@ function Get-FlashArrayStaleSnapshots() {
         [switch]$Eradicate,
         [switch]$Confirm
     )
-    # Establish variables, Pure's time format, and gather current time.
+    # Establish variables, Pure time format, and gather current time.
     $1GB = 1024 * 1024 * 1024
     $CurrentTime = Get-Date
     $DateTimeFormat = 'yyyy-MM-ddTHH:mm:ssZ'
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     # Establish and reset counter variables.
@@ -579,7 +662,7 @@ function Get-FlashArrayStaleSnapshots() {
     catch {
         Write-Host "Error processing $($EndPoint)."
     }
-    #Get all snapshots and compute the age of them. $DateTimeFormat variable taken from above; this is needed in order to parse Pure's time format.
+    #Get all snapshots and compute the age of them. $DateTimeFormat variable taken from above; this is needed in order to parse Pure time format.
     foreach ($Snapshot in $Snapshots) {
         $SnapshotDateTime = $Snapshot.created
         $SnapshotDateTime = [datetime]::ParseExact($SnapshotDateTime, $DateTimeFormat, $null)
@@ -626,7 +709,7 @@ Function Get-FlashArrayDisconnectedVolumes() {
     .SYNOPSIS
     Retrieves disconnected volume information for a FlashArray.
     .DESCRIPTION
-    This cmndlet will retrieve information for volumes that are ina disconnected state for a FlashArray.
+    This cmdlet will retrieve information for volumes that are ina disconnected state for a FlashArray.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
@@ -649,10 +732,24 @@ Function Get-FlashArrayDisconnectedVolumes() {
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     $faSpace = Get-PfaArraySpaceMetrics -Array $FlashArray
@@ -712,7 +809,7 @@ Function Get-FlashArrayDisconnectedVolumes() {
 Function Get-FlashArraySpace() {
     <#
     .SYNOPSIS
-    Retrives the space used and available for a FlashArray.
+    Retrieves the space used and available for a FlashArray.
     .DESCRIPTION
     This cmdlet will return various array space metrics for the given FlashArray.
     .PARAMETER EndPoint
@@ -738,10 +835,24 @@ Function Get-FlashArraySpace() {
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     $ArraySpace = @()
@@ -765,9 +876,9 @@ Function Get-FlashArraySpace() {
 Function Show-FlashArrayPgroupsConfig() {
     <#
     .SYNOPSIS
-    Retrieves Protection Group (PGroup) infromation for the FlashArray.
+    Retrieves Protection Group (PGroup) information for the FlashArray.
     .DESCRIPTION
-    Retrieves Protection Group (PGroup) infromation for the FlashArray.
+    Retrieves Protection Group (PGroup) information for the FlashArray.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
@@ -775,7 +886,7 @@ Function Show-FlashArrayPgroupsConfig() {
     .OUTPUTS
     Protection Group information is displayed.
     .EXAMPLE
-    Show-FlashArraypGroupsConfig -EndPoint myArray
+    Show-FlashArrayPgroupsConfig -EndPoint myArrayg
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
@@ -788,10 +899,24 @@ Function Show-FlashArrayPgroupsConfig() {
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     $ProtectionGroups = Get-PfaProtectionGroups -Array $FlashArray
@@ -832,9 +957,9 @@ Function Show-FlashArrayPgroupsConfig() {
 Function Remove-FlashArrayPendingDeletes() {
     <#
     .SYNOPSIS
-    Reports on pending FlashArray Volume and Snashots deletions and optionally Eradicates them.
+    Reports on pending FlashArray Volume and Snapshots deletions and optionally Eradicates them.
     .DESCRIPTION
-    This cmdlet will retrun information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.
+    This cmdlet will return information on any volumes or volume snapshots that are pending eradication after deletion and optionally prompt for eradication of those objects. The user will be prompted for confirmation.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
@@ -856,10 +981,24 @@ Function Remove-FlashArrayPendingDeletes() {
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     $pendingvolumelist = Get-PfaPendingDeleteVolumes -Array $FlashArray
@@ -886,7 +1025,7 @@ Function Remove-FlashArrayPendingDeletes() {
     }
     }
     $confirmstring = "proceed"
-    Write-Host "Please confirm that you wish to perform an unreversable operation."
+    Write-Host "Please confirm that you wish to perform an unrecoverable operation."
     Write-Host "======================================================================================================================`n"
     Write-Host "Please type the word $confirmstring to eradicate the pending deleted volumes and snapshots."
     Write-Host "The action will initiate immediately upon inputting $confirmstring . This operation CANNOT be undone." -fore yellow
@@ -917,7 +1056,7 @@ Function Get-FlashArrayConfig() {
     .SYNOPSIS
     Retrieves and outputs to a file the configuration of the FlashArray.
     .DESCRIPTION
-    This cmdlet will run Purity CLI commands to retrive the base configuration of a FlashArray and output it to a file. This file is formatted for the CLI, not necessarily human-readable.
+    This cmdlet will run Purity CLI commands to retrieve the base configuration of a FlashArray and output it to a file. This file is formatted for the CLI, not necessarily human-readable.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .PARAMETER OutFile
@@ -931,7 +1070,7 @@ Function Get-FlashArrayConfig() {
     .EXAMPLE
     Get-FlashArray -EndPoint myArray -ArrayName Array100
 
-    Rerieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.
+    Retrieves the configuration for a FlashArray and stores it in the current path as Array100_config.txt.
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
@@ -977,13 +1116,13 @@ Function Get-FlashArrayHierarchy() {
     .SYNOPSIS
     Displays array hierarchy in relation to hosts and/or volumes.
     .DESCRIPTION
-    This cmdlet will display the heirachy from a FlashArray of hosts and volumes. The output is to the console in text.
+    This cmdlet will display the hierarchy from a FlashArray of hosts and volumes. The output is to the console in text.
     .PARAMETER EndPoint
     Required. FQDN or IP address of the FlashArray.
     .INPUTS
     None
     .OUTPUTS
-    FlashArray host and/or volume hierachy.
+    FlashArray host and/or volume hierarchy.
     .EXAMPLE
     Get-FlashArrayHierarchy -EndPoint myArray
 
@@ -999,10 +1138,24 @@ Function Get-FlashArrayHierarchy() {
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     $Initiators = Get-PfaHosts -Array $FlashArray
@@ -1119,7 +1272,7 @@ Function Get-FlashArrayHierarchy() {
 function New-FlashArrayCapacityReport() {
     <#
     .SYNOPSIS
-    Create a formatted report that conatins FlashArray Capatiry Information
+    Create a formatted report that contains FlashArray Capacity Information
     .DESCRIPTION
     This cmdlet will retrieve volume and snapshot capacity information from the FlashArray and output it to a formatted report.
     .PARAMETER EndPoint
@@ -1129,7 +1282,7 @@ function New-FlashArrayCapacityReport() {
     .PARAMETER HTMLFileName
     Optional. File name of output report. Default is Array_Capacity_Report.html.
     .PARAMETER VolumeFilter
-    Optional. Specic volumes to filter output on. Wildcards are accepted. By dafult, this is "*" (all).
+    Optional. Specific volumes to filter output on. Wildcards are accepted. By default, this is "*" (all).
     .INPUTS
     None
     .OUTPUTS
@@ -1169,10 +1322,24 @@ function New-FlashArrayCapacityReport() {
 
     # Connect to FlashArray
     if (!($Creds)) {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
     else {
-        $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
     }
 
     # populate variables
@@ -3022,6 +3189,884 @@ function Set-TlsVersions() {
 }
 #endregion
 
+### DBA TOOLKIT FUNCTIONS
+### migrated from the Pure Storage DBA Toolkit module in July 2021
+
+#region Invoke-PfaDbRefresh
+function Invoke-PfaDbRefresh {
+<#
+.SYNOPSIS
+A PowerShell function to refresh one or more SQL Server databases (the destination) from either a snapshot or database.
+
+.DESCRIPTION
+A PowerShell function to refresh one or more SQL Server databases either from:
+- a snapshot specified by its name
+- a snapshot picked from a list associated with the volume the source database resides on
+- a source database directly
+
+This  function will detect and repair orpaned users in refreshed databases and optionally
+apply data masking, based on either:
+- the dynamic data masking functionality available in SQL Server version 2016 onwards,
+- static data masking built into dbatools from version 0.9.725, refer to https://dbatools.io/mask/
+
+.PARAMETER RefreshDatabase
+Required. The name of the database to refresh, note that it is assumed that source and target database(s) are named the same.
+
+.PARAMETER RefreshSource
+Required. If the RefreshFromSnapshot flag is specified, this parameter takes the name of a snapshot, otherwise this takes the
+name of the source SQL Server instance.
+
+.PARAMETER DestSqlInstance
+Required. This can be one or multiple SQL Server instance(s) that host the database(s) to be refreshed, in the case that the
+function is invoked  to refresh databases across more than one instance, the list of target instances should be
+spedcified as an array of strings, otherwise a single string representing the target instance will suffice.
+
+.PARAMETER Endpoint
+Required. The IP address representing the FlashArray that the volumes for the source and refresh target databases reside on.
+
+.PARAMETER PollJobInterval
+Optional. Interval at which background job status is poll, if this is ommited polling will not take place. Note that this parameter
+is not applicable is the PromptForSnapshot switch is specified.
+
+.PARAMETER PromptForSnapshot
+Optional. This is an optional flag that if specified will result in a list of snapshots being displayed for the database volume on
+the FlashArray that the user can select one from. Despite the source of the refresh operation being an existing snapshot,
+ the source instance still has to be specified by the RefreshSource parameter in order that the function can determine
+which FlashArray volume to list existing snapshots for.
+
+.PARAMETER RefreshFromSnapshot
+Optional. This is an optional flag that if specified causes the function to expect the RefreshSource parameter to be supplied with
+the name of an existing snapshot.
+
+.PARAMETER NoPsRemoting
+Optional. The commands that off and online the windows volumes associated with the refresh target databases will use Invoke-Command
+with powershell remoting unless this flag is specified. Certain tools that can invoke PowerShell, Ansible for example, do
+not permit double-hop authentication unless CredSSP authentication is used. For security purposes Kerberos is recommended
+over CredSSP, however this does not support double-hop authentication, in which case this flag should be specified.
+
+.PARAMETER ApplyDataMasks
+Optional. Specifying this optional masks will cause data masks to be applied , as per the dynamic data masking feature first
+introduced with SQL Server 2016, this results in this function invoking the Invoke-DynamicDataMasking function to be invoked.
+For documentation on Invoke-DynamicDataMasking, use the command Get-Help Invoke-DynamicDataMasking -Detailed.
+
+.PARAMETER ForceDestDbOffline
+Optional. Specifying this switch will cause refresh target databases for be forced offline via WITH ROLLBACK IMMEDIATE.
+
+.PARAMETER StaticDataMaskFile
+Optional. If this parameter is present and has a file path associated with it, the data masking available in version 0.9.725 of the
+dbatools module onwards will be applied  to the refreshed database. The use of this is contigent on the data mask file
+being created and populated in the first place as per this blog post: https://dbatools.io/mask/ .
+
+.EXAMPLE
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
+-PromptForSnapshot
+
+Refresh a single database from a snapshot selected from a list of snapshots associated with the volume specified by the RefreshSource parameter.
+.EXAMPLE
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-PromptForSnapshot
+
+Refresh multiple databases from a snapshot selected from a list of snapshots associated with the volume specified by the RefreshSource parameter.
+.EXAMPLE
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
+-RefreshFromSnapshot
+
+Refresh a single database using the snapshot specified by the RefreshSource parameter.
+.EXAMPLE
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-RefreshFromSnapshot
+
+Refresh multiple databases using the snapshot specified by the RefreshSource parameter.
+.EXAMPLE
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10
+
+Refresh a single database from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
+.EXAMPLE
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+
+Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
+.EXAMPLE
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-ApplyDataMasks
+
+Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
+.EXAMPLE
+$StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-StaticDataMaskFile $StaticDataMaskFile
+
+Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
+.EXAMPLE
+$StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-ForceDestDbOffline -StaticDataMaskFile $StaticDataMaskFile
+
+Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
+All databases to be refreshed are forced offline prior to their underlying FlashArray volumes being overwritten.
+.EXAMPLE
+$StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
+$Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
+Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+-PollJobInterval 10 -ForceDestDbOffline -StaticDataMaskFile $StaticDataMaskFile
+
+Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
+All databases to be refreshed are forced offline prior to their underlying FlashArray volumes being overwritten. Poll the status of the refresh jobs once every 10 seconds.
+.NOTES
+FlashArray Credentials - A global variable $Creds may be used as described in the release notes for this module. If neither is specified, the module will prompt for credentials.
+
+Known Restrictions
+------------------
+1. This function does not work for databases associated with failover cluster instances.
+2. This function cannot be used to seed secondary replicas in availability groups using databases in the primary replica.
+3. The function assumes that all database files and the transaction log reside on a single FlashArray volume.
+
+Note that it has dependencies on the dbatools and PureStoragePowerShellSDK modules which are installed by this module.
+#>
+    param(
+        [parameter(mandatory = $true)][string]$RefreshDatabase,
+        [parameter(mandatory = $true)][string]$RefreshSource,
+        [parameter(mandatory = $true)][string[]]$DestSqlInstances,
+        [parameter(mandatory = $true)][string]$Endpoint,
+        [parameter(mandatory = $false)][int]$PollJobInterval,
+        [parameter(mandatory = $false)][switch]$PromptForSnapshot,
+        [parameter(mandatory = $false)][switch]$RefreshFromSnapshot,
+        [parameter(mandatory = $false)][switch]$NoPsRemoting,
+        [parameter(mandatory = $false)][switch]$ApplyDataMasks,
+        [parameter(mandatory = $false)][switch]$ForceDestDbOffline,
+        [parameter(mandatory = $false)][string]$StaticDataMaskFile
+    )
+
+    $StartMs = Get-Date
+
+    Get-Sdk1Module
+    Get-DbaToolsModule
+
+    if ( $PromptForSnapshot.IsPresent.Equals($false) -And $RefreshFromSnapshot.IsPresent.Equals($false) ) {
+        try {
+            $SourceDb = Get-DbaDatabase -SqlInstance $RefreshSource -Database $RefreshDatabase
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to source database $RefreshSource.$Database with: $ExceptionMessage"
+            Return
+        }
+
+        Write-Color -Text "Source SQL Server instance: ", $RefreshSource, " - CONNECTED" -Color Yellow, Green, Green
+
+        try {
+            $SourceServer = (Connect-DbaInstance -SqlInstance $RefreshSource).ComputerNamePhysicalNetBIOS
+        }
+        catch {
+            Write-Error "Failed to determine target server name with: $ExceptionMessage"
+        }
+    }
+    # Connect to FlashArray
+    if (!($Creds)) {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    else {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    Write-Color -Text "FlashArray endpoint       : ", "CONNECTED" -ForegroundColor Yellow, Green
+
+    $GetDbDisk = { param ( $Db )
+        $DbDisk = Get-Partition -DriveLetter $Db.PrimaryFilePath.Split(':')[0] | Get-Disk
+        return $DbDisk
+    }
+
+    $Snapshots = $(Get-PfaAllVolumeSnapshots $FlashArray)
+    $FilteredSnapshots = $Snapshots.where( { ([string]$_.Source) -eq $RefreshSource })
+
+    if ( $PromptForSnapshot.IsPresent ) {
+        Write-Host ' '
+        for ($i = 0; $i -lt $FilteredSnapshots.Count; $i++) {
+            Write-Host 'Snapshot ' $i.ToString()
+            $FilteredSnapshots[$i]
+        }
+
+        $SnapshotId = Read-Host -Prompt 'Enter the number of the snapshot to be used for the database refresh'
+    }
+    elseif ( $RefreshFromSnapshot.IsPresent.Equals( $false ) ) {
+        try {
+            if ( $NoPsRemoting.IsPresent ) {
+                $SourceDisk = Invoke-Command -ScriptBlock $GetDbDisk -ArgumentList $SourceDb
+            }
+            else {
+                $SourceDisk = Invoke-Command -ComputerName $SourceServer -ScriptBlock $GetDbDisk -ArgumentList $SourceDb
+            }
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to determine source disk with: $ExceptionMessage"
+            Return
+        }
+
+        try {
+            $SourceVolume = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.serial -eq $SourceDisk.SerialNumber } | Select-Object name
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to determine source volume with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    if ( $PromptForSnapshot.IsPresent ) {
+        Foreach ($DestSqlInstance in $DestSqlInstances) {
+            Invoke-DbRefresh -DestSqlInstance $DestSqlInstance `
+                -RefreshDatabase $RefreshDatabase `
+                -Endpoint     $Endpoint     `
+                -Creds  $Creds  `
+                -SourceVolume    $FilteredSnapshots[$SnapshotId]
+        }
+    }
+    else {
+        $JobNumber = 1
+        Foreach ($DestSqlInstance in $DestSqlInstances) {
+            $JobName = "DbRefresh" + $JobNumber
+            Write-Colour -Text "Refresh background job    : ", $JobName, " - ", "PROCESSING" -Color Yellow, Green, Green, Green
+            If ( $RefreshFromSnapshot.IsPresent ) {
+                Start-Job -Name $JobName -ScriptBlock $Function:DbRefresh -ArgumentList $DestSqlInstance   , `
+                    $RefreshDatabase   , `
+                    $Endpoint       , `
+                    $Creds    , `
+                    $RefreshSource     , `
+                    $StaticDataMaskFile, `
+                    $ForceDestDbOffline.IsPresent, `
+                    $NoPsRemoting.IsPresent      , `
+                    $PromptForSnapshot.IsPresent , `
+                    $ApplyDataMasks.IsPresent | Out-Null
+            }
+            else {
+                Start-Job -Name $JobName -ScriptBlock $Function:DbRefresh -ArgumentList $DestSqlInstance   , `
+                    $RefreshDatabase   , `
+                    $Endpoint       , `
+                    $Creds    , `
+                    $SourceVolume.Name , `
+                    $StaticDataMaskFile, `
+                    $ForceDestDbOffline.IsPresent, `
+                    $NoPsRemoting.IsPresent      , `
+                    $PromptForSnapshot.IsPresent , `
+                    $ApplyDataMasks.IsPresent | Out-Null
+            }
+            $JobNumber += 1;
+        }
+
+        While (Get-Job -State Running | Where-Object { $_.Name.Contains("DbRefresh") }) {
+            if ($PSBoundParameters.ContainsKey('PollJobInterval')) {
+                Get-Job -State Running | Where-Object { $_.Name.Contains("DbRefresh") } | Receive-Job
+                Start-Sleep -Seconds $PollJobInterval
+            }
+            else {
+                Start-Sleep -Seconds 1
+            }
+        }
+
+        Write-Colour -Text "Refresh background jobs   : ", "COMPLETED" -Color Yellow, Green
+
+        foreach ($job in (Get-Job | Where-Object { $_.Name.Contains("DbRefresh") })) {
+            $result = Receive-Job $job
+            Write-Host $result
+        }
+
+        Remove-Job -State Completed
+    }
+
+    $EndMs = Get-Date
+    Write-Host " "
+    Write-Host "-------------------------------------------------------"         -ForegroundColor Green
+    Write-Host " "
+    Write-Host "D A T A B A S E      R E F R E S H      C O M P L E T E"         -ForegroundColor Green
+    Write-Host " "
+    Write-Host "              Duration (s) = " ($EndMs - $StartMs).TotalSeconds  -ForegroundColor White
+    Write-Host " "
+    Write-Host "-------------------------------------------------------"         -ForegroundColor Green
+}
+function DbRefresh {
+    param(
+        [parameter(mandatory = $true)][string]$DestSqlInstance,
+        [parameter(mandatory = $true)][string]$RefreshDatabase,
+        [parameter(mandatory = $true)][string]$Endpoint,
+        [parameter(mandatory = $true)][string]$SourceVolume,
+        [parameter(mandatory = $false)][string]$StaticDataMaskFile,
+        [parameter(mandatory = $false)][bool]$ForceDestDbOffline,
+        [parameter(mandatory = $false)][bool]$NoPsRemoting,
+        [parameter(mandatory = $false)][bool]$PromptForSnapshot,
+        [parameter(mandatory = $false)][bool]$ApplyDataMasks
+    )
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    else {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    try {
+        $DestDb = Get-DbaDatabase -SqlInstance $DestSqlInstance -Database $RefreshDatabase
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to connect to destination database $DestSqlInstance.$Database with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Host " "
+    Write-Colour -Text "Target SQL Server instance: ", $DestSqlInstance, "- CONNECTED" -ForegroundColor Yellow, Green, Green
+
+    try {
+        $TargetServer = (Connect-DbaInstance -SqlInstance $DestSqlInstance).ComputerNamePhysicalNetBIOS
+    }
+    catch {
+        Write-Error "Failed to determine target server name with: $ExceptionMessage"
+    }
+
+    Write-Colour -Text "Target SQL Server host    : ", $TargetServer -ForegroundColor Yellow, Green
+
+    $GetDbDisk = { param ( $Db )
+        $DbDisk = Get-Partition -DriveLetter $Db.PrimaryFilePath.Split(':')[0] | Get-Disk
+        return $DbDisk
+    }
+
+    $GetVolumeLabel = { param ( $Db )
+        Write-Verbose "Target database drive letter = $Db.PrimaryFilePath.Split(':')[0]"
+        $VolumeLabel = $(Get-Volume -DriveLetter $Db.PrimaryFilePath.Split(':')[0]).FileSystemLabel
+        Write-Verbose "Target database windows volume label = <$VolumeLabel>"
+        return $VolumeLabel
+    }
+
+    try {
+        if ( $NoPsRemoting ) {
+            $DestDisk = Invoke-Command -ScriptBlock $GetDbDisk -ArgumentList $DestDb
+            $DestVolumeLabel = Invoke-Command -ScriptBlock $GetVolumeLabel -ArgumentList $DestDb
+        }
+        else {
+            $DestDisk = Invoke-Command -ComputerName $TargetServer -ScriptBlock $GetDbDisk -ArgumentList $DestDb
+            $DestVolumeLabel = Invoke-Command -ComputerName $TargetServer -ScriptBlock $GetVolumeLabel -ArgumentList $DestDb
+        }
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to determine destination database disk with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target drive letter       : ", $DestDb.PrimaryFilePath.Split(':')[0] -ForegroundColor Yellow, Green
+
+    try {
+        $DestVolume = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.serial -eq $DestDisk.SerialNumber } | Select-Object name
+
+        if (!$DestVolume) {
+            throw "Failed to determine destination FlashArray volume, check that source and destination volumes are on the SAME array"
+        }
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to determine destination FlashArray volume with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target Pfa volume         : ", $DestVolume.name -ForegroundColor Yellow, Green
+
+    $OfflineDestDisk = { param ( $DiskNumber, $Status )
+        Set-Disk -Number $DiskNumber -IsOffline $Status
+    }
+
+    try {
+        if ( $ForceDestDbOffline ) {
+            $ForceDatabaseOffline = "ALTER DATABASE [$RefreshDatabase] SET OFFLINE WITH ROLLBACK IMMEDIATE"
+            Invoke-DbaQuery -ServerInstance $DestSqlInstance -Database $RefreshDatabase -Query $ForceDatabaseOffline
+        }
+        else {
+            $DestDb.SetOffline()
+        }
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to offline database $Database with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target database           : ", "OFFLINE" -ForegroundColor Yellow, Green
+
+    try {
+        if ( $NoPsRemoting ) {
+            Invoke-Command -ScriptBlock $OfflineDestDisk -ArgumentList $DestDisk.Number, $True
+        }
+        else {
+            Invoke-Command -ComputerName $TargetServer -ScriptBlock $OfflineDestDisk -ArgumentList $DestDisk.Number, $True
+        }
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to offline disk with : $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target windows disk       : ", "OFFLINE" -ForegroundColor Yellow, Green
+
+    $StartCopyVolMs = Get-Date
+
+    try {
+        Write-Colour -Text "Source Pfa volume         : ", $SourceVolume -ForegroundColor Yellow, Green
+        New-PfaVolume -Array $FlashArray -VolumeName $DestVolume.name -Source $SourceVolume -Overwrite
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to refresh test database volume with : $ExceptionMessage"
+        Set-Disk -Number $DestDisk.Number -IsOffline $False
+        $DestDb.SetOnline()
+        Return
+    }
+
+    Write-Colour -Text "Volume overwrite          : ", "SUCCESSFUL" -ForegroundColor Yellow, Green
+    $EndCopyVolMs = Get-Date
+    Write-Colour -Text "Overwrite duration (ms)   : ", ($EndCopyVolMs - $StartCopyVolMs).TotalMilliseconds -Color Yellow, Green
+
+    $SetVolumeLabel = { param ( $Db, $DestVolumeLabel )
+        Set-Volume -DriveLetter $Db.PrimaryFilePath.Split(':')[0] -NewFileSystemLabel $DestVolumeLabel
+    }
+
+    try {
+        if ( $NoPsRemoting ) {
+            Invoke-Command -ScriptBlock $OfflineDestDisk -ArgumentList $DestDisk.Number, $False
+            Invoke-Command -ScriptBlock $SetVolumeLabel -ArgumentList $DestDb, $DestVolumeLabel
+        }
+        else {
+            Invoke-Command -ComputerName $TargetServer -ScriptBlock $OfflineDestDisk -ArgumentList $DestDisk.Number, $False
+            Invoke-Command -ComputerName $TargetServer -ScriptBlock $SetVolumeLabel -ArgumentList $DestDb, $DestVolumeLabel
+        }
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to online disk with : $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target windows disk       : ", "ONLINE" -ForegroundColor Yellow, Green
+
+    try {
+        $DestDb.SetOnline()
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to online database $Database with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target database           : ", "ONLINE" -ForegroundColor Yellow, Green
+
+    if ( $ApplyDataMasks ) {
+        Write-Host "Applying SQL Server dynamic data masks to $RefreshDatabase on SQL Server instance $DestSqlInstance" -ForegroundColor Yellow
+
+        try {
+            Invoke-DynamicDataMasking -SqlInstance $DestSqlInstance -Database $RefreshDatabase
+            Write-Host "SQL Server dynamic data masking has been applied" -ForegroundColor Yellow
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to apply SQL Server dynamic data masks to $Database on $DestSqlInstance with: $ExceptionMessage"
+            Return
+        }
+    }
+    elseif ([System.IO.File]::Exists($StaticDataMaskFile)) {
+        Write-Color -Text "Static data mask target   : ", $DestSqlInstance, " - ", $RefreshDatabase -Color Yellow, Green, Green, Green
+
+        try {
+            Invoke-StaticDataMasking -SqlInstance $DestSqlInstance -Database $RefreshDatabase -DataMaskFile $StaticDataMaskFile
+            Write-Color -Text "Static data masking       : ", "APPLIED" -ForegroundColor Yellow, Green
+
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to apply static data masking to $Database on $DestSqlInstance with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    Repair-DbaDbOrphanUser -SqlInstance $DestSqlInstance -Database $RefreshDatabase | Out-Null
+    Write-Color -Text "Orphaned users            : ", "REPAIRED" -ForegroundColor Yellow, Green
+}
+# endregion
+
+#region Invoke-StaticDataMasking
+function Invoke-StaticDataMasking {
+<#
+.SYNOPSIS
+A PowerShell function to statically mask data in char, varchar and/or nvarchar columns using a MD5 hashing function.
+
+.DESCRIPTION
+This PowerShell function uses as input a JSON file created by calling the New-DbaDbMaskingConfig PowerShell function.
+Data in the columns specified in this file which are of the type char, varchar or nvarchar are envrypted using a MD5
+hash.
+
+.PARAMETER SqlInstance
+Required. The SQL Server instance of the database that static data masking is to be applied to.
+
+.PARAMETER Database
+Required. The database that static data masking is to be applied to.
+
+.PARAMETER DataMaskFile
+Required. Absolute path to the JSON file generated by invoking New-DbaDbMaskingConfig. The file can be subsequently editted by
+hand to suit the data masking requirements of this function's user. Currently, static data masking is only supported for columns with char, varchar, nvarchar, int and bigint data types.
+
+.EXAMPLE
+Invoke-StaticDataMasking -SqlInstance  Z-STN-WIN2016-A\DEVOPSDEV -Database tpch-no-compression -DataMaskFile 'C:\Users\devops\Documents\tpch-no-compression.tables.json'
+
+.NOTES
+Note that it has dependencies on the dbatools module which are installed with this module.
+#>
+    param(
+        [parameter(mandatory = $true)] [string] $SqlInstance,
+        [parameter(mandatory = $true)] [string] $Database,
+        [parameter(mandatory = $true)] [string] $DataMaskFile
+    )
+
+    Get-DbaToolsModule
+
+    if ($DataMaskFile.ToString().StartsWith('http')) {
+        $tables = Invoke-RestMethod -Uri $DataMaskFile
+    }
+    else {
+        # Check if the destination is accessible
+        if (-not (Test-Path -Path $DataMaskFile)) {
+            Write-Error "Could not find data mask config file $DataMaskFile"
+            Return
+        }
+    }
+
+    # Get all the items that should be processed
+    try {
+        $tables = Get-Content -Path $DataMaskFile -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    }
+    catch {
+        Write-Error "Could not parse masking config file: $DataMaskFile" -ErrorRecord $_
+    }
+
+    foreach ($tabletest in $tables.Tables) {
+        if ($Table -and $tabletest.Name -notin $Table) {
+            continue
+        }
+
+        $ColumnIndex = 0
+        $UpdateStatement = ""
+
+        foreach ($columntest in $tabletest.Columns) {
+            if ($columntest.ColumnType -in 'varchar', 'char', 'nvarchar') {
+                if ($ColumnIndex -eq 0) {
+                    $UpdateStatement = 'UPDATE ' + $tabletest.Name + ' SET ' + $columntest.Name + ' = SUBSTRING(CONVERT(VARCHAR, HASHBYTES(' + '''' + 'MD5' + '''' + ', ' + $columntest.Name + '), 1), 1, ' + $columntest.MaxValue + ')'
+                }
+                else {
+                    $UpdateStatement += ', ' + $columntest.Name + ' = SUBSTRING(CONVERT(VARCHAR, HASHBYTES(' + '''' + 'MD5' + '''' + ', ' + $columntest.Name + '), 1), 1, ' + $columntest.MaxValue + ')'
+                }
+            }
+            elseif ($columntest.ColumnType -eq 'int') {
+                if ($ColumnIndex -eq 0) {
+                    $UpdateStatement = 'UPDATE ' + $tabletest.Name + ' SET ' + $columntest.Name + ' = ABS(CHECKSUM(NEWID())) % 2147483647'
+                }
+                else {
+                    $UpdateStatement += ', ' + $columntest.Name + ' = ABS(CHECKSUM(NEWID())) % 2147483647'
+                }
+            }
+            elseif ($columntest.ColumnType -eq 'bigint') {
+                if ($ColumnIndex -eq 0) {
+                    $UpdateStatement = 'UPDATE ' + $tabletest.Name + ' SET ' + $columntest.Name + ' = ABS(CHECKSUM(NEWID()))'
+                }
+                else {
+                    $UpdateStatement += ', ' + $columntest.Name + ' = ABS(CHECKSUM(NEWID()))'
+                }
+            }
+            else {
+                Write-Error "$columntest.ColumnType is not supported, please remove the column $columntest.Name from the $tabletest.Name table"
+                Return
+            }
+            $ColumnIndex += 1
+        }
+
+        Write-Verbose "Statically masking table $tabletest.Name using $UpdateStatement"
+        Invoke-DbaQuery -ServerInstance $SqlInstance -Database $Database -Query $UpdateStatement -QueryTimeout 999999
+    }
+}
+#endregion
+
+#region Invoke-DynamicDataMasking
+function Invoke-DynamicDataMasking {
+    <#
+.SYNOPSIS
+A PowerShell function to apply data masks to database columns using the SQL Server dynamic data masking feature.
+
+.DESCRIPTION
+This function uses the information stored in the extended properties of a database:
+sys.extended_properties.name = 'DATAMASK' to obtain the dynamic data masking function to apply
+at column level. Columns of the following data type are currently supported:
+
+- int
+- bigint
+- char
+- nchar
+- varchar
+- nvarchar
+
+Using the c_address column in the tpch customer table as an example, the DATAMASK extended property can be applied
+to the column as follows:
+
+exec sp_addextendedproperty
+     @name = N'DATAMASK'
+    ,@value = N'(FUNCTION = 'partial(0, "XX", 20)''
+    ,@level0type = N'Schema', @level0name = 'dbo'
+    ,@level1type = N'Table',  @level1name = 'customer'
+    ,@level2type = N'Column', @level2name = 'c_address'
+GO
+
+.PARAMETER SqlInstance
+Required. The SQL Server instance of the database that data masking is to be applied to.
+
+.PARAMETER Database
+Required. The database that data masking is to be applied to.
+
+.EXAMPLE
+Invoke-DynamicDataMasking -SqlInstance Z-STN-WIN2016-A\DEVOPSDEV -Database tpch-no-compression
+
+.NOTES
+Note that it has dependencies on the dbatools and PureStoragePowerShellSDK  modules which are installed as part of this module.
+#>
+    param(
+        [parameter(mandatory = $true)][string] $SqlInstance,
+        [parameter(mandatory = $true)][string] $Database
+    )
+
+    Get-DbaToolsModule
+
+    $sql = @"
+BEGIN
+	DECLARE  @sql_statement nvarchar(1024)
+	        ,@error_message varchar(1024)
+
+	DECLARE apply_data_masks CURSOR FOR
+	SELECT       'ALTER TABLE ' + tb.name + ' ALTER COLUMN ' + c.name +
+			   + ' ADD MASKED WITH '
+			   + CAST(p.value AS char) + ''')'
+	FROM       sys.columns c
+	JOIN       sys.types t
+	ON         c.user_type_id = t.user_type_id
+	LEFT JOIN  sys.index_columns ic
+	ON         ic.object_id = c.object_id
+	AND        ic.column_id = c.column_id
+	LEFT JOIN  sys.indexes i
+	ON         ic.object_id = i.object_id
+	AND        ic.index_id  = i.index_id
+	JOIN       sys.tables tb
+	ON         tb.object_id = c.object_id
+	JOIN       sys.extended_properties AS p
+	ON         p.major_id   = tb.object_id
+	AND        p.minor_id   = c.column_id
+	AND        p.class      = 1
+	WHERE      t.name IN ('int', 'bigint', 'char', 'nchar', 'varchar', 'nvarchar');
+
+	OPEN apply_data_masks
+	FETCH NEXT FROM apply_data_masks INTO @sql_statement;
+
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+	    PRINT 'Applying data mask: ' + @sql_statement;
+
+		BEGIN TRY
+		    EXEC sp_executesql @stmt = @sql_statement
+		END TRY
+		BEGIN CATCH
+		    SELECT @error_message = ERROR_MESSAGE();
+			PRINT 'Application of data mask failed with: ' + @error_message;
+		END CATCH;
+
+		FETCH NEXT FROM apply_data_masks INTO @sql_statement
+	END;
+
+	CLOSE apply_data_masks
+	DEALLOCATE apply_data_masks;
+END;
+"@
+
+    Invoke-DbaSqlQuery -SqlInstance $SqlInstance -Database $Database -Query $sql
+}
+#endregion
+
+#region New-PfaDbSnapshot
+function New-PfaDbSnapshot {
+    <#
+.SYNOPSIS
+A PowerShell function to create a FlashArray snapshot of the volume that a database resides on.
+
+.DESCRIPTION
+A PowerShell function to create a FlashArray snapshot of the volume that a database resides on, based in the
+values of the following parameters:
+
+.PARAMETER Database
+Required. The name of the database to refresh, note that it is assumed that source and target database(s) are named the same.
+
+.PARAMETER SqlInstance
+Required. This can be one or multiple SQL Server instance(s) that host the database(s) to be refreshed, in the case that the
+function is invoked  to refresh databases  across more than one instance, the list of target instances should be
+spedcified as an array of strings, otherwise a single string representing the target instance will suffice.
+
+.PARAMETER Endpoint
+Required. The IP address representing the FlashArray that the volumes for the source and refresh target databases reside on.
+
+.EXAMPLE
+New-PfaDbSnapshot -Database tpch-no-compression -SqlInstance z-sql2016-devops-prd -Endpoint 10.225.112.10 -Creds $Creds
+
+Create a snapshot of FlashArray volume that stores the tpch-no-compression database on the z-sql2016-devops-prd instance
+
+.NOTES
+
+FlashArray Credentials - A global variable $Creds may be used as described in the release notes for this module. If neither is specified, the module will prompt for credentials.
+
+Known Restrictions
+------------------
+1. This function does not work for databases associated with failover cluster instances.
+2. This function cannot be used to seed secondary replicas in availability groups using databases in the primary replica.
+3. The function assumes that all database files and the transaction log reside on a single FlashArray volume.
+
+Note that it has dependencies on the dbatools and PureStoragePowerShellSDK modules which are installed as part of this module.
+#>
+    param(
+        [parameter(mandatory = $true)] [string] $Database,
+        [parameter(mandatory = $true)] [string] $SqlInstance,
+        [parameter(mandatory = $true)] [string] $Endpoint
+    )
+
+    Get-Sdk1Module
+    Get-DbaToolsModule
+
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+
+    if ( ! $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) ) {
+        Write-Error "This function needs to be invoked within a PowerShell session with elevated admin rights"
+        Return
+    }
+
+    # Connect to FlashArray
+    if (!($Creds)) {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    else {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    Write-Colour -Text "FlashArray endpoint       : ", "CONNECTED" -Color Yellow, Green
+
+    try {
+        $DestDb = Get-DbaDatabase -SqlInstance $SqlInstance -Database $Database
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to connect to destination database $SqlInstance.$Database with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target SQL Server instance: ", $SqlInstance, " - ", "CONNECTED" -Color Yellow, Green, Green, Green
+    Write-Colour -Text "Target windows drive      : ", $DestDb.PrimaryFilePath.Split(':')[0] -Color Yellow, Green
+
+    try {
+        $TargetServer = (Connect-DbaInstance -SqlInstance $SqlInstance).ComputerNamePhysicalNetBIOS
+    }
+    catch {
+        Write-Error "Failed to determine target server name with: $ExceptionMessage"
+    }
+
+    Write-Colour -Text "Target SQL Server host    : ", $TargetServer -ForegroundColor Yellow, Green
+
+    $GetDbDisk = { param ( $Db )
+        $DbDisk = Get-Partition -DriveLetter $Db.PrimaryFilePath.Split(':')[0] | Get-Disk
+        return $DbDisk
+    }
+
+    try {
+        $TargetDisk = Invoke-Command -ComputerName $TargetServer -ScriptBlock $GetDbDisk -ArgumentList $DestDb
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to determine the windows disk snapshot target with: $ExceptionMessage"
+        Return
+    }
+
+    Write-Colour -Text "Target disk serial number : ", $TargetDisk.SerialNumber -Color Yellow, Green
+
+    try {
+        $TargetVolume = Get-PfaVolumes -Array $FlashArray | Where-Object { $_.serial -eq $TargetDisk.SerialNumber } | Select-Object name
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to determine snapshot FlashArray volume with: $ExceptionMessage"
+        Return
+    }
+
+    $SnapshotSuffix = $SqlInstance.Replace('\', '-') + '-' + $Database + '-' + $(Get-Date).Hour + $(Get-Date).Minute + $(Get-Date).Second
+    Write-Colour -Text "Snapshot target Pfa volume: ", $TargetVolume.name -Color Yellow, Green
+    Write-Colour -Text "Snapshot suffix           : ", $SnapshotSuffix -Color Yellow, Green
+
+    try {
+        New-PfaVolumeSnapshots -Array $FlashArray -Sources $TargetVolume.name -Suffix $SnapshotSuffix
+    }
+    catch {
+        $ExceptionMessage = $_.Exception.Message
+        Write-Error "Failed to create snapshot for target database FlashArray volume with: $ExceptionMessage"
+        Return
+    }
+}
+#endregion
+
+#### END DBATOOLS FUNCTIONS
+
 #### End Exported Functions
 
 # Declare Exports
@@ -3050,5 +4095,9 @@ Export-ModuleMember -Function Remove-FlashArrayPendingDeletes
 Export-ModuleMember -Function Get-FlashArrayConfig
 Export-ModuleMember -Function Get-FlashArrayHierarchy
 Export-ModuleMember -Function Get-PfaSerialNumbers
+Export-ModuleMember -Function New-PfaDbSnapshot
+Export-ModuleMember -Function Invoke-DynamicDataMasking
+Export-ModuleMember -Function Invoke-StaticDataMasking
+Export-ModuleMember -Function Invoke-PfaDbRefresh
 
 # END
