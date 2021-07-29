@@ -1,8 +1,9 @@
 # Pure Storage PowerShell Toolkit
 
 ![GitHub all releases](https://img.shields.io/github/downloads/PureStorage-Connect/PowerShellSDK/total?color=orange&label=GitHub%20downloads&logo=powershell&style=plastic)  ![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PureStoragePowerShellSDK?color=orange&label=PSGallery%20downloads&logo=powershell&style=plastic)
+[![PSScriptAnalyzer](https://github.com/PureStorage-OpenConnect/powershell-toolkit/actions/workflows/psanalyzer-codecheck.yml/badge.svg?branch=dev)](https://github.com/PureStorage-OpenConnect/powershell-toolkit/actions/workflows/psanalyzer-codecheck.yml)
 
-## Version: 2.0.0.0
+## Version: 2.0.0.0+
 
 ### Pure Storage PowerShell Toolkit Release Notes
 
@@ -12,13 +13,13 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 
 ### Release History
 
-* v2.0.0.0 - Latest release
+* v2.0.0.0+
 * v1911.0
 * v1903.7
 
 ### Release Compatibility
 
-* This release requires PowerShell 3.0 or higher.
+* This release requires PowerShell 5.0 or higher.
 * This release requires .NET 4.5 minimum.
 * This release is compatible with the PowerShell SDK 1.7.4.0 and greater.
 * This release is not yet compatible with the PowerShell SDK version 2.
@@ -27,16 +28,14 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 ### Install and Uninstall
 
 
-The Pure Storage PowerShell Toolkit is distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
-The tookit requires the PowerShell SDK. A built-in global function will attempt to download and install it if it is not present.
+The very latest versions of the Toolkit are always available in this repository. There are multiple branches that may contain alpha or beta code. The default "dev" branch contains "stable" code. The Pure Storage PowerShell Toolkit is also distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
 
-The Pure Storage PowerShell Toolkit is distrbuted through the PowerShell Gallery (https://www.powershellgallery.com). 
-* [Ensure that the proper TLS version is set for PSGallery](https://devblogs.microsoft.com/powershell/powershell-gallery-tls-support/)
-* [Pure Storage PowerShell Toolkit](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit/)
+The tookit requires the PureStoragePowerShellSDK module by default for any functions that connect to a FlashArray. Other modules are also used for further functionaility with SQL, Excel output, etc. A built-in global function will attempt to download and install them if they are not present when the cmdlet is launched.
+
 * [Pure Storage PowerShell SDK](https://www.powershellgallery.com/packages/PureStoragePowerShellSDK/) (Required)
 
 
-To install the Pure Storage PowerShell Toolkit open up an elevated Windows PowerShell session and type:
+To install the Pure Storage PowerShell Toolkit, open up an elevated Windows PowerShell session and type:
 
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
