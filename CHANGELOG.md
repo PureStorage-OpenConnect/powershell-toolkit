@@ -1,3 +1,8 @@
+# Revision 2.0.1.0
+7-28-2021
+* Merged Pure Storage DBAToolkit functions
+* Cleaned up typos in Help
+
 # Revision 2.0.0.0
 
 Pure Storage PowerShell SDK Toolkit
