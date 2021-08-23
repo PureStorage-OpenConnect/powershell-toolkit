@@ -22,27 +22,25 @@
 	===========================================================================
 
 	Revision information:
+    : version 2.0.2.0   Added cmdlets:
+                        Get-WindowsDiagnosticInfo, Get-FlashArrayRASession, Get-FlashArrayQuickCapacityStats, New-FlashArrayPGroupVolumes, Get-FlashArrayVolumeGrowth
+                        Changed cmdlets: Show-FlashArrayPGroupsConfig to proper verb of Get-FlashArrayPGroupsConfig
+                        Changed cmdlets: 'Pfa' prefixed cmdlets to 'FlashArray' for clarity with SDK v1 cmdlet naming as well as future FlashBlade cmdlets:
+                            Get-PfaSerialNumbers to Get-FlashArraySerialNumbers
+                            New-PfaDbSnapshot to New-FlashArrayDbSnapshot
+                            Invoke-PfaDbRefresh to Invoke-FlashArrayDbRefresh
 	: version 2.0.1.0   Added SQL DBATooolkit functions New-PfaDbSnapshot, Invoke-DynamicDataMasking,
                         Invoke-StaticDataMasking, Invoke-PfaDbRefresh
                         Cleaned up Array login logic, misc typos.
     : version 2.0.0.0	GA release
 
 
-	Contributors and many thanks go out to:
-	Rob "Barkz" Barker @purestorage
-	Robert "Q" Quimbey @purestorage
-	Mike "Chief" Nelson @purestorage
-	Julian "Doctor" Cates @purestorage
-	Marcel Dussil @purestorage - https://en.pureflash.blog/
-	Craig Dayton - https://github.com/cadayton
-	Jake Daniels - https://github.com/JakeDennis
-	Richard Raymond - https://github.com/data-sciences-corporation/PureStorage
-	.. and all of the Pure Code community who provide excellent advice, feedback, & scripts, and for those that will in the future.
+	Contributors and many thanks go out to: Rob "Barkz" Barker @purestorage, Robert "Q" Quimbey @purestorage, Mike "Chief" Nelson @purestorage, 	Julian "Doctor" Cates @purestorage, Marcel Dussil @purestorage - https://en.pureflash.blog/ , Craig Dayton - https://github.com/cadayton , Jake Daniels - https://github.com/JakeDennis, Richard Raymond - https://github.com/data-sciences-corporation/PureStorage , The dbatools Team - https://dbatools.io , many more Puritans, and all of the Pure Code community who provide excellent advice, feedback, & scripts, and for those that will in the future.
 	#>
 
 #Requires -Version 3
 
-## BEGIN HELPER FUNCTIONS
+#### BEGIN HELPER FUNCTIONS
 
 #region ConvertTo-Base64
 function ConvertTo-Base64() {
@@ -278,9 +276,326 @@ function Get-HypervStatus() {
     }
 }
 #endregion
-## END HELPER FUNCTIONS
+#### END HELPER FUNCTIONS
 
 #### FLASHARRAY FUNCTIONS
+
+#region Get-FlashArrayVolumeGrowth.ps1
+function Get-FlashArrayVolumeGrowth() {
+    <#
+    .SYNOPSIS
+    Retrieves volume growth information over past X days at X percentage of growth.
+    .DESCRIPTION
+    Retrieves volume growth in GB from a FlashArray for volumes that grew in past X amount of days at X percentage of growth.
+    .PARAMETER Arrays
+    Required. An IP address or FQDN of the FlashArray(s). Multiple arrys can be specified, seperated by commas. Only use single-quotes or no quotes around the arrays parameter object. Ex. -Arrays array1,array2,array3 --or-- -Arrays 'array1,array2,array3'
+    .PARAMETER MinimumVolumeAgeInDays
+    Optional. The minimum age in days that a volume must be to report on it. If not specified, defaults to 1 day.
+    .PARAMETER TimeFrameToCompareWith
+    Required. The timeframe to compare the volume size against. Accepts '1h', '3h', '24h', '7d', '30d', '90d', '1y'.
+    .PARAMETER GrowthPercentThreshold
+    Optional. The minimum percentage of volume growth to report on. Specified as a numerical value from 1-99. If not specified, defaults to '1'.
+    .PARAMETER DoNotReportGrowthOfLessThan
+    Optional. If growth in size, in Gigabytes, over the specified period is lower than this value, it will not be reported. Specified as a numerical value. If not specified, defaults to '1'.
+    .PARAMETER DoNotReportVolSmallerThan
+    Optional. Volumes that are smaller than this size in Gigabytes will not be reported on. Specified as a numerical value + GB. If not specified, defaults to '1GB'.
+    .PARAMETER html
+    Optional. Switch. If present, produces a HTML of the output in the current folder named FlashArrayVolumeGrowthReport.html.
+    .PARAMETER csv
+    Optional. Switch. If present, produces a csv comma-delimited file of the output in the current folder named FlashArrayVolumeGrowthReport.csv.
+    .INPUTS
+    Specified inputs to calculate volumes reported on.
+    .OUTPUTS
+    Volume capacity information to the console, and also to a CSV and/or HTML formatted report (if specified).
+    .EXAMPLE
+    Get-FlashArrayVolumeGrowth -Arrays array1,array2 -GrowthPercentThreshold '10' -MinimumVolumeAgeInDays '1' -TimeFrameToCompareWith '7d' -DoNotReportGrowthOfLessThan '1' -DoNotReportVolSmallerThan '1GB' -csv
+
+    Retrieve volume capacity report for array 1 and array2 comparing volumes over the last 7 days that:
+        - volumes that are not smaller than 1GB in size
+        - must have growth of less than 1GB
+        - that are at least 1 day old
+        - have grown at least 10%
+        - output the report to a CSV delimited file
+    .NOTES
+    All arrays specified must use th same credential login.
+
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string[]] $Arrays,
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $MinimumVolumeAgeInDays = "1",
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $TimeFrameToCompareWith,
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $GrowthPercentThreshold = "1",
+        [Parameter(Mandatory = $False)][string] $DoNotReportGrowthOfLessThan = "1",
+        [Parameter(Mandatory = $False)][string] $DoNotReportVolSmallerThan = "1GB",
+        [Parameter(Mandatory = $False)][switch] $csv,
+        [Parameter(Mandatory = $False)][switch] $html
+    )
+    Get-Sdk1Module
+    $cred = Get-Credential
+    # Connect to FlashArray(s)
+    $VolThatBreachGrowthPercentThreshold = @()
+    foreach ($Array in $Arrays) {
+        if (!($Creds)) {
+            try {
+                $FlashArray = New-PfaArray -EndPoint $Array -Credentials $cred -IgnoreCertificateError
+            }
+            catch {
+                $ExceptionMessage = $_.Exception.Message
+                Write-Error "Failed to connect to FlashArray endpoint $Array with: $ExceptionMessage"
+                Return
+            }
+        }
+        else {
+            try {
+                $FlashArray = New-PfaArray -EndPoint $Array -Credentials $Creds -IgnoreCertificateError
+            }
+            catch {
+                $ExceptionMessage = $_.Exception.Message
+                Write-Error "Failed to connect to FlashArray endpoint $Array with: $ExceptionMessage"
+                Return
+            }
+        }
+    }
+    Write-Host ""
+    Write-Host "Retrieving data from arrays and calculating." -ForegroundColor Yellow
+    Write-Host "This may take some time depending on number of arrays, volumes, etc. Please wait..." -ForegroundColor Yellow
+    Write-Host ""
+    foreach ($Array in $Arrays) {
+        Write-Host "Calculating array $Array..." -ForegroundColor Green
+        Write-Host ""
+        $VolDetails = (Get-PfaVolumes $FlashArray -ErrorAction SilentlyContinue)
+        $VolDetailsExcludingNewAndSmall = $VolDetails | ? size -GT $DoNotRportVolSmallerThan | Where-Object { (Get-Date $_.created) -lt (Get-Date).AddDays(-$DaysSinceCommissioningToReportAfter) }
+        $VolDetailsExcludingNewAndSmall = $VolDetailsExcludingNewAndSmall |
+        % {
+            $VolumeSpaceMetrics = Get-PfaVolumeSpaceMetricsByTimeRange -VolumeName $_.name -TimeRange $TimeFrameToCompareWith -Array $FlashArray
+            $_ | Add-Member NoteProperty -PassThru -Force -Name "GrowthPercentage" -Value  $([math]::Round((($VolumeSpaceMetrics | select -Last 1).volumes / (1KB + ($VolumeSpaceMetrics | Select-Object -First 1).volumes)), 2)) | # 1KB+ appended to avoid devide by 0 errors
+            Add-Member NoteProperty -PassThru -Force -Name "GrowthInGB" -Value  $([math]::Round(((($VolumeSpaceMetrics | Select-Object -Last 1).volumes - ($VolumeSpaceMetrics | Select-Object -First 1).volumes) / 1GB), 2)) | `
+                Add-Member NoteProperty -PassThru -Force -Name "ArrayName" -Value $Array
+        }
+        $VolThatBreachGrowthPercentThreshold += $VolDetailsExcludingNewAndSmall | Where-Object { $_.GrowthPercentage -gt $GrowthPercentThreshold -and $_.GrowthInGB -gt $DoNotRportGrowthOfLessThan }
+
+        if ($VolThatBreachGrowthPercentThreshold) {
+            Write-Host "The following volumes have grown in the last $TimeFrameToCompareWith above the $GrowthPercentThreshold Percent of thier previous size:" -ForegroundColor Green
+            ($($VolThatBreachGrowthPercentThreshold | Select-Object Name, ArrayName, GrowthInGB, GrowthPercentage) | Format-Table -AutoSize )
+            $htmlOutput = ($($VolThatBreachGrowthPercentThreshold | Select-Object name, ArrayName, GrowthInGB, GrowthPercentage))
+            $csvOutput = ($($VolThatBreachGrowthPercentThreshold | Select-Object name, ArrayName, GrowthInGB, GrowthPercentage))
+        }
+    }
+    Write-Host " "
+    Write-Host "Query parameters specified as:"
+    Write-Host "1) Ignore volumes created in the last $DaysSinceCommissioningToReportAfter days, 2) Volumes smaller than $($DoNotRportVolSmallerThan / 1GB) GB, and 3) Growth lower than $DoNotRportGrowthOfLessThan GB." -ForegroundColor Green
+    Write-Host " "
+    if ($html.IsPresent) {
+        Write-Host "Building HTML report as requested. Please wait..." -ForegroundColor Yellow
+        $htmlParams = @{
+            Title       = "Volume Capacity Report for FlashArrays"
+            Body        = Get-Date
+            PreContent  = "<p>Volume Capacity Report for FlashArrays $Arrays :</p>"
+            PostContent = "<p>Query parameters specified as: 1) Ignore volumes created in the last $DaysSinceCommissioningToReportAfter days, 2) Volumes smaller than $($DoNotRportVolSmallerThan / 1GB) GB, and 3) Growth lower than $DoNotRportGrowthOfLessThan GB.</p>"
+        }
+        $htmlOutput | ConvertTo-Html @htmlParams | Out-File -FilePath .\FlashArrayVolumeGrowthReport.html | Out-Null
+    }
+    if ($csv.IsPresent) {
+        Write-Host "Building CSV report as requested. Please wait..." -ForegroundColor Yellow
+        $csvOutput | Export-Csv -NoTypeInformation -Path .\FlashArrayVolumeGrowthReport.csv
+    }
+    else {
+        Write-Host " "
+        Write-Host "No volumes on the array(s) match the requested criteria."
+        Write-Host " "
+    }
+}
+#endregion
+
+#region Get-FlashArrayRASession.ps1
+function Get-FlashArrayRASession() {
+    <#
+    .SYNOPSIS
+    Retrieves Remote Assist status from a FlashArray.
+    .DESCRIPTION
+    Retrieves Remote Assist status from a FlashArray as disabled or enabled in a loop every 30 seconds until stopped.
+    .PARAMETER EndPopint
+    Required. FlashArray IP address or FQDN.
+    .INPUTS
+    EndPoint IP or FQDN required.
+    .OUTPUTS
+    Outputs Remote Assst status.
+    .EXAMPLE
+    Get-FlashArrayRASession -EndPoint myarray.mydomain.com
+
+    Retrieves the current Remote Assist status and continues check status every 30 seconds until stopped.
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+    Get-Sdk1Module
+    # Connect to FlashArray
+    if (!($Creds)) {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    else {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    While ($true) {
+        If ((Get-PfaRemoteAssistSession -Array $FlashArray).Status -eq 'disabled') {
+            Set-PfaRemoteAssistStatus -Array $FlashArray -Action connect
+        }
+        else {
+            Write-Warning "Remote Assist session is not active."
+            Start-Sleep 30
+        }
+    }
+}
+#endregion
+
+#region New-FlashArrayPGroupVolumes
+function New-FlashArrayPGroupVolumes() {
+    <#
+    .SYNOPSIS
+    Creates volumes to a new FlashArray Protection Group (PGroup).
+    .DESCRIPTION
+    This cmdlet will allow for the creation of multiple volumes and adding the created volumes to a new Protection Group (PGroup). The new volume names will default to "$PGroupPrefix-vol1", "PGroupPrefix-vol2" etc.
+    .PARAMETER PGroupPrefix
+    Required. The name of the Protection Group prefix to add volumes to. This parameter specifies the prefix of the PGroup name. The suffix defaults to "-PGroup". Example: -PGroupPrefix "database". The full PGroup name will be "database-PGroup".
+    This PGroup will be created as new and must not already exist on the array.
+    This prefix will also be used to uniquely name the volumes as they are created.
+    .PARAMETER VolumeSizeGB
+    Required. The size of the new volumes in Gigabytes (GB).
+    .PARAMETER NumberOfVolumes
+    Required. The number of volumes that are to be created. Each volume will be named "vol" with an ascending number following (ie. vol1, vol2, etc.). Each volume name will also contain the $PGroupPrefix variable as the name prefix.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+    New-FlashArrayPGroupVolumes -PGroupPrefix "database" -VolumeSizeGB "200" -NumberOfVolumes "3"
+
+    Creates 3-200GB volumes, named "database-vol1", "database-vol2", and "database-vol3". Each volume is added to the new Protection Group "database-PGroup".
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $PGroupPrefix,
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $VolumeSizeGB,
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $NumberOfVolumes
+    )
+    Get-Sdk1Module
+    # Connect to FlashArray
+    if (!($Creds)) {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    else {
+        try {
+            $FlashArray = New-PfaArray -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    $Volumes = @()
+    for ($i = 1; $i -le $NumberOfVolumes; $i++) {
+        New-PfaVolume -Array $FlashArray -VolumeName "$PGroupPrefix-Vol$i" -Unit G -Size $VolumeSizeGB
+        $Volumes += "$PGroupPrefix-Vol$i"
+    }
+    $Volumes -join ","
+    New-PfaProtectionGroup -Array $FlashArray -Name "$PGGroupPrefix-PGroup" -Volumes $Volumes
+}
+#endregion
+
+#region Get-FlashArrayQuickCapacityStats
+function Get-FlashArrayQuickCapacityStats() {
+    <#
+    .SYNOPSIS
+    Quick way to retrieve FlashArray capacity statistics.
+    .DESCRIPTION
+    Retrieves high level capcity statistics from a FlashArray.
+    .PARAMETER Names
+    Required. A single name or array of names, comma seperated, of arrays to show acapacity information.
+    .INPUTS
+    Single or multiple FlashArray IP addresses or FQDNs.
+    .OUTPUTS
+    Outputs array capacity information
+    .EXAMPLE
+    Get-FlashArrayQuickCapacityStats -Names 'array1, array2'
+
+    Retrieves capacity statistic information from FlashArray's array1 and array2.
+    .NOTES
+    The arrays supplied in the "Names" parameter must use the same credentials for access.
+
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)][ValidateNotNullOrEmpty()][string] $Names
+    )
+    Get-Sdk1Module
+    if (!($Creds)) {
+        $arrays = @()
+        foreach ($name in $names) {
+            try {
+                $arrays += New-PfaArray -EndPoint $name -Credentials $cred -IgnoreCertificateError -Verbose -ErrorAction Stop
+            }
+            catch {
+                Write-Output "Error accessing $name : $_"
+            }
+        }
+    }
+    else {
+        $arrays = @()
+        foreach ($name in $names) {
+            try {
+                $arrays += New-PfaArray -EndPoint $name -Credentials $Creds -IgnoreCertificateError -Verbose -ErrorAction Stop
+            }
+            catch {
+                Write-Output "Error accessing $name : $_"
+            }
+        }
+    }
+
+    $spacemetrics = $arrays | Get-PfaArraySpaceMetrics -Verbose
+    $spacemetrics = $spacemetrics | Select-Object *, @{N = "expvolumes"; E = { $_.volumes * $_.data_reduction } }, @{N = "provisioned"; E = { ($_.total - $_.system) / (1 - $_.thin_provisioning) * $_.data_reduction } }
+
+    $totalcapacity = ($spacemetrics | Measure-Object capacity -Sum).Sum
+    $totalvolumes = ($spacemetrics | Measure-Object volumes -Sum).Sum
+    $totalvolumes_beforereduction = ($spacemetrics | Measure-Object expvolumes -Sum).Sum
+    $totalprovisioned = ($spacemetrics | Measure-Object provisioned -Sum).Sum
+
+    $1TB = 1024 * 1024 * 1024 * 1024
+    $date = Get-Date
+    Write-Host "On $($spacemetrics.Count) Pure FlashArrays, there is $([int]($totalcapacity/$1TB)) TB of capacity; $([int]($totalvolumes/$1TB)) TB written, reduced from $([int]($totalvolumes_beforereduction/$1TB)) TB. Total provisioned: $([int]($totalprovisioned/$1TB)) TB."
+    Write-Host "Data collected on $date"
+}
+#endregion
 
 #region Get-HostVolumeInfo
 function Get-AllHostVolumeInfo() {
@@ -353,8 +668,8 @@ function Get-AllHostVolumeInfo() {
 }
 #endregion
 
-#region Get-PfaSerialNumbers
-function Get-PfaSerialNumbers() {
+#region Get-FlashArraySerialNumbers
+function Get-FlashArraySerialNumbers() {
     <#
     .SYNOPSIS
     Retrieves FlashArray volume serial numbers connected to the host.
@@ -365,7 +680,7 @@ function Get-PfaSerialNumbers() {
     .OUTPUTS
     Outputs serial numbers of FlashArrays devices.
     .EXAMPLE
-    Get-PfaSerialNumbers
+    Get-FlashArraySerialNumbers
 
     Returns serial number information on Pure FlashArray disk devices connected to the host.
     #>
@@ -872,8 +1187,8 @@ Function Get-FlashArraySpace() {
 }
 #endregion
 
-#region Show-FlashArrayPgroupsConfig
-Function Show-FlashArrayPgroupsConfig() {
+#region Get-FlashArrayPgroupsConfig
+Function Get-FlashArrayPgroupsConfig() {
     <#
     .SYNOPSIS
     Retrieves Protection Group (PGroup) information for the FlashArray.
@@ -886,7 +1201,7 @@ Function Show-FlashArrayPgroupsConfig() {
     .OUTPUTS
     Protection Group information is displayed.
     .EXAMPLE
-    Show-FlashArrayPgroupsConfig -EndPoint myArrayg
+    Get-FlashArrayPgroupsConfig -EndPoint myArrayg
 
     .NOTES
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
@@ -3189,11 +3504,174 @@ function Set-TlsVersions() {
 }
 #endregion
 
-### DBA TOOLKIT FUNCTIONS
+#region Get-WindowsDiagnosticInfo
+function Get-WindowsDiagnosticInfo() {
+    <#
+
+    .SYNOPSIS
+    Gathers Windows operating system, hardware, and software information, including logs for diagnostics. This cmdlet requires Administrative permissions.
+    .DESCRIPTION
+    This script will collect detailed information on the Windows operating system, hardware and software components, and collect event logs in .evtx and .csv formats. It will optionally collect WSFC logs and optionally compress all gathered files intoa .zip file for easy distribution.
+    This script will place all of the files in a parent folder in the root of the C:\ drive that is named after the computer NetBios name($env:computername).
+    Each section of information gathered will have it's own child folder in that parent folder.
+    .PARAMETER Cluster
+    Optional. Collect Windows Server Failover Cluster (WSFC) logs.
+    .PARAMETER Compress
+    Optional. Compress the folder that contains all the gathered data into a zip file. The file name will be the computername_diagnostics.zip.
+    .INPUTS
+    None
+    .OUTPUTS
+    Diagnostic outputs in txt and event log files.
+    Compressed zip file.
+    .EXAMPLE
+    Get-WindowsDiagnosticInfo.ps1 -Cluster
+
+    Retrieves all of the operating system, hardware, software, event log, and WSFC logs into the default folder.
+
+    .EXAMPLE
+    Get-WindowsDiagnosticInfo.ps1 -Compress
+
+    Retrieves all of the operating system, hardware, software, event log, and compresses the parent folder into a zip file that will be created in the root of the C: drive.
+
+    .NOTES
+    This cmdlet requires Administrative permissions.
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(ValuefromPipeline = $false, Mandatory = $false)][switch]$Cluster,
+        [Parameter(ValuefromPipeline = $false, Mandatory = $false)][switch]$Compress
+    )
+    Get-ElevatedStatus
+    # create root outfile
+    $folder = Test-Path -PathType Container -Path "c:\$env:computername"
+    if ($folder -eq "False") {
+        New-Item -Path "c:\$env:computername" -ItemType "directory" | Out-Null
+    }
+    Set-Location -Path "c:\$env:computername"
+    Write-Host ""
+
+    # system information
+    Write-Host "Retrieving MSInfo32 information. This will take some time to complete. Please wait..." -ForegroundColor Yellow
+    msinfo32 /report msinfo32.txt | Out-Null
+    Write-Host "Completed MSInfo32 information." -ForegroundColor Green
+    Write-Host ""
+    ## hotfixes
+    Write-Host "Retrieving Hotfix information..." -ForegroundColor Yellow
+    Get-WmiObject -Class Win32_QuickFixEngineering | Select-Object -Property Description, HotFixID, InstalledOn | Format-Table -Wrap -AutoSize | Out-File  "HotfixesQFE.txt"
+    Get-HotFix | Format-Table -Wrap -AutoSize | Out-File "Get-Hotfix.txt"
+    Write-Host "Completed HotfixQFE information." -ForegroundColor Green
+    Write-Host ""
+
+    # storage information
+    New-Item -Path "c:\$env:computername\storage" -ItemType "directory" | Out-Null
+    Set-Location -Path "c:\$env:computername\storage"
+    Write-Host "Retrieving Storage information..." -ForegroundColor Yellow
+    fsutil behavior query DisableDeleteNotify | Out-File "fsutil_behavior_DisableDeleteNotify.txt"
+    Get-PhysicalDisk | Select-Object * | Out-File "Get-PhysicalDisk.txt"
+    Get-Disk | Select-Object * | Out-File "Get-Disk.txt"
+    Get-Volume | Select-Object * | Out-File "Get-Volume.txt"
+    Get-Partition | Select-Object * | Out-File "Get-Partition.txt"
+    Write-Host "    Completed Disk information." -ForegroundColor Green
+    Write-Host ""
+    ## disk, MPIO, and MSDSM information
+    Write-Host "    Retrieving MPIO and MSDSM information..." -ForegroundColor Yellow
+    Get-ItemProperty "HKLM:\System\CurrentControlSet\Services\MSDSM\Parameters" | Out-File "Get-ItemProperty_msdsm.txt"
+    Get-MSDSMGlobalDefaultLoadBalancePolicy | Out-File "Get-ItemProperty_msdsm_load_balance_policy.txt"
+    Get-ItemProperty "HKLM:\System\CurrentControlSet\Services\mpio\Parameters" | Out-File "Get-ItemProperty_mpio.txt"
+    Get-ItemProperty "HKLM:\System\CurrentControlSet\Services\Disk" | Out-File "Get-ItemProperty_disk.txt"
+    mpclaim -s -d | Out-File "mpclaim_-s_-d.txt"
+    mpclaim -v | Out-File "mpclaim_-v.txt"
+    Get-MPIOSetting | Out-File "Get-MPIOSetting.txt"
+    Get-MPIOAvailableHW | Out-File "Get-MPIOAvailableHW.txt"
+    Write-Host "    Completed MPIO, & MSDSM information." -ForegroundColor Green
+    Write-Host ""
+    ## Fibre Channel information
+    Write-Host "    Retrieving Fibre Channel information..." -ForegroundColor Yellow
+    winrm e wmi/root/wmi/MSFC_FCAdapterHBAAttributes > MSFC_FCAdapterHBAAttributes.txt
+    winrm e wmi/root/wmi/MSFC_FibrePortHBAAttributes > MSFC_FibrePortHBAAttributes.txt
+    Get-InitiatorPort | Out-File "Get-InitiatorPort.txt"
+    Write-Host "    Completed Fibre Channel information." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Completed Storage information." -ForegroundColor Green
+    Write-Host ""
+
+    # Network information
+    New-Item -Path "c:\$env:computername\network" -ItemType "directory" | Out-Null
+    Set-Location -Path "c:\$env:computername\network"
+    Write-Host "Retrieving Network information..." -ForegroundColor Yellow
+    Get-NetAdapter | Format-Table Name, ifIndex, Status, MacAddress, LinkSpeed, InterfaceDescription -AutoSize | Out-File "Get-NetAdapter.txt"
+    Get-NetAdapterAdvancedProperty | Format-Table DisplayName, DisplayValue, ValidDisplayValues | Out-File "Get-NetAdapterAdvancedProperty.txt" -Width 160
+    Write-Host "Completed Network information." -ForegroundColor Green
+    Write-Host ""
+
+    # Event Logs in evtx format
+    New-Item -Path "c:\$env:computername\eventlogs" -ItemType "directory" | Out-Null
+    Set-Location -Path "c:\$env:computername\eventlogs"
+    Write-Host "Retrieving Event Logs unfiltered." -ForegroundColor Yellow
+    wevtutil epl System "systemlog.evtx"
+    wevtutil epl Setup "setuplog.evtx"
+    wevtutil epl Security "securitylog.evtx"
+    wevtutil epl Application "applicationlog.evtx"
+    Write-Host "   Completed .evtx log files." -ForegroundColor Green
+    ## create locale files
+    wevtutil al "systemlog.evtx"
+    wevtutil al "setuplog.evtx"
+    wevtutil al "securitylog.evtx"
+    wevtutil al "applicationlog.evtx"
+    Write-Host "   Completed locale .evtx log files." -ForegroundColor Green
+    ## get error & warning events & export to csv
+    Write-Host "Retrieving filtered Event Logs. This will take some time to complete. Please wait..." -ForegroundColor Yellow
+    Get-WinEvent -FilterHashtable @{LogName = 'Application'; 'Level' = 1, 2, 3 } -ErrorAction SilentlyContinue | Export-Csv "application_log-CRITICAL_ERROR_WARNING.csv" -NoTypeInformation
+    Get-WinEvent -FilterHashtable @{LogName = 'System'; 'Level' = 1, 2, 3 } -ErrorAction SilentlyContinue | Export-Csv "system_log-CRITICAL_ERROR_WARNING.csv" -NoTypeInformation
+    Get-WinEvent -FilterHashtable @{LogName = 'Security'; 'Level' = 1, 2, 3 } -ErrorAction SilentlyContinue | Export-Csv "security_log-CRITICAL_ERROR_WARNING.csv" -NoTypeInformation
+    Get-WinEvent -FilterHashtable @{LogName = 'Setup'; 'Level' = 1, 2, 3 } -ErrorAction SilentlyContinue | Export-Csv "setup_log-CRITICAL_ERROR_WARNING.csv" -NoTypeInformation
+    Write-Host "   Completed Critical, Error, & Warning .csv log files." -ForegroundColor Green
+    ## get information events & export to csv
+    Get-WinEvent -FilterHashtable @{LogName = 'Application'; 'Level' = 4 } -ErrorAction SilentlyContinue | Export-Csv "application_log-INFO.csv" -NoTypeInformation
+    Get-WinEvent -FilterHashtable @{LogName = 'System'; 'Level' = 4 } -ErrorAction SilentlyContinue | Export-Csv "system_log-INFO.csv" -NoTypeInformation
+    Get-WinEvent -FilterHashtable @{LogName = 'Security'; 'Level' = 4 } -ErrorAction SilentlyContinue | Export-Csv "security_log-INFO.csv" -NoTypeInformation
+    Get-WinEvent -FilterHashtable @{LogName = 'Setup'; 'Level' = 4 } -ErrorAction SilentlyContinue | Export-Csv "setup_log-INFO.csv" -NoTypeInformation
+    Write-Host "   Completed Informational .csv log files." -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Completed Event Logs." -ForegroundColor Green
+    Write-Host ""
+
+    # WSFC inforation
+    If ($Cluster.IsPresent) {
+        New-Item -Path "c:\$env:computername\cluster" -ItemType "directory" | Out-Null
+        Set-Location -Path "c:\$env:computername\cluster"
+        Write-Host "Retrieving Cluster Logs. This may take some time to complete. Please wait..." -ForegroundColor Yellow
+        Get-ClusterLog -Destination . | Out-Null
+        Get-ClusterSharedVolume | Select-Object * | Out-File "Get-ClusterSharedVolume.txt"
+        Get-ClusterSharedVolumeState | Select-Object * | Out-File "Get-ClusterSharedVolumeState.txt"
+        Write-Host "Completed Cluster information." -ForegroundColor Green
+        Write-Host ""
+    }
+
+    # Compress folder
+    If ($Compress.IsPresent) {
+        Write-Host "Starting folder compression. Please wait..." -ForegroundColor Yellow
+        Set-Location -Path "\"
+        $compress = @{
+            Path             = "c:\$env:computername"
+            CompressionLevel = "Optimal"
+            DestinationPath  = $env:computername + "_diagnostics.zip"
+        }
+        Compress-Archive @compress
+        Write-Host "Completed folder compression." -ForegroundColor Green
+    }
+    Write-Host ""
+    Write-Host "Information collection completed."
+}
+#endregion
+
+#### END WINDOWS FUNCTIONS
+
+#### DBA TOOLKIT FUNCTIONS
 ### migrated from the Pure Storage DBA Toolkit module in July 2021
 
-#region Invoke-PfaDbRefresh
-function Invoke-PfaDbRefresh {
+#region Invoke-FlashArrayDbRefresh
+function Invoke-FlashArrayDbRefresh {
 <#
 .SYNOPSIS
 A PowerShell function to refresh one or more SQL Server databases (the destination) from either a snapshot or database.
@@ -3258,34 +3736,34 @@ dbatools module onwards will be applied  to the refreshed database. The use of t
 being created and populated in the first place as per this blog post: https://dbatools.io/mask/ .
 
 .EXAMPLE
-Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
 -PromptForSnapshot
 
 Refresh a single database from a snapshot selected from a list of snapshots associated with the volume specified by the RefreshSource parameter.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource z-sql2016-devops-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 -PromptForSnapshot
 
 Refresh multiple databases from a snapshot selected from a list of snapshots associated with the volume specified by the RefreshSource parameter.
 .EXAMPLE
-Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10 `
 -RefreshFromSnapshot
 
 Refresh a single database using the snapshot specified by the RefreshSource parameter.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -RefreshDatabase tpch-no-compression -RefreshSource source-snap -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 -RefreshFromSnapshot
 
 Refresh multiple databases using the snapshot specified by the RefreshSource parameter.
 .EXAMPLE
-Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10
+Invoke-FlashArrayDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance z-sql2016-devops-tst -Endpoint 10.225.112.10
 
 Refresh a single database from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
 .EXAMPLE
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource.
 .EXAMPLE
@@ -3297,14 +3775,14 @@ Refresh multiple databases from the database specified by the SourceDatabase par
 .EXAMPLE
 $StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 -StaticDataMaskFile $StaticDataMaskFile
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
 .EXAMPLE
 $StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 -ForceDestDbOffline -StaticDataMaskFile $StaticDataMaskFile
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
@@ -3312,7 +3790,7 @@ All databases to be refreshed are forced offline prior to their underlying Flash
 .EXAMPLE
 $StaticDataMaskFile = "D:\apps\datamasks\z-sql-prd.tpch-no-compression.tables.json"
 $Targets = @("z-sql2016-devops-tst", "z-sql2016-devops-dev")
-Invoke-PfaDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
+Invoke-FlashArrayDbRefresh -$RefreshDatabase tpch-no-compression -RefreshSource z-sql-prd -DestSqlInstance $Targets -Endpoint 10.225.112.10 `
 -PollJobInterval 10 -ForceDestDbOffline -StaticDataMaskFile $StaticDataMaskFile
 
 Refresh multiple databases from the database specified by the SourceDatabase parameter residing on the instance specified by RefreshSource and apply SQL Server dynamic data masking to each database.
@@ -3926,8 +4404,8 @@ END;
 }
 #endregion
 
-#region New-PfaDbSnapshot
-function New-PfaDbSnapshot {
+#region New-FlashArrayDbSnapshot
+function New-FlashArrayDbSnapshot {
     <#
 .SYNOPSIS
 A PowerShell function to create a FlashArray snapshot of the volume that a database resides on.
@@ -3948,7 +4426,7 @@ spedcified as an array of strings, otherwise a single string representing the ta
 Required. The IP address representing the FlashArray that the volumes for the source and refresh target databases reside on.
 
 .EXAMPLE
-New-PfaDbSnapshot -Database tpch-no-compression -SqlInstance z-sql2016-devops-prd -Endpoint 10.225.112.10 -Creds $Creds
+New-FlashArrayDbSnapshot -Database tpch-no-compression -SqlInstance z-sql2016-devops-prd -Endpoint 10.225.112.10 -Creds $Creds
 
 Create a snapshot of FlashArray volume that stores the tpch-no-compression database on the z-sql2016-devops-prd instance
 
@@ -4090,14 +4568,19 @@ Export-ModuleMember -Function Set-MPIODiskLBPolicy
 Export-ModuleMember -Function Get-FlashArrayStaleSnapshots
 Export-ModuleMember -Function Get-FlashArrayDisconnectedVolumes
 Export-ModuleMember -Function Get-FlashArraySpace
-Export-ModuleMember -Function Show-FlashArrayPgroupsConfig
+Export-ModuleMember -Function Get-FlashArrayPGroupsConfig
 Export-ModuleMember -Function Remove-FlashArrayPendingDeletes
 Export-ModuleMember -Function Get-FlashArrayConfig
 Export-ModuleMember -Function Get-FlashArrayHierarchy
 Export-ModuleMember -Function Get-PfaSerialNumbers
-Export-ModuleMember -Function New-PfaDbSnapshot
+Export-ModuleMember -Function New-FlashArrayDbSnapshot
 Export-ModuleMember -Function Invoke-DynamicDataMasking
 Export-ModuleMember -Function Invoke-StaticDataMasking
-Export-ModuleMember -Function Invoke-PfaDbRefresh
+Export-ModuleMember -Function Invoke-FlashArrayDbRefresh
+Export-ModuleMember -Function Get-WindowsDiagnosticInfo
+Export-ModuleMember -Function Get-FlashArrayRASession
+Export-ModuleMember -Function Get-FlashArrayQuickCapacityStats
+Export-ModuleMember -Function New-FlashArrayPGroupVolumes
+Export-ModuleMember -Function Get-FlashArrayVolumeGrowth
 
 # END

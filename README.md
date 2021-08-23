@@ -3,17 +3,19 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/PureStorage-Connect/PowerShellSDK/total?color=orange&label=GitHub%20downloads&logo=powershell&style=plastic)  ![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PureStoragePowerShellSDK?color=orange&label=PSGallery%20downloads&logo=powershell&style=plastic)
 [![PSScriptAnalyzer](https://github.com/PureStorage-OpenConnect/powershell-toolkit/actions/workflows/psanalyzer-codecheck.yml/badge.svg?branch=dev)](https://github.com/PureStorage-OpenConnect/powershell-toolkit/actions/workflows/psanalyzer-codecheck.yml)
 
+The Pure Storage PowerShell Toolkit is an open source project that provides cmdlets for Pure Storage FlashArray and Windows Server. The intention of the PowerShell Toolkit is to provide useful cmdlets for customers and the Pure Storage Field Support to use in troubleshooting, monitoring, reporting, best practices, and configuration. The PowerShell Toolkit leverages the Pure Storage PowerShell SDK for some of the cmdlets.
+
 ## Version: 2.0.0.0+
 
 ### Pure Storage PowerShell Toolkit Release Notes
 
-Version 2 of the Pure Storage PowerShell Toolkit adds several cmdlets for FlashArrays and Windows Server and enhances some legacy functions. For a complete read of changes, please refer to the CHANGELOG.md file.
-
-The Pure Storage PowerShell Toolkit is an open source project that provides cmdlets for Pure Storage FlashArray and Windows Server. The intention of the PowerShell Toolkit is to provide useful cmdlets for customers and the Pure Storage Field Support to use in troubleshooting, monitoring, reporting, best practices, and configuration. The PowerShell Toolkit leverages the Pure Storage PowerShell SDK for some of the cmdlets.
+Version 2 of the Pure Storage PowerShell Toolkit adds several cmdlets for FlashArrays, Windows Server, SQL server, and enhances some legacy functions. For a complete read of changes, please refer to the CHANGELOG.md file.
 
 ### Release History
 
-* v2.0.0.0+
+* v2.0.2.0
+* v2.0.1.0
+* v2.0.0.0
 * v1911.0
 * v1903.7
 
@@ -28,7 +30,7 @@ The Pure Storage PowerShell Toolkit is an open source project that provides cmdl
 ### Install and Uninstall
 
 
-The very latest versions of the Toolkit are always available in this repository. There are multiple branches that may contain alpha or beta code. The default "dev" branch contains "stable" code. The Pure Storage PowerShell Toolkit is also distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
+The very latest versions of the Toolkit are always available in this repository. There may be multiple branches that may contain alpha or beta code. The default "dev" branch contains "stable" code. The Pure Storage PowerShell Toolkit is also distrbuted through the [PowerShell Gallery](https://www.powershellgallery.com/packages/PureStoragePowerShellToolkit).
 
 The tookit requires the PureStoragePowerShellSDK module by default for any functions that connect to a FlashArray. Other modules are also used for further functionaility with SQL, Excel output, etc. A built-in global function will attempt to download and install them if they are not present when the cmdlet is launched.
 
