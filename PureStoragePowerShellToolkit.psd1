@@ -28,7 +28,8 @@
 RootModule = 'PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
-ModuleVersion = '2.0.1.0'
+
+ModuleVersion = '2.0.2.0'
 
 # Supported PSEditions
 #CompatiblePSEditions  = @("Desktop", "Core")
@@ -46,7 +47,7 @@ CompanyName = 'Pure Storage, Inc.'
 Copyright = '(c) 2021 Pure Storage, Inc. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'PowerShell Toolkit for Pure Storage Flasharray and initiators.'
+Description = 'PowerShell Toolkit for Pure Storage Flasharray and Initiators.'
 
 # Minimum version of the Windows PowerShell engine required by this module
 PowerShellVersion = '5.0'
@@ -106,15 +107,20 @@ FunctionsToExport = @(
 		'Get-FlashArrayStaleSnapshots',
 		'Get-FlashArrayDisconnectedVolumes',
 		'Get-FlashArrayArraySpace',
-		'Show-FlashArrayPgroupsConfig',
+		'Get-FlashArrayPgroupsConfig',
 		'Remove-FlashArrayPendingDeletes',
 		'Get-FlashArrayConfig',
-		'Get-PfaSerialNumbers',
+		'Get-FlashArraySerialNumbers',
 		'Get-FlashArrayHierarchy',
-		'New-PfaDbSnapshot',
+		'New-FlashArrayDbSnapshot',
 		'Invoke-DynamicDataMasking',
 		'Invoke-StaticDataMasking',
-		'Invoke-PfaDbRefresh'
+		'Invoke-FlashArrayDbRefresh',
+		'Get-WindowsDiagnosticInfo',
+		'Get-FlashArrayRASession',
+		'Get-FlashArrayQuickCapacityStats',
+		'New-FlashArrayPGroupVolumes',
+		'Get-FlashArrayVolumeGrowth'
 		)
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
