@@ -1,5 +1,15 @@
 Pure Storage PowerShell Toolkit
 
+# Revision 2.0.3.0
+9-27-2021
+* Fixed Get-MPIODiskLBPolicy and Set-MPIODiskLBPolicy cmdlets to use correct execution and parameters with mpclaim.exe.
+* Added helper function to check for SDK v2 module.
+  * NOTE: Purity API versions 2.0 and 2.1 require authentication via OAuth. The logic is not yet included to authenticate
+  using this method, so only Token authentication can happen at this time with any cmdlets that require the SDKv2.
+  The logic to allow OAuth will be added to a future revision.
+* Added Get-FlashArrayConnectDetails cmdlet. Thanks to JD Wallace.
+* Added Rest Wrapper cmdlets from Cody Hosterman - New-PfaRestSession and Remove-PfaRestSession. See the cmdlet help for more information.
+* Formatting changes
 # Revision 2.0.2.0
 8-23-2021
 * Added cmdlets:

@@ -1,43 +1,23 @@
 <#
 	===========================================================================
+    Release version: 2.0.3.0
+    Revision information: Refer to the changelog.md file
+	---------------------------------------------------------------------------
 	Maintained by: 	fa-solutions@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psm1
 	Copyright:		(c) 2021 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module (.psm1)
-	-------------------------------------------------------------------------
-	Disclaimer
-    The sample module and documentation are provided AS IS and are not supported by
-	the author or the author’s employer, unless otherwise agreed in writing. You bear
-	all risk relating to the use or performance of the sample script and documentation.
-	The author and the author’s employer disclaim all express or implied warranties
-	(including, without limitation, any warranties of merchantability, title, infringement
-	or fitness for a particular purpose). In no event shall the author, the author’s employer
-	or anyone else involved in the creation, production, or delivery of the scripts be liable
-	for any damages whatsoever arising out of the use or performance of the sample script and
-	documentation (including, without limitation, damages for loss of business profits,
-	business interruption, loss of business information, or other pecuniary loss), even if
-	such person has been advised of the possibility of such damages.
-	===========================================================================
-
-	Revision information:
-    : version 2.0.2.0   Added cmdlets:
-                        Get-WindowsDiagnosticInfo, Get-FlashArrayRASession, Get-FlashArrayQuickCapacityStats, New-FlashArrayPGroupVolumes, Get-FlashArrayVolumeGrowth
-                        Changed cmdlets: Show-FlashArrayPGroupsConfig to proper verb of Get-FlashArrayPGroupsConfig
-                        Changed cmdlets: 'Pfa' prefixed cmdlets to 'FlashArray' for clarity with SDK v1 cmdlet naming as well as future FlashBlade cmdlets:
-                            Get-PfaSerialNumbers to Get-FlashArraySerialNumbers
-                            New-PfaDbSnapshot to New-FlashArrayDbSnapshot
-                            Invoke-PfaDbRefresh to Invoke-FlashArrayDbRefresh
-	: version 2.0.1.0   Added SQL DBATooolkit functions New-PfaDbSnapshot, Invoke-DynamicDataMasking,
-                        Invoke-StaticDataMasking, Invoke-PfaDbRefresh
-                        Cleaned up Array login logic, misc typos.
-    : version 2.0.0.0	GA release
-
-
-	Contributors and many thanks go out to: Rob "Barkz" Barker @purestorage, Robert "Q" Quimbey @purestorage, Mike "Chief" Nelson @purestorage, 	Julian "Doctor" Cates @purestorage, Marcel Dussil @purestorage - https://en.pureflash.blog/ , Craig Dayton - https://github.com/cadayton , Jake Daniels - https://github.com/JakeDennis, Richard Raymond - https://github.com/data-sciences-corporation/PureStorage , The dbatools Team - https://dbatools.io , many more Puritans, and all of the Pure Code community who provide excellent advice, feedback, & scripts, and for those that will in the future.
-	#>
-
+	--------------------------------------------------------------------------
+	Disclaimer:
+    The sample module and documentation are provided AS IS and are not supported by the author or the author’s employer, unless otherwise agreed in writing. You bear
+	all risk relating to the use or performance of the sample script and documentation. The author and the author’s employer disclaim all express or implied warranties
+	(including, without limitation, any warranties of merchantability, title, infringement or fitness for a particular purpose). In no event shall the author, the author’s employer or anyone else involved in the creation, production, or delivery of the scripts be liable 	for any damages whatsoever arising out of the use or performance of the sample script and 	documentation (including, without limitation, damages for loss of business profits, business interruption, loss of business information, or other pecuniary loss), even if 	such person has been advised of the possibility of such damages.
+	--------------------------------------------------------------------------
+	Contributors: Rob "Barkz" Barker @purestorage, Robert "Q" Quimbey @purestorage, Mike "Chief" Nelson @purestorage, Julian "Doctor" Cates @purestorage, Marcel Dussil @purestorage - https://en.pureflash.blog/ , Craig Dayton - https://github.com/cadayton , Jake Daniels - https://github.com/JakeDennis, Richard Raymond - https://github.com/data-sciences-corporation/PureStorage , The dbatools Team - https://dbatools.io , many more Puritans, and all of the Pure Code community who provide excellent advice, feedback, & scripts now and in the future.
+    ===========================================================================
+#>
 #Requires -Version 3
 
 #### BEGIN HELPER FUNCTIONS
@@ -201,6 +181,44 @@ function Get-Sdk1Module() {
 }
 #endregion
 
+#region Get-Sdk1Module
+function Get-Sdk2Module() {
+    <#
+    .SYNOPSIS
+	Confirms that PureStoragePowerShellSDK version 2 module is loaded, present, or missing. If missing, it will download it and import. If internet access is not available, the function will error.
+    .DESCRIPTION
+	Helper function
+	Supporting function to load required module.
+    .OUTPUTS
+	PureStoragePowerShellSDK version 2 module.
+#>
+    $m = "PureStoragePowerShellSDK2"
+    # If module is imported, continue
+    if (Get-Module | Where-Object { $_.Name -eq $m }) {
+    }
+    else {
+        # If module is not imported, but available on disk, then import
+        if (Get-InstalledModule | Where-Object { $_.Name -eq $m }) {
+            Import-Module $m -ErrorAction SilentlyContinue
+        }
+        else {
+            # If module is not imported, not available on disk, then install and import
+            if (Find-Module -Name $m | Where-Object { $_.Name -eq $m }) {
+                Write-Warning "The $m module does not exist."
+                Write-Host "We will attempt to install the module from the PowerShell Gallery. Please wait..."
+                Install-Module -Name $m -Force -ErrorAction SilentlyContinue -Scope CurrentUser
+                Import-Module $m -ErrorAction SilentlyContinue
+            }
+            else {
+                # If module is not imported, not available on disk, and we cannot access it online, then abort
+                Write-Host "Module $m not imported, not available on disk, and we are not able to download it from the online gallery... Exiting."
+                EXIT 1
+            }
+        }
+    }
+}
+#endregion
+
 #region Get-DbaToolsModule
 function Get-DbaToolsModule() {
     <#
@@ -280,6 +298,219 @@ function Get-HypervStatus() {
 
 #### FLASHARRAY FUNCTIONS
 
+#region New-PfaRestSession
+function New-PfaRestSession {
+    <#
+    .SYNOPSIS
+      Connects to FlashArray and creates a REST connection.
+    .DESCRIPTION
+      For operations that are in the FlashArray REST, but not in the Pure Storage PowerShell SDK yet, this provides a connection for iInvoke-RestMethod to use.
+    .PARAMETER flasharray
+    Required via pipeline. This object is placed via pipeline. See the example.
+    .INPUTS
+      FlashArray connection or FlashArray IP/FQDN and credentials
+    .OUTPUTS
+      Returns REST session
+    .NOTES
+      Version:        2.0
+      Author:         Cody Hosterman https://codyhosterman.com
+      Creation Date:  08/24/2020
+      Purpose/Change: Core support
+    .EXAMPLE
+      Establish credential variable [--or-- use a global $Creds variable]
+        $Creds = Get-Credential
+      Connect to array and create array object
+        $array = New-PfaArray -EndPoint myArray -Credentials $Creds
+      Create REST variable for invoking REST API calls
+        $restSession = New-PfaRestSession -Flasharray $array
+
+      Creates a direct REST session to the FlashArray for REST operations that are not supported by the PowerShell SDK yet. Returns it and also stores it in $global:faRestSession
+    *******Disclaimer:******************************************************
+    This scripts are offered "as is" with no warranty.  While this
+    scripts is tested and working in my environment, it is recommended that you test
+    this script in a test lab before using in a production environment. Everyone can
+    use the scripts/commands provided here without any written permission but I
+    will not be liable for any damage or loss to the system.
+    ************************************************************************
+    #>
+    [CmdletBinding()]
+    Param(
+        [Parameter(Position = 0, ValueFromPipeline = $True)][PurePowerShell.PureArray]$Flasharray
+    )
+    #Connect to FlashArray
+    if ($null -eq $flasharray) {
+        Write-Host "No flasharray variable was passed. Establish a connection object to an array (using the New-PfaArray cmdlet - see example) before executing this cmdlet. Exiting."
+        break
+    }
+    if ($PSEdition -ne 'Core') {
+        Add-Type @"
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+public class TrustAllCertsPolicy : ICertificatePolicy {
+    public bool CheckValidationResult(
+        ServicePoint srvPoint, X509Certificate certificate,
+        WebRequest request, int certificateProblem) {
+        return true;
+    }
+}
+"@
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+        #Create FA REST session
+        $SessionAction = @{
+            api_token = $flasharray.ApiToken
+        }
+        Invoke-RestMethod -Method Post -Uri "https://$($flasharray.Endpoint)/api/$($flasharray.apiversion)/auth/session" -Body $SessionAction -SessionVariable Session -ErrorAction Stop | Out-Null
+    }
+    else {
+        $SessionAction = @{
+            api_token = $flasharray.ApiToken
+        }
+        Invoke-RestMethod -Method Post -Uri "https://$($flasharray.Endpoint)/api/$($flasharray.apiversion)/auth/session" -Body $SessionAction -SessionVariable Session -ErrorAction Sto -SkipCertificateCheck | Out-Null
+    }
+    $global:faRestSession = $Session
+    return $global:faRestSession
+}
+
+#endregion
+
+#region Remove-PfaRestSession
+function Remove-PfaRestSession {
+    <#
+    .SYNOPSIS
+      Disconnects a FlashArray REST session
+    .DESCRIPTION
+      Takes in a FlashArray Connection or session and disconnects on the FlashArray.
+    .INPUTS
+      FlashArray connection or session
+    .OUTPUTS
+      Returns success or failure.
+    .NOTES
+      Version:        2.0
+      Author:         Cody Hosterman https://codyhosterman.com
+      Creation Date:  08/24/2020
+      Purpose/Change: Core support
+    .EXAMPLE
+      $restSession | Remove-PfaRestSession -flasharray $array
+
+      Disconnects a direct REST session to a FlashArray. Does not disconnect the PowerShell session.
+    *******Disclaimer:******************************************************
+    This scripts are offered "as is" with no warranty.  While this
+    scripts is tested and working in my environment, it is recommended that you test
+    this script in a test lab before using in a production environment. Everyone can
+    use the scripts/commands provided here without any written permission but I
+    will not be liable for any damage or loss to the system.
+    ************************************************************************
+    #>
+
+    [CmdletBinding()]
+    Param(
+        [Parameter(Position = 0, ValueFromPipeline = $True, mandatory = $true)]
+        [Microsoft.PowerShell.Commands.WebRequestSession]$FaSession,
+
+        [Parameter(Position = 1, ValueFromPipeline = $True, mandatory = $true)]
+        [PurePowerShell.PureArray]$Flasharray
+    )
+    if ($null -eq $flasharray) {
+        $flasharray = checkDefaultFlashArray
+    }
+    $purevip = $flasharray.endpoint
+    $apiVersion = $flasharray.ApiVersion
+    #Delete FA session
+    if ($PSVersionTable.PSEdition -ne "Core") {
+        Add-Type @"
+        using System.Net;
+        using System.Security.Cryptography.X509Certificates;
+            public class IDontCarePolicy : ICertificatePolicy {
+            public IDontCarePolicy() {}
+            public bool CheckValidationResult(
+                ServicePoint sPoint, X509Certificate cert,
+                WebRequest wRequest, int certProb) {
+                return true;
+            }
+        }
+"@
+        [System.Net.ServicePointManager]::CertificatePolicy = New-Object IDontCarePolicy
+        Invoke-RestMethod -Method Delete -Uri "https://${purevip}/api/${apiVersion}/auth/session" -WebSession $faSession -ErrorAction Stop | Out-Null
+    }
+    else {
+        Invoke-RestMethod -Method Delete -Uri "https://${purevip}/api/${apiVersion}/auth/session" -WebSession $faSession -ErrorAction Stop -SkipCertificateCheck | Out-Null
+    }
+}
+#endregion
+
+#region Get-FlashArrayConnectDetails
+function Get-FlashArrayConnectDetails() {
+    <#
+    .SYNOPSIS
+    Outputs FlashArray connection details.
+    .DESCRIPTION
+    Output FlashArray connection details including Host and Volume names, LUN ID, IQN / WWN, Volume Provisioned Size, and Host Capacity Written.
+    .PARAMETER EndPoint
+    Required. FlashArray IP address or FQDN.
+    .INPUTS
+    None
+    .OUTPUTS
+    Formatted output details from Get-Pfa2Connection
+    .EXAMPLE
+    Get-FlashArrayConnectDetails.ps1 -EndPoint myArray
+
+    .NOTES
+    This cmdlet does not allow for use of OAUth authentication, only token authentication. Arrays with maximum API versions of 2.0 or 2.1 must use OAuth authentication. This will be added in a later revision.
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $EndPoint
+    )
+    Get-Sdk2Module
+    # Connect to FlashArray
+    if (!($Creds)) {
+        try {
+            $FlashArray = Connect-Pfa2Array -EndPoint $EndPoint -Credentials (Get-Credential) -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+    else {
+        try {
+            $FlashArray = Connect-Pfa2Array -EndPoint $EndPoint -Credentials $Creds -IgnoreCertificateError
+        }
+        catch {
+            $ExceptionMessage = $_.Exception.Message
+            Write-Error "Failed to connect to FlashArray endpoint $Endpoint with: $ExceptionMessage"
+            Return
+        }
+    }
+
+    # Create an object to store the connection details
+    $ConnDetails = New-Object -TypeName System.Collections.ArrayList
+    $Header = "HostName", "VolumeName", "LUNID", "IQNs", "WWNs", "Provisioned(TB)", "HostWritten(GB)"
+
+    # Get Connections and filter out VVOL protocol endpoints
+    $PureConns = (Get-Pfa2Connection -Array $FlashArray | Where-Object { !($_.Volume.Name -eq "pure-protocol-endpoint") })
+
+    # For each Connection, build a row with the desired values from Connection, Host, and Volume objects. Add it to ConnDetails.
+    ForEach ($PureConn in $PureConns) {
+        $PureHost = (Get-Pfa2Host -Array $FlashArray | Where-Object { $_.Name -eq $PureConn.Host.Name })
+        $PureVol = (Get-Pfa2Volume -Array $FlashArray | Where-Object { $_.Name -eq $PureConn.Volume.Name })
+
+    # Calculate and format Host Written Capacity, Volume Provisioned Capacity
+        $HostWrittenCapacity = [Math]::Round(($PureVol.Provisioned * (1 - $PureVol.Space.ThinProvisioning)) / 1GB, 2)
+        $VolumeProvisionedCapacity = [Math]::Round(($PureVol.Provisioned ) / 1TB, 2)
+
+        $NewRow = "$($PureHost.Name),$($PureVol.Name),$($PureConn.Lun),$($PureHost.Iqns),$($PureHost.Wwns),"
+        $NewRow += "$($VolumeProvisionedCapacity),$($HostWrittenCapacity)"
+        [void]$ConnDetails.Add($NewRow)
+    }
+    # Print ConnDetails and make it look nice
+    $ConnDetails | ConvertFrom-Csv -Header $Header | Sort-Object HostName | Format-Table -AutoSize
+}
+#endregion
+
 #region Get-FlashArrayVolumeGrowth.ps1
 function Get-FlashArrayVolumeGrowth() {
     <#
@@ -317,7 +548,7 @@ function Get-FlashArrayVolumeGrowth() {
         - have grown at least 10%
         - output the report to a CSV delimited file
     .NOTES
-    All arrays specified must use th same credential login.
+    All arrays specified must use the same credential login.
 
     This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
     #>
@@ -3194,12 +3425,10 @@ function Get-MPIODiskLBPolicy() {
     .PARAMETER DiskID
     Optional. If specified, retrieves only the policy for the that disk ID. Otherwise, returns all disks.
     DiskID is the 'Number' identifier of the disk from the cmdlet 'Get-Disk'.
-    .PARAMETER OutFile
-    Optional. File name to output results to. Defaults to %TEMP%\MPIOLBPolicy.txt
     .INPUTS
     None
     .OUTPUTS
-    Outputs $OutFile contents.
+    mpclaim.exe output
     .EXAMPLE
     Get-MPIODiskLBPolicy -DiskID 1
 
@@ -3207,17 +3436,26 @@ function Get-MPIODiskLBPolicy() {
     #>
     [CmdletBinding()]
     Param (
-        [Parameter(Mandatory = $False)][string]$DiskId,
-        [Parameter(Mandatory = $False)][string]$OutFile = "$env:Temp\output.txt"
+        [Parameter(Mandatory = $False)][string]$DiskId
     )
+    function Invoke-mpclaim($param1, $param2, $param3) {
+        . mpclaim.exe $param1 $param2 $param3
+    }
+    #Checks whether mpclaim.exe is available.
+    $exists = Test-Path "$env:systemroot\System32\mpclaim.exe"
+    if (-not ($exists)) {
+        Write-Host "mpclaim.exe not found. Is MultiPathIO enabled? Exiting." -ForegroundColor Yellow
+        break
+    }
     if ($DiskId) {
-        Write-Host "Getting MPIO Load Balancing Policy for" + $DiskId
-        Start-Process "$env:WINDIR\system32\mpclaim.exe" -ArgumentList "-s -d $DiskId" -NoNewWindow -Wait -RedirectStandardOutput $OutFile
+        Write-Host "Getting current MPIO Load Balancing Policy for DiskID " + $DiskId -ForegroundColor Green
+        $result = Invoke-mpclaim -param1 "-s" -param2 "-d" -param3 $DiskId
+        return $result
     }
     else {
-        Write-Host "Getting MPIO Load Balancing Policy for all MPIO disks."
-        Start-Process "$env:WINDIR\system32\mpclaim.exe" -ArgumentList "-s -d" -NoNewWindow -Wait -RedirectStandardOutput $OutFile
-        Get-Content -Path $OutFile
+        Write-Host "Getting current MPIO Load Balancing Policy for all MPIO disks." -ForegroundColor Green
+        $result = Invoke-mpclaim -param1 "-s" -param2 "-d"
+        return $result
     }
 }
 #endregion
@@ -3268,14 +3506,27 @@ function Set-MPIODiskLBPolicy() {
         Write-Host "Required policy type parameter of LQD, RR, FO, RRWS, WP LB, or clear not supplied. Exiting."
         break
     }
+    function Invoke-MPclaim($param1, $param2, $param3, $param4) {
+        . mpclaim.exe $param1 $param2 $param3 $param4
+    }
+    #Checks whether mpclaim.exe is available.
+    $exists = Test-Path "$env:systemroot\System32\mpclaim.exe"
+    if (-not ($exists)) {
+        Write-Host "mpclaim.exe not found. Is MultiPathIO enabled? Exiting." -ForegroundColor Yellow
+        break
+    }
     Write-Host "Setting MPIO Load Balancing Policy to" + $pn + " for all Pure FlashArray disks."
     $puredisks = Get-PhysicalDisk | Where-Object FriendlyName -Match "PURE"
-    foreach ($puredisk in $puredisks) {
-        $subtract = "0"    # set to 0 if numbers match in the test above.
-        $id = (($ssd.DeviceId) - $subtract).ToString()
-        Start-Process "%WINDIR%\system32\mpclaim.exe" -ArgumentList "-l -d $id $pn" -NoNewWindow -Wait -RedirectStandardOutput $env:tmp\output.txt
-        Get-Content -Path $env:tmp\output.txt
+    $puredisks | ForEach-Object {
+        # Get disk uniqueid
+        $UniqueID = $_.UniqueId
+        $MPIODisk = (Get-WmiObject -Namespace root\wmi -Class mpio_disk_info).driveinfo | Where-Object { $_.SerialNumber -eq $UniqueID }
+        $MPIODiskID = $MPIODisk.Name.Replace(“MPIO Disk”, ””)
+        $MPIODiskID
+        Invoke-mpclaim -param1 "-l" -param2 "-d" -param3 $MPIODiskID -param4 $pn
     }
+    Write-Host "New disk LB policy settings:" -ForegroundColor Green
+    Invoke-mpclaim -param1 "-s" -param2 "-d" -param3 "" -param4 ""
 }
 #endregion
 
@@ -4582,5 +4833,8 @@ Export-ModuleMember -Function Get-FlashArrayRASession
 Export-ModuleMember -Function Get-FlashArrayQuickCapacityStats
 Export-ModuleMember -Function New-FlashArrayPGroupVolumes
 Export-ModuleMember -Function Get-FlashArrayVolumeGrowth
+Export-ModuleMember -Function Get-FlashArrayConnectDetails
+Export-ModuleMember -Function New-PfaRestSession
+Export-ModuleMember -Function Remove-PfaRestSession
 
 # END
