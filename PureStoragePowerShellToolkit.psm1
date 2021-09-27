@@ -1,6 +1,6 @@
 <#
 	===========================================================================
-    Release version: 2.0.3.0
+    Release version: 2.0.3.1
     Revision information: Refer to the changelog.md file
 	---------------------------------------------------------------------------
 	Maintained by: 	fa-solutions@purestorage.com
@@ -297,147 +297,6 @@ function Get-HypervStatus() {
 #### END HELPER FUNCTIONS
 
 #### FLASHARRAY FUNCTIONS
-
-#region New-PfaRestSession
-function New-PfaRestSession {
-    <#
-    .SYNOPSIS
-      Connects to FlashArray and creates a REST connection.
-    .DESCRIPTION
-      For operations that are in the FlashArray REST, but not in the Pure Storage PowerShell SDK yet, this provides a connection for iInvoke-RestMethod to use.
-    .PARAMETER flasharray
-    Required via pipeline. This object is placed via pipeline. See the example.
-    .INPUTS
-      FlashArray connection or FlashArray IP/FQDN and credentials
-    .OUTPUTS
-      Returns REST session
-    .NOTES
-      Version:        2.0
-      Author:         Cody Hosterman https://codyhosterman.com
-      Creation Date:  08/24/2020
-      Purpose/Change: Core support
-    .EXAMPLE
-      Establish credential variable [--or-- use a global $Creds variable]
-        $Creds = Get-Credential
-      Connect to array and create array object
-        $array = New-PfaArray -EndPoint myArray -Credentials $Creds
-      Create REST variable for invoking REST API calls
-        $restSession = New-PfaRestSession -Flasharray $array
-
-      Creates a direct REST session to the FlashArray for REST operations that are not supported by the PowerShell SDK yet. Returns it and also stores it in $global:faRestSession
-    *******Disclaimer:******************************************************
-    This scripts are offered "as is" with no warranty.  While this
-    scripts is tested and working in my environment, it is recommended that you test
-    this script in a test lab before using in a production environment. Everyone can
-    use the scripts/commands provided here without any written permission but I
-    will not be liable for any damage or loss to the system.
-    ************************************************************************
-    #>
-    [CmdletBinding()]
-    Param(
-        [Parameter(Position = 0, ValueFromPipeline = $True)][PurePowerShell.PureArray]$Flasharray
-    )
-    #Connect to FlashArray
-    if ($null -eq $flasharray) {
-        Write-Host "No flasharray variable was passed. Establish a connection object to an array (using the New-PfaArray cmdlet - see example) before executing this cmdlet. Exiting."
-        break
-    }
-    if ($PSEdition -ne 'Core') {
-        Add-Type @"
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-public class TrustAllCertsPolicy : ICertificatePolicy {
-    public bool CheckValidationResult(
-        ServicePoint srvPoint, X509Certificate certificate,
-        WebRequest request, int certificateProblem) {
-        return true;
-    }
-}
-"@
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-        #Create FA REST session
-        $SessionAction = @{
-            api_token = $flasharray.ApiToken
-        }
-        Invoke-RestMethod -Method Post -Uri "https://$($flasharray.Endpoint)/api/$($flasharray.apiversion)/auth/session" -Body $SessionAction -SessionVariable Session -ErrorAction Stop | Out-Null
-    }
-    else {
-        $SessionAction = @{
-            api_token = $flasharray.ApiToken
-        }
-        Invoke-RestMethod -Method Post -Uri "https://$($flasharray.Endpoint)/api/$($flasharray.apiversion)/auth/session" -Body $SessionAction -SessionVariable Session -ErrorAction Sto -SkipCertificateCheck | Out-Null
-    }
-    $global:faRestSession = $Session
-    return $global:faRestSession
-}
-
-#endregion
-
-#region Remove-PfaRestSession
-function Remove-PfaRestSession {
-    <#
-    .SYNOPSIS
-      Disconnects a FlashArray REST session
-    .DESCRIPTION
-      Takes in a FlashArray Connection or session and disconnects on the FlashArray.
-    .INPUTS
-      FlashArray connection or session
-    .OUTPUTS
-      Returns success or failure.
-    .NOTES
-      Version:        2.0
-      Author:         Cody Hosterman https://codyhosterman.com
-      Creation Date:  08/24/2020
-      Purpose/Change: Core support
-    .EXAMPLE
-      $restSession | Remove-PfaRestSession -flasharray $array
-
-      Disconnects a direct REST session to a FlashArray. Does not disconnect the PowerShell session.
-    *******Disclaimer:******************************************************
-    This scripts are offered "as is" with no warranty.  While this
-    scripts is tested and working in my environment, it is recommended that you test
-    this script in a test lab before using in a production environment. Everyone can
-    use the scripts/commands provided here without any written permission but I
-    will not be liable for any damage or loss to the system.
-    ************************************************************************
-    #>
-
-    [CmdletBinding()]
-    Param(
-        [Parameter(Position = 0, ValueFromPipeline = $True, mandatory = $true)]
-        [Microsoft.PowerShell.Commands.WebRequestSession]$FaSession,
-
-        [Parameter(Position = 1, ValueFromPipeline = $True, mandatory = $true)]
-        [PurePowerShell.PureArray]$Flasharray
-    )
-    if ($null -eq $flasharray) {
-        $flasharray = checkDefaultFlashArray
-    }
-    $purevip = $flasharray.endpoint
-    $apiVersion = $flasharray.ApiVersion
-    #Delete FA session
-    if ($PSVersionTable.PSEdition -ne "Core") {
-        Add-Type @"
-        using System.Net;
-        using System.Security.Cryptography.X509Certificates;
-            public class IDontCarePolicy : ICertificatePolicy {
-            public IDontCarePolicy() {}
-            public bool CheckValidationResult(
-                ServicePoint sPoint, X509Certificate cert,
-                WebRequest wRequest, int certProb) {
-                return true;
-            }
-        }
-"@
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object IDontCarePolicy
-        Invoke-RestMethod -Method Delete -Uri "https://${purevip}/api/${apiVersion}/auth/session" -WebSession $faSession -ErrorAction Stop | Out-Null
-    }
-    else {
-        Invoke-RestMethod -Method Delete -Uri "https://${purevip}/api/${apiVersion}/auth/session" -WebSession $faSession -ErrorAction Stop -SkipCertificateCheck | Out-Null
-    }
-}
-#endregion
 
 #region Get-FlashArrayConnectDetails
 function Get-FlashArrayConnectDetails() {
@@ -3521,7 +3380,7 @@ function Set-MPIODiskLBPolicy() {
         # Get disk uniqueid
         $UniqueID = $_.UniqueId
         $MPIODisk = (Get-WmiObject -Namespace root\wmi -Class mpio_disk_info).driveinfo | Where-Object { $_.SerialNumber -eq $UniqueID }
-        $MPIODiskID = $MPIODisk.Name.Replace(“MPIO Disk”, ””)
+        $MPIODiskID = $MPIODisk.Name.Replace("MPIO Disk", "")
         $MPIODiskID
         Invoke-mpclaim -param1 "-l" -param2 "-d" -param3 $MPIODiskID -param4 $pn
     }
@@ -4834,7 +4693,5 @@ Export-ModuleMember -Function Get-FlashArrayQuickCapacityStats
 Export-ModuleMember -Function New-FlashArrayPGroupVolumes
 Export-ModuleMember -Function Get-FlashArrayVolumeGrowth
 Export-ModuleMember -Function Get-FlashArrayConnectDetails
-Export-ModuleMember -Function New-PfaRestSession
-Export-ModuleMember -Function Remove-PfaRestSession
 
 # END
