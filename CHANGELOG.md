@@ -2,6 +2,7 @@ Pure Storage PowerShell Toolkit
 
 # Revision 2.0.3.x
 9-27-2021
+* typo in psd1 file fixed
 * Fixed Get-MPIODiskLBPolicy and Set-MPIODiskLBPolicy cmdlets to use correct execution and parameters with mpclaim.exe.
 * Added helper function to check for SDK v2 module.
   * NOTE: Purity API versions 2.0 and 2.1 require authentication via OAuth. The logic is not yet included to authenticate
