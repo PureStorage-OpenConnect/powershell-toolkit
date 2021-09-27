@@ -29,7 +29,7 @@ RootModule = 'PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
 
-ModuleVersion = '2.0.3.0'
+ModuleVersion = '2.0.3.1'
 
 # Supported PSEditions
 #CompatiblePSEditions  = @("Desktop", "Core")
@@ -121,9 +121,7 @@ FunctionsToExport = @(
 		'Get-FlashArrayQuickCapacityStats',
 		'New-FlashArrayPGroupVolumes',
 		'Get-FlashArrayVolumeGrowth',
-		'Get-FlashArrayConnectDetails',
-		'New-PfaRestSession',
-		'Remove-PfaRestSession'
+		'Get-FlashArrayConnectDetails'
 		)
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
