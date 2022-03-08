@@ -1,12 +1,12 @@
 <#
 	===========================================================================
-    Release version: 2.0.3.1
+    Release version: 2.0.3.3
     Revision information: Refer to the changelog.md file
 	---------------------------------------------------------------------------
-	Maintained by: 	fa-solutions@purestorage.com
+	Maintained by: 	fa-integrations@purestorage.com
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psm1
-	Copyright:		(c) 2021 Pure Storage, Inc.
+	Copyright:		(c) 2022 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module (.psm1)
 	--------------------------------------------------------------------------
@@ -556,6 +556,60 @@ function Get-FlashArrayRASession() {
         }
     }
 }
+#endregion
+
+#region Restore-PfaProtectionGroupVolumeSnapshots
+function Restore-PfaPGroupVolumeSnapshots() {
+	<#
+    .SYNOPSIS
+    Recover all of the volumes from a protection group (PGroup) snapshot.
+    .DESCRIPTION
+    This cmdlet will recover all of the volumes from a protection group (PGroup) snapshot in one operation.
+    .PARAMETER ProtectionGroup
+    Required. The name of the Protection Group.
+    .PARAMETER SnapshotName
+    Required. The name of the snapshot.
+    .PARAMETER PGroupPrefix
+    Required. The name of the Protection Group prefix.
+    .PARAMETER Hostname
+    Optional. The hostname to attach the snapshots to.
+    .INPUTS
+    None
+    .OUTPUTS
+    None
+    .EXAMPLE
+
+    Restore-PfaPGroupVolumeSnapshots –Array $array –ProtectionGroup "VOL1-PGroup" –SnapshotName "VOL1-PGroup.001" –Prefix TEST -Hostname HOST1
+
+    Restores protection group snapshots named "VOL1-PGroup.001" from PGroup "VOL1-PGroup", adds the prefix of "TEST" to the name, and attaches them to the host "HOST1" on array $array.
+    .NOTES
+    This cmdlet can utilize the global $Creds variable for FlashArray authentication. Set the variable $Creds by using the command $Creds = Get-Credential.
+    #>
+    [CmdletBinding()]
+	Param (
+		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $Array,
+		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $ProtectionGroup,
+		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $SnapshotName,
+		[Parameter(Mandatory = $True)][ValidateNotNullOrEmpty()][string] $PGroupPrefix,
+		[Parameter(Mandatory = $False)][ValidateNotNullOrEmpty()][string] $Hostname
+
+	)
+
+    $PGroupVolumes = Get-PfaProtectionGroup -Array $Array -Name $ProtectionGroup -Session $Session
+    $PGroupSnapshotsSet = $SnapshotName
+
+    ForEach ($PGroupVolume in $PGroupVolumes)
+    {
+        For($i=0;$i -lt $PGroupVolume.volumes.Count;$i++)
+        {
+            $NewPGSnapshotVol = ($PGroupVolume.volumes[$i]).Replace($PGroupVolume.source+":",$Prefix+"-")
+            $Source = ($PGroupSnapshotsSet+"."+$PGroupVolumes.volumes[$i]).Replace($PGroupVolume.source+":","")
+            New-PfaVolume -Array $Array -VolumeName $NewPGSnapshotVol -Source $Source
+            New-PfaHostVolumeConnection -Array $array -HostName $Hostname -VolumeName $NewPGSnapshotVol
+        }
+    }
+}
+
 #endregion
 
 #region New-FlashArrayPGroupVolumes
@@ -3654,7 +3708,7 @@ function Get-WindowsDiagnosticInfo() {
     Get-ElevatedStatus
     # create root outfile
     $folder = Test-Path -PathType Container -Path "c:\$env:computername"
-    if ($folder -eq "False") {
+    if ($folder -eq "false") {
         New-Item -Path "c:\$env:computername" -ItemType "directory" | Out-Null
     }
     Set-Location -Path "c:\$env:computername"
@@ -4693,5 +4747,6 @@ Export-ModuleMember -Function Get-FlashArrayQuickCapacityStats
 Export-ModuleMember -Function New-FlashArrayPGroupVolumes
 Export-ModuleMember -Function Get-FlashArrayVolumeGrowth
 Export-ModuleMember -Function Get-FlashArrayConnectDetails
+Export-ModuleMember -Function Restore-PfaPGroupVolumeSnapshots
 
 # END
