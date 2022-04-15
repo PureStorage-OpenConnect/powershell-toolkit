@@ -2752,7 +2752,7 @@ function Test-WindowsBestPractices() {
     Run the cmdlet against the local machine running the MPIO tests and the log is located in the %TMP%\Test-WindowsBestPractices.log file.
 
     .EXAMPLE
-    Test-WindowsZBestPractices -EnableIscsiTests -OutFile "c:\temp\mylog.log"
+    Test-WindowsBestPractices -EnableIscsiTests -OutFile "c:\temp\mylog.log"
 
     Run the cmdlet against the local machine, run the additional iSCSI tests, and create the log file at c:\temp\mylog.log.
     #>
