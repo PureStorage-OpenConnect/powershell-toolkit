@@ -11,6 +11,7 @@ For a complete read of changes, please refer to the CHANGELOG.md file.
 
 ### Release History
 
+- v2.0.4.0
 - v2.0.3.3
 - v2.0.3.1
 - v2.0.2.0

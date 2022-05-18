@@ -1,5 +1,5 @@
 ﻿TOPIC 
-	about_PureStoragePowerShellToolkit-2.0.2.0
+	about_PureStoragePowerShellToolkit1
 	
 SHORT DESCRIPTION	
 	This is a short description of the file.
