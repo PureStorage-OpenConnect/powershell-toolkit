@@ -1,5 +1,11 @@
 Pure Storage PowerShell Toolkit
 
+# Revision 2.0.4.0
+
+04-18-2022
+
+- Added cmdlet New-FlashArrayExcelReport
+
 # Revision 2.0.3.3
 
 03-08-2022

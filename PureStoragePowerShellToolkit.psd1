@@ -1,9 +1,9 @@
 <#
 	===========================================================================
-	Created by:   	fa-solutions@purestorage.com
+	Created by:   	FlashArray Integrations and Evangelism Team @ Pure Storage
 	Organization: 	Pure Storage, Inc.
 	Filename:     	PureStoragePowerShellToolkit.psd1
-	Copyright:		(c) 2021 Pure Storage, Inc.
+	Copyright:		(c) 2022 Pure Storage, Inc.
 	Module Name: 	PureStoragePowerShellToolkit
 	Description: 	PowerShell Script Module Manifest (.psd1)
 	-------------------------------------------------------------------------
@@ -29,7 +29,7 @@ RootModule = 'PureStoragePowerShellToolkit.psm1'
 
 # Version number of this module.
 
-ModuleVersion = '2.0.3.3'
+ModuleVersion = '2.0.4.0'
 
 # Supported PSEditions
 #CompatiblePSEditions  = @("Desktop", "Core")
@@ -122,7 +122,8 @@ FunctionsToExport = @(
 		'New-FlashArrayPGroupVolumes',
 		'Get-FlashArrayVolumeGrowth',
 		'Get-FlashArrayConnectDetails',
-		'Restore-PfaPGroupVolumeSnapshots'
+		'Restore-PfaPGroupVolumeSnapshots',
+		'New-FlashArrayExcelReport'
 		)
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
